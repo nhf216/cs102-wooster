@@ -75,8 +75,16 @@ import os
 import math
 import traceback
 import user
-import Picture
-import Pixel
+
+#Use PIL for images
+import PIL
+
+#Use tkinter for file dialogs
+import tkinter
+from tkinter import filedialog
+#This is to prevent stupid windows from hanging around
+root = tk.Tk()
+root.withdraw()
 
 #import org.python.core.PyString as String
 
@@ -442,6 +450,7 @@ def _checkPixel(raw):
 # and the gray Color constructor to allow only 1 color parameter (will take 2, but ignores the second)
 class Color:
     #TODO mess with this
+    #TODO use ImageColor module in here
     def __init__(self,r,g=None,b=None):
         if b == None:
             #if isinstance( r, awt.Color ) or isinstance( r, Color ):
@@ -526,6 +535,9 @@ class Color:
 
     def makeLighter(self):
       return self.color.brighter()
+    
+    def getRGB(self):
+        return (self.getRed(), self.getGreen(), self.getBlue())
 
 def pickAColor():
     ## Dorn 5/8/2009:  Edited to be thread safe since this code is executed from an
@@ -563,9 +575,73 @@ pink = Color(255,175,175)
 magenta = Color(255,0,255)
 cyan = Color(0,255,255)
 
+#Pixel class, because JES has one
+class Pixel:
+    #Constructor
+    def __init__(self, picture, x, y):
+        self.picture = picture
+        self.x = x
+        self.y = y
+        self.color = Color(picture.getpixel((x,y)))
+    
+    #Render as string
+    def __str__(self):
+        return "Pixel red=%d green=%d blue=%d" % self.color.getRGB()
+
+#Picture class
+#Mostly just a wrapper for PIL Images
+class Picture:
+    #Constructor
+    def __init__(self, width = None, height = None, aColor = None):
+        self.filename = None
+        self.height = height
+        self.width = width
+        if height != None:
+            self.image = PIL.Image.new('RGB', (width, height), col)
+    
+    #Match JES's printing of a picture
+    def __str__(self):
+        ret = "Picture, "
+        if filename == None and self.height = None:
+            return ret + "empty"
+        retend = "height %d width %d" % (self.height, self.width)
+        elif filename == None:
+            return ret + retend
+        else:
+            return ret + "filename %s %s" % (self.filename, retend)
+    
+    #Load a file into the Picture object
+    def loadOrFail(self, filename):
+        try:
+            self.image = PIL.Image.open(filename)
+            self.filename = filename
+            self.height = image.height
+            self.width = image.width
+        except IOError:
+            raise IOError(filename + " could not be opened or was not a picture. Check that you specified the path")
+    
+    #Get Pixels
+    def getPixels(self):
+        ##Get the raw data
+        #dat = self.image.getdata()
+        ##Convert them all to Pixel objects
+        #return [Pixel(self, 
+        #On second thought, let's just mirror the Pixel class in JES
+        return [Pixel(self, x, y) for y in range(self.height) for x in range(self.width)]
+    
+    #Get width
+    def getWidth(self):
+        return self.width
+    
+    #Get height
+    def getHeight(self):
+        return self.height
+    
+
 ##
 ## Global picture functions
 ##
+#Done
 def makePicture(filename):
     global mediaFolder
     if not os.path.isabs(filename):
@@ -573,10 +649,10 @@ def makePicture(filename):
     if not os.path.isfile(filename):
         print "makePicture(filename): There is no file at "+filename
         raise ValueError
-    #picture = Picture()
-    #picture.loadOrFail(filename)
-    #return picture
-    #TODO
+    picture = Picture()
+    picture.loadOrFail(filename)
+    return picture
+    #return PIL.Image.open(filename)
 
 # MMO (1 Dec 2005): Capped width/height to max 10000 and min 1
 # alexr (6 Sep 2006): fixed to work without the Python classes.
@@ -589,36 +665,38 @@ def makeEmptyPicture(width, height, acolor = white):
     if width <= 0 or height <= 0:
         print "makeEmptyPicture(width, height[, acolor]): height and width must be greater than 0 each"
         raise ValueError
-    #picture = Picture(width, height, acolor) TODO
+    if isinstance(acolor, Color):
+        col = acolor.getRGB()
+    else
+        col = acolor
+    picture = Picture(width, height, acolor)
     # picture.createImage(width, height)
     # picture.filename = ''
     # careful here; do we want empty strings or "None"?
     return picture
+    #return PIL.Image.new('RGB', (width, height), col)
 
 def getPixels(picture):
-    #if not isinstance(picture, Picture):
-    #    print "getPixels(picture): Input is not a picture"
-    #    raise ValueError
-    #return picture.getPixels()
-    #TODO
+    if not isinstance(picture, Picture):
+        print "getPixels(picture): Input is not a picture"
+        raise ValueError
+    return picture.getPixels()
 
 #Done
 def getAllPixels(picture):
     return getPixels(picture)
 
 def getWidth(picture):
-    #if not isinstance(picture, Picture):
-    #    print "getWidth(picture): Input is not a picture"
-    #    raise ValueError
-    #return picture.getWidth()
-    pass #TODO
+    if not isinstance(picture, Picture):
+        print "getWidth(picture): Input is not a picture"
+        raise ValueError
+    return picture.getWidth()
 
 def getHeight(picture):
-    #if not isinstance(picture,Picture):
-    #    print "getHeight(picture): Input is not a picture"
-    #    raise ValueError
-    #return picture.getHeight()
-    pass #TODO
+    if not isinstance(picture,Picture):
+        print "getHeight(picture): Input is not a picture"
+        raise ValueError
+    return picture.getHeight()
 
 def show(picture, title=None):
     ##picture.setTitle(getShortPath(picture.filename))
