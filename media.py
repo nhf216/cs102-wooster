@@ -74,7 +74,7 @@ import sys
 import os
 import math
 import traceback
-import user
+#import user
 
 #Use PIL for images
 import PIL
@@ -82,8 +82,9 @@ import PIL
 #Use tkinter for file dialogs
 import tkinter
 from tkinter import filedialog
+from tkinter.colorchooser import askcolor
 #This is to prevent stupid windows from hanging around
-root = tk.Tk()
+root = tkinter.Tk()
 root.withdraw()
 
 #import org.python.core.PyString as String
@@ -131,7 +132,7 @@ def getMediaFolder( filename = "" ):
 #Done
 def showMediaFolder():
     global mediaFolder
-    print "The media path is currently: ",mediaFolder
+    print("The media path is currently: ",mediaFolder)
 
 #Done
 def getShortPath(filename):
@@ -150,264 +151,264 @@ def setLibPath(directory=None):
     if(os.path.isdir(directory)):
     	sys.path.append(directory)
     else:
-        print "Note: There is no directory at ",directory
+        print("Note: There is no directory at ",directory)
         raise ValueError
     return directory
     
-##
-## Global sound functions
-##
-def makeSound(filename):
-    global mediaFolder
-    if not os.path.isabs(filename):
-        filename = mediaFolder + filename
-    if not os.path.isfile(filename):
-        print "There is no file at "+filename
-        raise ValueError
-    #return Sound(filename)
-    #TODO
-
-# MMO (1 Dec 2005): capped size of sound to 600
-# Brian O (29 Apr 2008): changed first argument to be number of samples, added optional 2nd argument of sampling rate
-def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
-    if numSamples <= 0 or samplingRate <= 0:
-        print "makeEmptySound(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0"
-        raise ValueError
-    if (numSamples/samplingRate) > 600:
-        print "makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds"
-        raise ValueError
-    #return Sound(numSamples, samplingRate)
-    #TODO
-#    if size > 600:
-#        print "makeEmptySound(size): size must be 600 seconds or less"
-#        raise ValueError
-#    return Sound(size * Sound.SAMPLE_RATE)
-
-# Brian O (5 May 2008): Added method for creating sound by duration
-def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
-    if seconds <= 0 or samplingRate <= 0:
-        print "makeEmptySoundBySeconds(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0"
-        raise ValueError
-    if seconds > 600:
-        print "makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds"
-        raise ValueError
-    #return Sound(seconds * samplingRate, samplingRate)
-    #TODO
-
-# PamC: Added this function to duplicate a sound
-def duplicateSound(sound):
-  if not isinstance(sound, Sound):
-        print "duplicateSound(sound): Input is not a sound"
-        raise ValueError
-  #return Sound(sound)
-  #TODO
-
-def getSamples(sound):
-    if not isinstance(sound, Sound):
-        print "getSamples(sound): Input is not a sound"
-        raise ValueError
-#    return Samples(sound)
-    #return Samples.getSamples(sound)
-    #TODO
-
-def play(sound):
-    #if not isinstance(sound,Sound):
-    #    print "play(sound): Input is not a sound"
-    #    raise ValueError
-    #sound.play()
-    pass #TODO
-
-def blockingPlay(sound):
-    #if not isinstance(sound,Sound):
-    #    print "blockingPlay(sound): Input is not a sound"
-    #    raise ValueError
-    #sound.blockingPlay()
-    pass #TODO
-
-# Buck Scharfnorth (27 May 2008): Added method for stopping play of a sound
-def stopPlaying(sound):
-    #if not isinstance(sound,Sound):
-    #    print "stopPlaying(sound): Input is not a sound"
-    #    raise ValueError
-    #sound.stopPlaying()
-    pass #TODO
-
-def playAtRate(sound,rate):
-    #if not isinstance(sound, Sound):
-    #    print "playAtRate(sound,rate): First input is not a sound"
-    #    raise ValueError
-    ## sound.playAtRate(rate)
-    #sound.playAtRateDur(rate,sound.getLength())
-    pass #TODO
-
-def playAtRateDur(sound,rate,dur):
-    #if not isinstance(sound,Sound):
-    #    print "playAtRateDur(sound,rate,dur): First input is not a sound"
-    #    raise ValueError
-    #sound.playAtRateDur(rate,dur)
-    pass #TODO
-
-#20June03 new functionality in JavaSound (ellie)
-def playInRange(sound,start,stop):
-        #if not isinstance(sound, Sound):
-        #        print "playInRange(sound,start,stop): First input is not a sound"
-        #        raise ValueError
-        ## sound.playInRange(start,stop)
-        #sound.playAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
-        pass #TODO
-
-#20June03 new functionality in JavaSound (ellie)
-def blockingPlayInRange(sound,start,stop):
-        #if not isinstance(sound, Sound):
-        #        print "blockingPlayInRange(sound,start,stop): First input is not a sound"
-        #        raise ValueError
-        ## sound.blockingPlayInRange(start,stop)
-        #sound.blockingPlayAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
-        pass #TODO
-
-#20June03 new functionality in JavaSound (ellie)
-def playAtRateInRange(sound,rate,start,stop):
-        #if not isinstance(sound,Sound):
-        #        print "playAtRateInRAnge(sound,rate,start,stop): First input is not a sound"
-        #        raise ValueError
-        #sound.playAtRateInRange(rate,start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
-        pass #TODO
-
-#20June03 new functionality in JavaSound (ellie)
-def blockingPlayAtRateInRange(sound,rate,start,stop):
-        #if not isinstance(sound, Sound):
-        #        print "blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound"
-        #        raise ValueError
-        #sound.blockingPlayAtRateInRange(rate, start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
-        pass #TODO
-
-def getSamplingRate(sound):
-    #if not isinstance(sound, Sound):
-    #    print "getSamplingRate(sound): Input is not a sound"
-    #    raise ValueError
-    #return sound.getSamplingRate()
-    pass #TODO
-
-def setSampleValueAt(sound,index,value):
-    #if not isinstance(sound, Sound):
-    #    print "setSampleValueAt(sound,index,value): First input is not a sound"
-    #    raise ValueError
-    #if index < Sound._SoundIndexOffset:
-    #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
-    #    raise ValueError
-    #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
-    #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
-    #    raise ValueError
-    #sound.setSampleValue(index-Sound._SoundIndexOffset,int(value))
-    pass #TODO
-
-def getSampleValueAt(sound,index):
-    #if not isinstance(sound,Sound):
-    #    print "getSampleValueAt(sound,index): First input is not a sound"
-    #    raise ValueError
-    #if index < Sound._SoundIndexOffset:
-    #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
-    #    raise ValueError
-    #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
-    #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
-    #    raise ValueError
-    #return sound.getSampleValue(index-Sound._SoundIndexOffset)
-    pass #TODO
-
-def getSampleObjectAt(sound,index):
-    #if not isinstance(sound, Sound):
-    #    print "getSampleObjectAt(sound,index): First input is not a sound"
-    #    raise ValueError
-    # return sound.getSampleObjectAt(index-Sound._SoundIndexOffset)
-    #if index < Sound._SoundIndexOffset:
-    #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
-    #    raise ValueError
-    #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
-    #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
-    #    raise ValueError
-    #return Sample(sound, index-Sound._SoundIndexOffset)
-    pass #TODO
-
-def setSample(sample,value):
-    #if not isinstance(sample,Sample):
-    #    print "setSample(sample,value): First input is not a sample"
-    #    raise ValueError
-    #if value > 32767:
-    #    value = 32767
-    #elif value < -32768:
-    #    value = -32768
-    ## Need to coerce value to integer
-    #return sample.setValue( int(value) )
-    pass #TODO
-
-# PamC: Added this function to be a better name than setSample
-#Done
-def setSampleValue(sample, value):
-  setSample(sample, value)
-
-def getSample(sample):
-    #if not isinstance(sample, Sample):
-    #    print "getSample(sample): Input is not a sample"
-    #    raise ValueError
-    #return sample.getValue()
-    #TODO
-
-# PamC: Added this to be a better name for getSample
-#Done
-def getSampleValue(sample):
-  return getSample(sample)
-
-def getSound(sample):
-    #if not isinstance(sample,Sample):
-    #    print "getSound(sample): Input is not a sample"
-    #    raise ValueError
-    #return sample.getSound()
-    pass #TODO
-
-def getLength(sound):
-    #if not isinstance(sound, Sound):
-    #    print "getLength(sound): Input is not a sound"
-    #    raise ValueError
-    #return sound.getLength()
-    pass #TODO
-
-# PamC: Added this function as a more meaningful name for getLength
-#Done
-def getNumSamples(sound):
-    return getLength(sound)
-
-# PamC: Added this function to return the number of seconds
-# in a sound
-def getDuration(sound):
-  #if not isinstance(sound, Sound):
-  #  print "getDuration(sound): Input is not a sound"
-  #  raise ValueError
-  #return sound.getLength()/sound.getSamplingRate()
-  pass #TODO
-
-def writeSoundTo(sound,filename):
-    #global mediaFolder
-    #if not os.path.isabs(filename):
-    #    filename = mediaFolder + filename
-    #if not isinstance(sound, Sound):
-    #    print "writeSoundTo(sound,filename): First input is not a sound"
-    #    raise ValueError
-    #sound.writeToFile(filename)
-    pass #TODO
-
-##
-# Globals for styled text
-##
-def makeStyle(fontName,emph,size):
-    #return awt.Font(fontName,emph,size)
-    pass #TODO
-
-sansSerif = "SansSerif"
-serif = "Serif"
-mono = "Monospaced"
-#italic = awt.Font.ITALIC TODO
-#bold = awt.Font.BOLD TODO
-#plain = awt.Font.PLAIN TODO
+# ##
+# ## Global sound functions
+# ##
+# def makeSound(filename):
+#     global mediaFolder
+#     if not os.path.isabs(filename):
+#         filename = mediaFolder + filename
+#     if not os.path.isfile(filename):
+#         print("There is no file at "+filename)
+#         raise ValueError
+#     #return Sound(filename)
+#     #TODO
+# 
+# # MMO (1 Dec 2005): capped size of sound to 600
+# # Brian O (29 Apr 2008): changed first argument to be number of samples, added optional 2nd argument of sampling rate
+# def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
+#     if numSamples <= 0 or samplingRate <= 0:
+#         print("makeEmptySound(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
+#         raise ValueError
+#     if (numSamples/samplingRate) > 600:
+#         print("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
+#         raise ValueError
+#     #return Sound(numSamples, samplingRate)
+#     #TODO
+# #    if size > 600:
+# #        print "makeEmptySound(size): size must be 600 seconds or less"
+# #        raise ValueError
+# #    return Sound(size * Sound.SAMPLE_RATE)
+# 
+# # Brian O (5 May 2008): Added method for creating sound by duration
+# def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
+#     if seconds <= 0 or samplingRate <= 0:
+#         print("makeEmptySoundBySeconds(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
+#         raise ValueError
+#     if seconds > 600:
+#         print("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
+#         raise ValueError
+#     #return Sound(seconds * samplingRate, samplingRate)
+#     #TODO
+# 
+# # PamC: Added this function to duplicate a sound
+# def duplicateSound(sound):
+#   if not isinstance(sound, Sound):
+#         print("duplicateSound(sound): Input is not a sound")
+#         raise ValueError
+#   #return Sound(sound)
+#   #TODO
+# 
+# def getSamples(sound):
+#     if not isinstance(sound, Sound):
+#         print("getSamples(sound): Input is not a sound")
+#         raise ValueError
+# #    return Samples(sound)
+#     #return Samples.getSamples(sound)
+#     #TODO
+# 
+# def play(sound):
+#     #if not isinstance(sound,Sound):
+#     #    print "play(sound): Input is not a sound"
+#     #    raise ValueError
+#     #sound.play()
+#     pass #TODO
+# 
+# def blockingPlay(sound):
+#     #if not isinstance(sound,Sound):
+#     #    print "blockingPlay(sound): Input is not a sound"
+#     #    raise ValueError
+#     #sound.blockingPlay()
+#     pass #TODO
+# 
+# # Buck Scharfnorth (27 May 2008): Added method for stopping play of a sound
+# def stopPlaying(sound):
+#     #if not isinstance(sound,Sound):
+#     #    print "stopPlaying(sound): Input is not a sound"
+#     #    raise ValueError
+#     #sound.stopPlaying()
+#     pass #TODO
+# 
+# def playAtRate(sound,rate):
+#     #if not isinstance(sound, Sound):
+#     #    print "playAtRate(sound,rate): First input is not a sound"
+#     #    raise ValueError
+#     ## sound.playAtRate(rate)
+#     #sound.playAtRateDur(rate,sound.getLength())
+#     pass #TODO
+# 
+# def playAtRateDur(sound,rate,dur):
+#     #if not isinstance(sound,Sound):
+#     #    print "playAtRateDur(sound,rate,dur): First input is not a sound"
+#     #    raise ValueError
+#     #sound.playAtRateDur(rate,dur)
+#     pass #TODO
+# 
+# #20June03 new functionality in JavaSound (ellie)
+# def playInRange(sound,start,stop):
+#         #if not isinstance(sound, Sound):
+#         #        print "playInRange(sound,start,stop): First input is not a sound"
+#         #        raise ValueError
+#         ## sound.playInRange(start,stop)
+#         #sound.playAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
+#         pass #TODO
+# 
+# #20June03 new functionality in JavaSound (ellie)
+# def blockingPlayInRange(sound,start,stop):
+#         #if not isinstance(sound, Sound):
+#         #        print "blockingPlayInRange(sound,start,stop): First input is not a sound"
+#         #        raise ValueError
+#         ## sound.blockingPlayInRange(start,stop)
+#         #sound.blockingPlayAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
+#         pass #TODO
+# 
+# #20June03 new functionality in JavaSound (ellie)
+# def playAtRateInRange(sound,rate,start,stop):
+#         #if not isinstance(sound,Sound):
+#         #        print "playAtRateInRAnge(sound,rate,start,stop): First input is not a sound"
+#         #        raise ValueError
+#         #sound.playAtRateInRange(rate,start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
+#         pass #TODO
+# 
+# #20June03 new functionality in JavaSound (ellie)
+# def blockingPlayAtRateInRange(sound,rate,start,stop):
+#         #if not isinstance(sound, Sound):
+#         #        print "blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound"
+#         #        raise ValueError
+#         #sound.blockingPlayAtRateInRange(rate, start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
+#         pass #TODO
+# 
+# def getSamplingRate(sound):
+#     #if not isinstance(sound, Sound):
+#     #    print "getSamplingRate(sound): Input is not a sound"
+#     #    raise ValueError
+#     #return sound.getSamplingRate()
+#     pass #TODO
+# 
+# def setSampleValueAt(sound,index,value):
+#     #if not isinstance(sound, Sound):
+#     #    print "setSampleValueAt(sound,index,value): First input is not a sound"
+#     #    raise ValueError
+#     #if index < Sound._SoundIndexOffset:
+#     #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
+#     #    raise ValueError
+#     #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
+#     #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
+#     #    raise ValueError
+#     #sound.setSampleValue(index-Sound._SoundIndexOffset,int(value))
+#     pass #TODO
+# 
+# def getSampleValueAt(sound,index):
+#     #if not isinstance(sound,Sound):
+#     #    print "getSampleValueAt(sound,index): First input is not a sound"
+#     #    raise ValueError
+#     #if index < Sound._SoundIndexOffset:
+#     #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
+#     #    raise ValueError
+#     #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
+#     #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
+#     #    raise ValueError
+#     #return sound.getSampleValue(index-Sound._SoundIndexOffset)
+#     pass #TODO
+# 
+# def getSampleObjectAt(sound,index):
+#     #if not isinstance(sound, Sound):
+#     #    print "getSampleObjectAt(sound,index): First input is not a sound"
+#     #    raise ValueError
+#     # return sound.getSampleObjectAt(index-Sound._SoundIndexOffset)
+#     #if index < Sound._SoundIndexOffset:
+#     #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
+#     #    raise ValueError
+#     #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
+#     #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
+#     #    raise ValueError
+#     #return Sample(sound, index-Sound._SoundIndexOffset)
+#     pass #TODO
+# 
+# def setSample(sample,value):
+#     #if not isinstance(sample,Sample):
+#     #    print "setSample(sample,value): First input is not a sample"
+#     #    raise ValueError
+#     #if value > 32767:
+#     #    value = 32767
+#     #elif value < -32768:
+#     #    value = -32768
+#     ## Need to coerce value to integer
+#     #return sample.setValue( int(value) )
+#     pass #TODO
+# 
+# # PamC: Added this function to be a better name than setSample
+# #Done
+# def setSampleValue(sample, value):
+#   setSample(sample, value)
+# 
+# def getSample(sample):
+#     #if not isinstance(sample, Sample):
+#     #    print "getSample(sample): Input is not a sample"
+#     #    raise ValueError
+#     #return sample.getValue()
+#     pass #TODO
+# 
+# # PamC: Added this to be a better name for getSample
+# #Done
+# def getSampleValue(sample):
+#     return getSample(sample)
+# 
+# def getSound(sample):
+#     #if not isinstance(sample,Sample):
+#     #    print "getSound(sample): Input is not a sample"
+#     #    raise ValueError
+#     #return sample.getSound()
+#     pass #TODO
+# 
+# def getLength(sound):
+#     #if not isinstance(sound, Sound):
+#     #    print "getLength(sound): Input is not a sound"
+#     #    raise ValueError
+#     #return sound.getLength()
+#     pass #TODO
+# 
+# # PamC: Added this function as a more meaningful name for getLength
+# #Done
+# def getNumSamples(sound):
+#     return getLength(sound)
+# 
+# # PamC: Added this function to return the number of seconds
+# # in a sound
+# def getDuration(sound):
+#   #if not isinstance(sound, Sound):
+#   #  print "getDuration(sound): Input is not a sound"
+#   #  raise ValueError
+#   #return sound.getLength()/sound.getSamplingRate()
+#   pass #TODO
+# 
+# def writeSoundTo(sound,filename):
+#     #global mediaFolder
+#     #if not os.path.isabs(filename):
+#     #    filename = mediaFolder + filename
+#     #if not isinstance(sound, Sound):
+#     #    print "writeSoundTo(sound,filename): First input is not a sound"
+#     #    raise ValueError
+#     #sound.writeToFile(filename)
+#     pass #TODO
+# 
+# ##
+# # Globals for styled text
+# ##
+# def makeStyle(fontName,emph,size):
+#     #return awt.Font(fontName,emph,size)
+#     pass #TODO
+# 
+# sansSerif = "SansSerif"
+# serif = "Serif"
+# mono = "Monospaced"
+# #italic = awt.Font.ITALIC TODO
+# #bold = awt.Font.BOLD TODO
+# #plain = awt.Font.PLAIN TODO
 
 ##
 ## Global color functions
@@ -449,10 +450,17 @@ def _checkPixel(raw):
 # Buck Scharfnorth (28 May 2008): Modified to no longer assume the value is 0-255
 # and the gray Color constructor to allow only 1 color parameter (will take 2, but ignores the second)
 class Color:
-    #TODO mess with this
-    #TODO use ImageColor module in here
     def __init__(self,r,g=None,b=None):
         if b == None:
+            #In this case, r should be a tuple or Color
+            if isinstance(r, Color):
+                self.r = r.getRed()
+                self.g = r.getGreen()
+                self.b = r.getBlue()
+            else:
+                self.r = r[0]
+                self.g = r[1]
+                self.b = r[2]
             #if isinstance( r, awt.Color ) or isinstance( r, Color ):
             #    self.color = r
             #else:
@@ -461,7 +469,9 @@ class Color:
         else:
             # self.color = awt.Color(r,g,b)
             #self.color = awt.Color( _checkPixel(r), _checkPixel(g), _checkPixel(b) )
-            #TODO
+            self.r = r
+            self.g = g
+            self.b = b
 
     def __str__(self):
         return "color r="+str(self.getRed())+" g="+str(self.getGreen())+" b="+str(self.getBlue())
@@ -493,7 +503,8 @@ class Color:
 	#    b = b % 256
 
 	# return Color(r,g,b)
-        return Color( _checkPixel(r), _checkPixel(g), _checkPixel(b) )
+        #return Color( _checkPixel(r), _checkPixel(g), _checkPixel(b) )
+        return Color(r, g, b)
 
     #Added by BrianO
     def __sub__(self, other):
@@ -507,22 +518,28 @@ class Color:
 	#    b = b % 256
 
 	# return Color(r,g,b)
-        return Color( _checkPixel(r), _checkPixel(g), _checkPixel(b) )
+        #return Color( _checkPixel(r), _checkPixel(g), _checkPixel(b) )
+        return Color(r, g, b)
 
     def setRGB(self, r, g, b):
     #    # self.color = awt.Color(r,g,b)
     #    self.color = awt.Color(_checkPixel(r), _checkPixel(g), _checkPixel(b))
-        pass #TODO
+        self.r = r
+        self.g = g
+        self.b = b
     
 
     def getRed(self):
-        return self.color.getRed()
+        #return self.color.getRed()
+        return self.r
 
     def getGreen(self):
-        return self.color.getGreen()
+        #return self.color.getGreen()
+        return self.g
 
     def getBlue(self):
-        return self.color.getBlue()
+        #return self.color.getBlue()
+        return self.b
 
     def distance(self, othercolor):
         r = pow((self.getRed() - othercolor.getRed()),2)
@@ -531,14 +548,17 @@ class Color:
         return math.sqrt(r+g+b)
 
     def makeDarker(self):
-      return self.color.darker()
+      #return self.color.darker()
+        return Color(min(int(self.getRed() * 0.7), 0), min(int(self.getGreen() * 0.7), 0), min(int(self.getBlue() * 0.7), 0))
 
     def makeLighter(self):
-      return self.color.brighter()
+      #return self.color.brighter()
+        return Color(max(int(self.getRed() / 0.7), 255), max(int(self.getGreen() / 0.7), 255), max(int(self.getBlue() / 0.7), 255))
     
     def getRGB(self):
         return (self.getRed(), self.getGreen(), self.getBlue())
 
+#Done
 def pickAColor():
     ## Dorn 5/8/2009:  Edited to be thread safe since this code is executed from an
     ## interpreter JESThread and will result in an update to the main JES GUI due to 
@@ -556,7 +576,8 @@ def pickAColor():
     #swing.SwingUtilities.invokeAndWait(runner)
     
     #return runner.color
-    pass #TODO
+    col = askcolor()
+    return Color(int(col[0][0]), int(col[0][1]), int(col[0][2]))
 
 
 
@@ -602,10 +623,10 @@ class Picture:
     #Match JES's printing of a picture
     def __str__(self):
         ret = "Picture, "
-        if filename == None and self.height = None:
+        if filename == None and self.height == None:
             return ret + "empty"
         retend = "height %d width %d" % (self.height, self.width)
-        elif filename == None:
+        if filename == None:
             return ret + retend
         else:
             return ret + "filename %s %s" % (self.filename, retend)
@@ -615,8 +636,8 @@ class Picture:
         try:
             self.image = PIL.Image.open(filename)
             self.filename = filename
-            self.height = image.height
-            self.width = image.width
+            self.height = self.image.height
+            self.width = self.image.width
         except IOError:
             raise IOError(filename + " could not be opened or was not a picture. Check that you specified the path")
     
@@ -637,6 +658,11 @@ class Picture:
     def getHeight(self):
         return self.height
     
+    #Show the picture
+    def show(self, title = None):
+        #TODO use tkinter
+        self.image.show(title)
+    
 
 ##
 ## Global picture functions
@@ -647,7 +673,7 @@ def makePicture(filename):
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
     if not os.path.isfile(filename):
-        print "makePicture(filename): There is no file at "+filename
+        print("makePicture(filename): There is no file at "+filename)
         raise ValueError
     picture = Picture()
     picture.loadOrFail(filename)
@@ -658,16 +684,17 @@ def makePicture(filename):
 # alexr (6 Sep 2006): fixed to work without the Python classes.
 # PamC (6 July 2007): added new optional param to allow for empty pictures
 # with different background colors.
+#Done
 def makeEmptyPicture(width, height, acolor = white):
     if width > 10000 or height > 10000:
-        print "makeEmptyPicture(width, height[, acolor]): height and width must be less than 10000 each"
+        print("makeEmptyPicture(width, height[, acolor]): height and width must be less than 10000 each")
         raise ValueError
     if width <= 0 or height <= 0:
-        print "makeEmptyPicture(width, height[, acolor]): height and width must be greater than 0 each"
+        print("makeEmptyPicture(width, height[, acolor]): height and width must be greater than 0 each")
         raise ValueError
     if isinstance(acolor, Color):
         col = acolor.getRGB()
-    else
+    else:
         col = acolor
     picture = Picture(width, height, acolor)
     # picture.createImage(width, height)
@@ -678,7 +705,7 @@ def makeEmptyPicture(width, height, acolor = white):
 
 def getPixels(picture):
     if not isinstance(picture, Picture):
-        print "getPixels(picture): Input is not a picture"
+        print("getPixels(picture): Input is not a picture")
         raise ValueError
     return picture.getPixels()
 
@@ -686,27 +713,28 @@ def getPixels(picture):
 def getAllPixels(picture):
     return getPixels(picture)
 
+#Done
 def getWidth(picture):
     if not isinstance(picture, Picture):
-        print "getWidth(picture): Input is not a picture"
+        print("getWidth(picture): Input is not a picture")
         raise ValueError
     return picture.getWidth()
 
+#Done
 def getHeight(picture):
     if not isinstance(picture,Picture):
-        print "getHeight(picture): Input is not a picture"
-        raise ValueError
+        print("getHeight(picture): Input is not a picture")
     return picture.getHeight()
 
+#Done
 def show(picture, title=None):
-    ##picture.setTitle(getShortPath(picture.filename))
-    ##if title <> None:
-    #        #picture.setTitle(title)
-    #if not isinstance(picture, Picture):
-    #    print "show(picture): Input is not a picture"
-    #    raise ValueError
-    #picture.show()
-    pass #TODO
+    #picture.setTitle(getShortPath(picture.filename))
+    #if title <> None:
+            #picture.setTitle(title)
+    if not isinstance(picture, Picture):
+        print("show(picture): Input is not a picture")
+        raise ValueError
+    picture.show(title)
 
 def repaint(picture):
     #if not (isinstance(picture, World) or isinstance(picture,Picture)):
@@ -929,10 +957,10 @@ def getY(pixel):
 #Done
 def distance(c1,c2):
     if not isinstance(c1, Color):
-        print "distance(c1,c2): First input is not a color"
+        print("distance(c1,c2): First input is not a color")
         raise ValueError
     if not isinstance(c2, Color):
-        print "distance(c1,c2): Second input is not a color"
+        print("distance(c1,c2): Second input is not a color")
         raise ValueError
     return c1.distance(c2)
 
@@ -962,7 +990,7 @@ def _setColorTo(color, other):
 
 def makeDarker(color):
   if not isinstance(color,Color):
-      print "makeDarker(color): Input is not a color"
+      print("makeDarker(color): Input is not a color")
       raise ValueError
   return Color( color.makeDarker() )
   #TODO maybe done?
@@ -971,16 +999,17 @@ def makeDarker(color):
   #"""This function has side effects on purpose, see p49"""
   #return _setColorTo(color,color.brighter())
 
+#Done
 def makeLighter(color):
   if not isinstance(color,Color):
-      print "makeLighter(color): Input is not a color"
+      print("makeLighter(color): Input is not a color")
       raise ValueError
   return Color( color.makeLighter() )
-  #TODO maybe done?
 
+#Done
 def makeBrighter(color): #This is the same as makeLighter(color)
   if not isinstance(color,Color):
-      print "makeBrighter(color): Input is not a color"
+      print("makeBrighter(color): Input is not a color")
       raise ValueError
   return Color( color.makeLighter() )
   #TODO maybe done?
@@ -999,6 +1028,7 @@ def setAllPixelsToAColor(picture,color):
     #    raise ValueError
     #picture.setAllPixelsToAColor(color.color)
     #TODO maybe done?
+    pass #TODO
 
 
 def copyInto(smallPicture, bigPicture, startX, startY):
@@ -1068,83 +1098,86 @@ def duplicatePicture(picture):
 #    raise ValueError
 #  return picture.crop(upperLeftX-1, upperLeftY-1, width, height)
 
-##
-# Input and Output interfaces
-#
-# Note: These calls must be done in a threadsafe manner since the JESThread will be
-# executing them rather than the GUI's event dispatch thread.  See SimpleInput/Output.java
-# for the threadsafe execution.
-##
-
-#  radius = SimpleInput.getNumber("Enter the radius of the cylinder")
-#  SimpleOutput.showInformation("The volume of the cylinder is %.02f " % volume)
-
-def requestNumber(message):
-    #return SimpleInput.getNumber(message)
-    pass #TODO
-
-def requestInteger(message):
-    #return SimpleInput.getIntNumber(message)
-    pass #TODO
-
-def requestIntegerInRange(message, min, max):
-    if min >= max:
-        print "requestIntegerInRange(message, min, max): min >= max not allowed"
-        raise ValueError
-
-    #return SimpleInput.getIntNumber(message, min, max)
-    #TODO
-
-def requestString(message):
-    #return SimpleInput.getString(message)
-    pass #TODO
-
-
-#5/15/09 Dorn: Updated input and raw_input to read from the console
-#def input(message=None):
-#    im = JESInputManager()
-#    return eval(im.readInput(message))
-
-#def raw_input(message=None):
-#    im = JESInputManager()
-#    return im.readInput(message)
-    
-
-def showWarning(message):
-    #return SimpleOutput.showWarning(message)
-    pass #TODO
-
-def showInformation(message):
-    #return SimpleOutput.showInformation(message)
-    pass #TODO
-
-def showError(message):
-    #return SimpleOutput.showError(message)
-    pass #TODO
-
-
-##
-# Java Music Interface
-##
-def playNote(note, duration, intensity=64):
-    #JavaMusic.playNote(note, duration, intensity)
-    pass #TODO
-
-
+# ##
+# # Input and Output interfaces
+# #
+# # Note: These calls must be done in a threadsafe manner since the JESThread will be
+# # executing them rather than the GUI's event dispatch thread.  See SimpleInput/Output.java
+# # for the threadsafe execution.
+# ##
+# 
+# #  radius = SimpleInput.getNumber("Enter the radius of the cylinder")
+# #  SimpleOutput.showInformation("The volume of the cylinder is %.02f " % volume)
+# 
+# def requestNumber(message):
+#     #return SimpleInput.getNumber(message)
+#     pass #TODO
+# 
+# def requestInteger(message):
+#     #return SimpleInput.getIntNumber(message)
+#     pass #TODO
+# 
+# def requestIntegerInRange(message, min, max):
+#     if min >= max:
+#         print("requestIntegerInRange(message, min, max): min >= max not allowed")
+#         raise ValueError
+# 
+#     #return SimpleInput.getIntNumber(message, min, max)
+#     #TODO
+# 
+# def requestString(message):
+#     #return SimpleInput.getString(message)
+#     pass #TODO
+# 
+# 
+# #5/15/09 Dorn: Updated input and raw_input to read from the console
+# #def input(message=None):
+# #    im = JESInputManager()
+# #    return eval(im.readInput(message))
+# 
+# #def raw_input(message=None):
+# #    im = JESInputManager()
+# #    return im.readInput(message)
+#     
+# 
+# def showWarning(message):
+#     #return SimpleOutput.showWarning(message)
+#     pass #TODO
+# 
+# def showInformation(message):
+#     #return SimpleOutput.showInformation(message)
+#     pass #TODO
+# 
+# def showError(message):
+#     #return SimpleOutput.showError(message)
+#     pass #TODO
+# 
+# 
+# ##
+# # Java Music Interface
+# ##
+# def playNote(note, duration, intensity=64):
+#     #JavaMusic.playNote(note, duration, intensity)
+#     pass #TODO
+# 
+# 
 ##
 # General user tools
 #
 
+#Done
 def pickAFile():
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #return FileChooser.pickAFile()
-    pass #TODO
+    return tkinter.filedialog.askopenfilename()
 
+#Done
 def pickAFolder():
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #dir = FileChooser.pickADirectory() TODO
+    dir = tkinter.filedialog.askdirectory()
     if ( dir != None ):
         return dir + os.sep
     return None
@@ -1152,389 +1185,389 @@ def pickAFolder():
 def quit():
     sys.exit(0)
 
-##
-# MediaTools interface
-#
-# TODO modify viewer.changeToBaseOne
-
-def openPictureTool(picture):
-    #import PictureExplorer
-    #thecopy = duplicatePicture(picture)
-    #viewer = PictureExplorer(thecopy)
-
-#    viewer.changeToBaseOne();
-    #viewer.setTitle(getShortPath(picture.getFileName() ))
-    pass #TODO
-
-def openFrameSequencerTool(movie):
-    #FrameSequencerTool.FrameSequencerTool(movie)
-    pass #TODO
-
-def openSoundTool(sound):
-    #import SoundExplorer
-    #thecopy = Sound(sound)
-    #viewer = SoundExplorer(thecopy, 0)
-    #try:
-    #    viewer.setTitle(getShortPath(sound.getFileName()))
-    #except:
-    #    viewer.setTitle("No File Name")
-    pass #TODO
-
-#Done
-def explore(someMedia):
-    if isinstance(someMedia, Picture):
-	openPictureTool(someMedia)
-    elif isinstance(someMedia, Sound):
-	openSoundTool(someMedia)
-    elif isinstance(someMedia, Movie):
-	openFrameSequencerTool(someMedia)
-    else:
-	print "explore(someMedia): Input is not a Picture, Sound, or Movie"
-	raise ValueError
-
-# let's try the turtles...
-#import Turtle
-#import World
-#TODO use turtle package
-
-def turn(turtle, degrees=90):
-    #if not isinstance(turtle, Turtle):
-    #    print "turn(turtle[, degrees]): Input is not a turtle"
-    #    raise ValueError
-    #else:
-    #    turtle.turn(degrees)
-    pass #TODO
-
-def turnRight(turtle):
-    #if not isinstance(turtle,Turtle):
-    #    print "turnRight(turtle): Input is not a turtle"
-    #    raise ValueError
-    #else:
-    #    turtle.turnRight()
-    pass #TODO
-
-def turnToFace(turtle, x, y=None):
-    #if y == None:
-    #    if not (isinstance(turtle, Turtle) and isinstance(x, Turtle)):
-    #        print "turnToFace(turtle, turtle): First input is not a turtle"
-    #        raise ValueError
-    #    else:
-    #        turtle.turnToFace(x)
-    #else:
-    #    if not isinstance(turtle, Turtle):
-    #        print "turnToFace(turtle, x, y): Input is not a turtle"
-    #        raise ValueError
-    #    else:
-    #        turtle.turnToFace(x, y)
-    pass #TODO
-
-def turnLeft(turtle):
-    #if not isinstance(turtle, Turtle):
-    #    print "turnLeft(turtle): Input is not a turtle"
-    #    raise ValueError
-    #else:
-    #    turtle.turnLeft()
-    pass #TODO
-
-def forward(turtle, pixels=100):
-    #if not isinstance(turtle,Turtle):
-    #    print "forward(turtle[, pixels]): Input is not a turtle"
-    #    raise ValueError
-    #else:
-    #    turtle.forward(pixels)
-    pass #TODO
-
-def backward(turtle, pixels=100):
-    #if not isinstance(turtle, Turtle):
-    #    print "backward(turtle[, pixels]): Input is not a turtle"
-    #    raise ValueError
-    #if (None == pixels):
-    #    turtle.backward()
-    #else:
-    #    turtle.backward(pixels)
-    pass #TODO
-
-def moveTo(turtle, x, y):
-    #if not isinstance(turtle,Turtle):
-    #    print "moveTo(turtle, x, y): Input is not a turtle"
-    #    raise ValueError
-    #turtle.moveTo(x,y)
-    pass #TODO
-
-def makeTurtle(world):
-    #if not (isinstance(world, World) or isinstance(world, Picture)):
-    #    print "makeTurtle(world): Input is not a world or picture"
-    #    raise ValueError
-    #turtle = Turtle(world)
-    #return turtle
-    pass #TODO
-
-def penUp(turtle):
-    #if not isinstance(turtle, Turtle):
-    #    print "penUp(turtle): Input is not a turtle"
-    #    raise ValueError
-    #turtle.penUp()
-    pass #TODO
-
-def penDown(turtle):
-    #if not isinstance(turtle, Turtle):
-    #    print "penDown(turtle): Input is not a turtle"
-    #    raise ValueError
-    #turtle.penDown()
-    pass #TODO
-
-def drop(turtle, picture):
-    #if not isinstance(turtle, Turtle):
-    #    print "drop(turtle, picture): First input is not a turtle"
-    #    raise ValueError
-    #if not isinstance(picture,Picture):
-    #    print "drop(turtle, picture): Second input is not a picture"
-    #    raise ValueError
-    #turtle.drop(picture)
-    pass #TODO
-
-def getXPos(turtle):
-    #if not isinstance(turtle, Turtle):
-    #    print "getXPos(turtle): Input is not a turtle"
-    #    raise ValueError
-    #return turtle.getXPos()
-    pass #TODO
-
-def getYPos(turtle):
-    #if not isinstance(turtle,Turtle):
-    #    print "getYPos(turtle): Input is not a turtle"
-    #    raise ValueError
-    #return turtle.getYPos()
-    pass #TODO
-
-def getHeading(turtle):
-    #if not isinstance(turtle,Turtle):
-    #    print "getHeading(turtle): Input is not a turtle"
-    #    raise ValueError
-    #return turtle.getHeading()
-    pass #TODO
-
-## add these things: turnToFace(turtle, another turtle)
-## getHeading, getXPos, getYPos
-
-## world methods
-def makeWorld(width=None, height=None):
-    #if(width and height):
-    #    w = World(width, height)
-    #else:
-    #    w = World()
-    #return w
-    pass #TODO
-
-def getTurtleList(world):
-    #if not isinstance(world, World):
-    #    print "getTurtleList(world): Input is not a world"
-    #    raise ValueError
-    #return world.getTurtleList()
-    pass #TODO
-
-# end of stuff imported for worlds and turtles
-
-# used in the book
-def printNow(text):
-    #sys.stdout.printNow("%s\n" % text)
-    pass #TODO
-
-class Movie:
-    #TODO probably needs major overhaul
-    def __init__(self): # frames are filenames
-        self.frames = []
-        self.dir = None
-
-    def addFrame(self, frame):
-        self.frames.append(frame)
-        self.dir = None
-
-    def __len__(self):
-        return len(self.frames)
-
-    def __str__(self):
-        return "Movie, frames: "+str(len(self))
-
-    def __repr__(self):
-        return "Movie, frames: "+str(len(self))
-
-    def __getitem__(self,item):
-        return self.frames[item]
-
-    def writeFramesToDirectory(self, directory):
-        import FrameSequencer
-        fs = FrameSequencer(directory)
-        #for frameindex in range(0, self.listModel.size()):
-            #fs.addFrame(Picture(self.listModel.get(frameindex)))
-            #fs.play(self.fps)
-        for frameindex in range(0, len(self.frames)):
-            fs.addFrame(Picture(self.frames[frameindex]))
-        self.dir = directory
-
-    def play(self):
-        import java.util.ArrayList as ArrayList
-        list = ArrayList()
-        for f in self.frames:
-            list.add( makePicture(f) )
-        MoviePlayer(list).playMovie()
-
-    def writeQuicktime(self, destPath, framesPerSec = 16):
-        global mediaFolder
-        if not os.path.isabs(destPath):
-            destPath = mediaFolder + destPath
-        destPath = "file://"+destPath
-        if framesPerSec <= 0:
-            print "writeQuicktime(path[, framesPerSec]): Frame Rate must be a positive number"
-            raise ValueError
-        if self.frames == []: #Is movie empty?
-            print "writeQuicktime(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie"
-            raise ValueError
-        elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
-            frame = self.frames[0]
-            self.dir = frame[:(frame.rfind(os.sep))]
-        elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
-            sameDir = 1
-            frame = self.frames[0]
-            frame = frame.replace('/', os.sep)
-            framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
-            thisDir = framesDir
-            frameNum = 1
-            while(sameDir and frameNum < len(self.frames)):
-                frame = self.frames[frameNum]
-                frame = frame.replace('/', os.sep) #Eliminate possibility of / vs. \ causing problems
-                thisDir = frame[:(frame.rfind(os.sep))]
-                frameNum = frameNum+1
-                if(framesDir <> thisDir):
-                    sameDir = 0
-            if(sameDir): #Loop ended because we ran out of frames
-                self.dir = framesDir
-            else: #Loop ended because sameDir became false
-                print "writeQuicktime(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again."
-                raise ValueError
-        writer = MovieWriter(self.dir, framesPerSec, destPath)
-        writer.writeQuicktime()
-        
-    def writeAVI(self, destPath, framesPerSec = 16):
-        global mediaFolder
-        if not os.path.isabs(destPath):
-            destPath = mediaFolder + destPath
-        destPath = "file://"+destPath
-        if framesPerSec <= 0:
-            print "writeAVI(path[, framesPerSec]): Frame Rate must be a positive number"
-            raise ValueError
-        if self.frames == []: #Is movie empty?
-            print "writeAVI(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie"
-            raise ValueError
-        elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
-            frame = self.frames[0]
-            self.dir = frame[:(frame.rfind(os.sep))]
-        elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
-            sameDir = 1
-            frame = self.frames[0]
-            frame = frame.replace('/', os.sep)
-            framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
-            thisDir = framesDir
-            frameNum = 1
-            while(sameDir and frameNum < len(self.frames)):
-                frame = self.frames[frameNum]
-                frame = frame.replace('/', os.sep)
-                thisDir = frame[:(frame.rfind(os.sep))]
-                frameNum = frameNum+1
-                if(framesDir <> thisDir):
-                    sameDir = 0
-            if(sameDir): #Loop ended because we ran out of frames
-                self.dir = framesDir
-            else: #Loop ended because sameDir became false
-                print "writeAVI(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again."
-                raise ValueError
-        writer = MovieWriter(self.dir, framesPerSec, destPath)
-        writer.writeAVI()
-#Done
-def playMovie( movie ):
-    if isinstance( movie, Movie ):
-        movie.play()
-    else:
-        print "playMovie( movie ): Input is not a Movie"
-        raise ValueError
-
-#Done
-def writeQuicktime(movie, destPath, framesPerSec = 16):
-    if not (isinstance(movie, Movie)):
-        print "writeQuicktime(movie, path[, framesPerSec]): First input is not a Movie"
-        raise ValueError
-    if framesPerSec <= 0:
-        print "writeQuicktime(movie, path[, framesPerSec]): Frame rate must be a positive number"
-        raise ValueError
-    movie.writeQuicktime(destPath, framesPerSec)
-
-#Done
-def writeAVI(movie, destPath, framesPerSec = 16):
-    if not (isinstance(movie, Movie)):
-        print "writeAVI(movie, path[, framesPerSec]): First input is not a Movie"
-        raise ValueError
-    if framesPerSec <= 0:
-        print "writeAVI(movie, path[, framesPerSec]): Frame rate must be a positive number"
-        raise ValueError
-    movie.writeAVI(destPath, framesPerSec)
-
-#Done
-def makeMovie():
-    return Movie()
-
-#Done
-def makeMovieFromInitialFile(filename):
-    import re
-    movie = Movie()
-
-    #filename = filename.replace(os.altsep, os.sep)
-    filename = filename.replace('/',os.sep) #Hack fix because os.altsep is not defined for Windows as of Python 2.2
-    sep_location = filename.rfind(os.sep)
-    if(-1 == sep_location):
-        filename = mediaFolder + filename
-
-    movie.directory = filename[:(filename.rfind(os.sep))]
-    movie.init_file = filename[(filename.rfind(os.sep))+1:]
-    regex = re.compile('[0-9]+')
-    file_regex = regex.sub('.*', movie.init_file)
-
-    for item in os.listdir(movie.directory):
-        if re.match(file_regex, item):
-            movie.addFrame(movie.directory + os.sep + item)
-
-    return movie
-
-#Done
-def addFrameToMovie(a, b):
-    frame = None
-    movie = None
-    if a.__class__ == Movie:
-        movie = a
-        frame = b
-    else:
-        movie = b
-        frame = a
-
-    if not (isinstance(movie,Movie) and isinstance(frame,String)):
-   # if movie.__class__ != Movie or frame.__class__ != String:
-        print "addFrameToMovie(frame, movie): frame is not a string or movie is not a Movie object"
-        raise ValueError
-
-    movie.addFrame(frame)
-
-#Done
-def writeFramesToDirectory(movie, directory=None):
-    if not isinstance(movie, Movie):
-        print "writeFramesToDirectory(movie[, directory]): movie is not a Movie object"
-        raise ValueError
-
-    if directory == None:
-        directory = user.home
-
-    movie.writeFramesToDirectory(directory)
-
-#def playMovie(movie):
-#    if not isinstance(movie, Movie):
-#        print "playMovie(movie): movie is not a Movie object."
-#        raise ValueError
-#    movie.play()
+# ##
+# # MediaTools interface
+# #
+# # TODO modify viewer.changeToBaseOne
+# 
+# def openPictureTool(picture):
+#     #import PictureExplorer
+#     #thecopy = duplicatePicture(picture)
+#     #viewer = PictureExplorer(thecopy)
+# 
+# #    viewer.changeToBaseOne();
+#     #viewer.setTitle(getShortPath(picture.getFileName() ))
+#     pass #TODO
+# 
+# def openFrameSequencerTool(movie):
+#     #FrameSequencerTool.FrameSequencerTool(movie)
+#     pass #TODO
+# 
+# def openSoundTool(sound):
+#     #import SoundExplorer
+#     #thecopy = Sound(sound)
+#     #viewer = SoundExplorer(thecopy, 0)
+#     #try:
+#     #    viewer.setTitle(getShortPath(sound.getFileName()))
+#     #except:
+#     #    viewer.setTitle("No File Name")
+#     pass #TODO
+# 
+# #Done
+# def explore(someMedia):
+#     if isinstance(someMedia, Picture):
+#         openPictureTool(someMedia)
+#     elif isinstance(someMedia, Sound):
+#         openSoundTool(someMedia)
+#     elif isinstance(someMedia, Movie):
+#         openFrameSequencerTool(someMedia)
+#     else:
+#         print("explore(someMedia): Input is not a Picture, Sound, or Movie")
+#         raise ValueError
+# 
+# # let's try the turtles...
+# #import Turtle
+# #import World
+# #TODO use turtle package
+# 
+# def turn(turtle, degrees=90):
+#     #if not isinstance(turtle, Turtle):
+#     #    print "turn(turtle[, degrees]): Input is not a turtle"
+#     #    raise ValueError
+#     #else:
+#     #    turtle.turn(degrees)
+#     pass #TODO
+# 
+# def turnRight(turtle):
+#     #if not isinstance(turtle,Turtle):
+#     #    print "turnRight(turtle): Input is not a turtle"
+#     #    raise ValueError
+#     #else:
+#     #    turtle.turnRight()
+#     pass #TODO
+# 
+# def turnToFace(turtle, x, y=None):
+#     #if y == None:
+#     #    if not (isinstance(turtle, Turtle) and isinstance(x, Turtle)):
+#     #        print "turnToFace(turtle, turtle): First input is not a turtle"
+#     #        raise ValueError
+#     #    else:
+#     #        turtle.turnToFace(x)
+#     #else:
+#     #    if not isinstance(turtle, Turtle):
+#     #        print "turnToFace(turtle, x, y): Input is not a turtle"
+#     #        raise ValueError
+#     #    else:
+#     #        turtle.turnToFace(x, y)
+#     pass #TODO
+# 
+# def turnLeft(turtle):
+#     #if not isinstance(turtle, Turtle):
+#     #    print "turnLeft(turtle): Input is not a turtle"
+#     #    raise ValueError
+#     #else:
+#     #    turtle.turnLeft()
+#     pass #TODO
+# 
+# def forward(turtle, pixels=100):
+#     #if not isinstance(turtle,Turtle):
+#     #    print "forward(turtle[, pixels]): Input is not a turtle"
+#     #    raise ValueError
+#     #else:
+#     #    turtle.forward(pixels)
+#     pass #TODO
+# 
+# def backward(turtle, pixels=100):
+#     #if not isinstance(turtle, Turtle):
+#     #    print "backward(turtle[, pixels]): Input is not a turtle"
+#     #    raise ValueError
+#     #if (None == pixels):
+#     #    turtle.backward()
+#     #else:
+#     #    turtle.backward(pixels)
+#     pass #TODO
+# 
+# def moveTo(turtle, x, y):
+#     #if not isinstance(turtle,Turtle):
+#     #    print "moveTo(turtle, x, y): Input is not a turtle"
+#     #    raise ValueError
+#     #turtle.moveTo(x,y)
+#     pass #TODO
+# 
+# def makeTurtle(world):
+#     #if not (isinstance(world, World) or isinstance(world, Picture)):
+#     #    print "makeTurtle(world): Input is not a world or picture"
+#     #    raise ValueError
+#     #turtle = Turtle(world)
+#     #return turtle
+#     pass #TODO
+# 
+# def penUp(turtle):
+#     #if not isinstance(turtle, Turtle):
+#     #    print "penUp(turtle): Input is not a turtle"
+#     #    raise ValueError
+#     #turtle.penUp()
+#     pass #TODO
+# 
+# def penDown(turtle):
+#     #if not isinstance(turtle, Turtle):
+#     #    print "penDown(turtle): Input is not a turtle"
+#     #    raise ValueError
+#     #turtle.penDown()
+#     pass #TODO
+# 
+# def drop(turtle, picture):
+#     #if not isinstance(turtle, Turtle):
+#     #    print "drop(turtle, picture): First input is not a turtle"
+#     #    raise ValueError
+#     #if not isinstance(picture,Picture):
+#     #    print "drop(turtle, picture): Second input is not a picture"
+#     #    raise ValueError
+#     #turtle.drop(picture)
+#     pass #TODO
+# 
+# def getXPos(turtle):
+#     #if not isinstance(turtle, Turtle):
+#     #    print "getXPos(turtle): Input is not a turtle"
+#     #    raise ValueError
+#     #return turtle.getXPos()
+#     pass #TODO
+# 
+# def getYPos(turtle):
+#     #if not isinstance(turtle,Turtle):
+#     #    print "getYPos(turtle): Input is not a turtle"
+#     #    raise ValueError
+#     #return turtle.getYPos()
+#     pass #TODO
+# 
+# def getHeading(turtle):
+#     #if not isinstance(turtle,Turtle):
+#     #    print "getHeading(turtle): Input is not a turtle"
+#     #    raise ValueError
+#     #return turtle.getHeading()
+#     pass #TODO
+# 
+# ## add these things: turnToFace(turtle, another turtle)
+# ## getHeading, getXPos, getYPos
+# 
+# ## world methods
+# def makeWorld(width=None, height=None):
+#     #if(width and height):
+#     #    w = World(width, height)
+#     #else:
+#     #    w = World()
+#     #return w
+#     pass #TODO
+# 
+# def getTurtleList(world):
+#     #if not isinstance(world, World):
+#     #    print "getTurtleList(world): Input is not a world"
+#     #    raise ValueError
+#     #return world.getTurtleList()
+#     pass #TODO
+# 
+# # end of stuff imported for worlds and turtles
+# 
+# # used in the book
+# def printNow(text):
+#     #sys.stdout.printNow("%s\n" % text)
+#     pass #TODO
+# 
+# class Movie:
+#     #TODO probably needs major overhaul
+#     def __init__(self): # frames are filenames
+#         self.frames = []
+#         self.dir = None
+# 
+#     def addFrame(self, frame):
+#         self.frames.append(frame)
+#         self.dir = None
+# 
+#     def __len__(self):
+#         return len(self.frames)
+# 
+#     def __str__(self):
+#         return "Movie, frames: "+str(len(self))
+# 
+#     def __repr__(self):
+#         return "Movie, frames: "+str(len(self))
+# 
+#     def __getitem__(self,item):
+#         return self.frames[item]
+# 
+#     def writeFramesToDirectory(self, directory):
+#         import FrameSequencer
+#         fs = FrameSequencer(directory)
+#         #for frameindex in range(0, self.listModel.size()):
+#             #fs.addFrame(Picture(self.listModel.get(frameindex)))
+#             #fs.play(self.fps)
+#         for frameindex in range(0, len(self.frames)):
+#             fs.addFrame(Picture(self.frames[frameindex]))
+#         self.dir = directory
+# 
+#     def play(self):
+#         import java.util.ArrayList as ArrayList
+#         list = ArrayList()
+#         for f in self.frames:
+#             list.add( makePicture(f) )
+#         MoviePlayer(list).playMovie()
+# 
+#     def writeQuicktime(self, destPath, framesPerSec = 16):
+#         global mediaFolder
+#         if not os.path.isabs(destPath):
+#             destPath = mediaFolder + destPath
+#         destPath = "file://"+destPath
+#         if framesPerSec <= 0:
+#             print("writeQuicktime(path[, framesPerSec]): Frame Rate must be a positive number")
+#             raise ValueError
+#         if self.frames == []: #Is movie empty?
+#             print("writeQuicktime(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie")
+#             raise ValueError
+#         elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
+#             frame = self.frames[0]
+#             self.dir = frame[:(frame.rfind(os.sep))]
+#         elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
+#             sameDir = 1
+#             frame = self.frames[0]
+#             frame = frame.replace('/', os.sep)
+#             framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
+#             thisDir = framesDir
+#             frameNum = 1
+#             while(sameDir and frameNum < len(self.frames)):
+#                 frame = self.frames[frameNum]
+#                 frame = frame.replace('/', os.sep) #Eliminate possibility of / vs. \ causing problems
+#                 thisDir = frame[:(frame.rfind(os.sep))]
+#                 frameNum = frameNum+1
+#                 if(framesDir != thisDir):
+#                     sameDir = 0
+#             if(sameDir): #Loop ended because we ran out of frames
+#                 self.dir = framesDir
+#             else: #Loop ended because sameDir became false
+#                 print("writeQuicktime(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again.")
+#                 raise ValueError
+#         writer = MovieWriter(self.dir, framesPerSec, destPath)
+#         writer.writeQuicktime()
+#         
+#     def writeAVI(self, destPath, framesPerSec = 16):
+#         global mediaFolder
+#         if not os.path.isabs(destPath):
+#             destPath = mediaFolder + destPath
+#         destPath = "file://"+destPath
+#         if framesPerSec <= 0:
+#             print("writeAVI(path[, framesPerSec]): Frame Rate must be a positive number")
+#             raise ValueError
+#         if self.frames == []: #Is movie empty?
+#             print("writeAVI(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie")
+#             raise ValueError
+#         elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
+#             frame = self.frames[0]
+#             self.dir = frame[:(frame.rfind(os.sep))]
+#         elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
+#             sameDir = 1
+#             frame = self.frames[0]
+#             frame = frame.replace('/', os.sep)
+#             framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
+#             thisDir = framesDir
+#             frameNum = 1
+#             while(sameDir and frameNum < len(self.frames)):
+#                 frame = self.frames[frameNum]
+#                 frame = frame.replace('/', os.sep)
+#                 thisDir = frame[:(frame.rfind(os.sep))]
+#                 frameNum = frameNum+1
+#                 if(framesDir != thisDir):
+#                     sameDir = 0
+#             if(sameDir): #Loop ended because we ran out of frames
+#                 self.dir = framesDir
+#             else: #Loop ended because sameDir became false
+#                 print("writeAVI(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again.")
+#                 raise ValueError
+#         writer = MovieWriter(self.dir, framesPerSec, destPath)
+#         writer.writeAVI()
+# #Done
+# def playMovie( movie ):
+#     if isinstance( movie, Movie ):
+#         movie.play()
+#     else:
+#         print("playMovie( movie ): Input is not a Movie")
+#         raise ValueError
+# 
+# #Done
+# def writeQuicktime(movie, destPath, framesPerSec = 16):
+#     if not (isinstance(movie, Movie)):
+#         print("writeQuicktime(movie, path[, framesPerSec]): First input is not a Movie")
+#         raise ValueError
+#     if framesPerSec <= 0:
+#         print("writeQuicktime(movie, path[, framesPerSec]): Frame rate must be a positive number")
+#         raise ValueError
+#     movie.writeQuicktime(destPath, framesPerSec)
+# 
+# #Done
+# def writeAVI(movie, destPath, framesPerSec = 16):
+#     if not (isinstance(movie, Movie)):
+#         print("writeAVI(movie, path[, framesPerSec]): First input is not a Movie")
+#         raise ValueError
+#     if framesPerSec <= 0:
+#         print("writeAVI(movie, path[, framesPerSec]): Frame rate must be a positive number")
+#         raise ValueError
+#     movie.writeAVI(destPath, framesPerSec)
+# 
+# #Done
+# def makeMovie():
+#     return Movie()
+# 
+# #Done
+# def makeMovieFromInitialFile(filename):
+#     import re
+#     movie = Movie()
+# 
+#     #filename = filename.replace(os.altsep, os.sep)
+#     filename = filename.replace('/',os.sep) #Hack fix because os.altsep is not defined for Windows as of Python 2.2
+#     sep_location = filename.rfind(os.sep)
+#     if(-1 == sep_location):
+#         filename = mediaFolder + filename
+# 
+#     movie.directory = filename[:(filename.rfind(os.sep))]
+#     movie.init_file = filename[(filename.rfind(os.sep))+1:]
+#     regex = re.compile('[0-9]+')
+#     file_regex = regex.sub('.*', movie.init_file)
+# 
+#     for item in os.listdir(movie.directory):
+#         if re.match(file_regex, item):
+#             movie.addFrame(movie.directory + os.sep + item)
+# 
+#     return movie
+# 
+# #Done
+# def addFrameToMovie(a, b):
+#     frame = None
+#     movie = None
+#     if a.__class__ == Movie:
+#         movie = a
+#         frame = b
+#     else:
+#         movie = b
+#         frame = a
+# 
+#     if not (isinstance(movie,Movie) and isinstance(frame,String)):
+#    # if movie.__class__ != Movie or frame.__class__ != String:
+#         print("addFrameToMovie(frame, movie): frame is not a string or movie is not a Movie object")
+#         raise ValueError
+# 
+#     movie.addFrame(frame)
+# 
+# #Done
+# def writeFramesToDirectory(movie, directory=None):
+#     if not isinstance(movie, Movie):
+#         print("writeFramesToDirectory(movie[, directory]): movie is not a Movie object")
+#         raise ValueError
+# 
+#     if directory == None:
+#         directory = user.home
+# 
+#     movie.writeFramesToDirectory(directory)
+# 
+# #def playMovie(movie):
+# #    if not isinstance(movie, Movie):
+# #        print "playMovie(movie): movie is not a Movie object."
+# #        raise ValueError
+# #    movie.play()
