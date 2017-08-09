@@ -79,14 +79,13 @@ import traceback
 #Use PIL for images
 import PIL
 
+from os import system
+from platform import system as platform
+
 #Use tkinter for file dialogs
 import tkinter
 from tkinter import filedialog
 from tkinter.colorchooser import askcolor
-#This is to prevent stupid windows from hanging around
-root = tkinter.Tk()
-root.withdraw()
-
 #import org.python.core.PyString as String
 
 # Support a media shortcut
@@ -576,7 +575,19 @@ def pickAColor():
     #swing.SwingUtilities.invokeAndWait(runner)
     
     #return runner.color
+    #root.lift()
+    #root.update()
+    root = tkinter.Tk()
+    root.withdraw()
+    #root.lift()
+    
+    if platform() == 'Darwin':  # How Mac OS X is identified by Python
+        system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+    
+    root.focus_force()
     col = askcolor()
+    root.update()
+    root.destroy()
     return Color(int(col[0][0]), int(col[0][1]), int(col[0][2]))
 
 
@@ -618,15 +629,19 @@ class Picture:
         self.height = height
         self.width = width
         if height != None:
+            if isinstance(aColor, Color):
+                col = aColor.getRGB()
+            else:
+                col = aColor
             self.image = PIL.Image.new('RGB', (width, height), col)
     
     #Match JES's printing of a picture
     def __str__(self):
         ret = "Picture, "
-        if filename == None and self.height == None:
+        if self.filename == None and self.height == None:
             return ret + "empty"
         retend = "height %d width %d" % (self.height, self.width)
-        if filename == None:
+        if self.filename == None:
             return ret + retend
         else:
             return ret + "filename %s %s" % (self.filename, retend)
@@ -1170,16 +1185,39 @@ def pickAFile():
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #return FileChooser.pickAFile()
-    return tkinter.filedialog.askopenfilename()
+    #root.update()
+    #This is to prevent stupid windows from hanging around
+    root = tkinter.Tk()
+    root.withdraw()
+    #root.lift()
+    
+    if platform() == 'Darwin':  # How Mac OS X is identified by Python
+        system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+    
+    root.focus_force()
+    ret = tkinter.filedialog.askopenfilename()
+    root.update()
+    root.destroy()
+    return ret
 
 #Done
 def pickAFolder():
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #dir = FileChooser.pickADirectory() TODO
-    dir = tkinter.filedialog.askdirectory()
-    if ( dir != None ):
-        return dir + os.sep
+    root = tkinter.Tk()
+    root.withdraw()
+    #root.lift()
+    
+    if platform() == 'Darwin':  # How Mac OS X is identified by Python
+        system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+    
+    root.focus_force()
+    dirc = tkinter.filedialog.askdirectory()
+    root.update()
+    root.destroy()
+    if ( dirc != None ):
+        return dirc + os.sep
     return None
 
 def quit():
