@@ -73,20 +73,35 @@
 import sys
 import os
 import math
-import traceback
+#import traceback
 #import user
 
-#Use PIL for images
+#Don't Use PIL for images
+#except one case
 import PIL
+#import PIL.ImageTk as ImageTk
 
-from os import system
-from platform import system as platform
+#from os import system
+#from platform import system as platform
 
-#Use tkinter for file dialogs
-import tkinter
-from tkinter import filedialog
-from tkinter.colorchooser import askcolor
+#Use Qt for everything
+from PyQt4.QtGui import *
+# Create an PyQT4 application object.
+#If we're running in Canopy, there already is one
+root = QApplication.instance()
+if root is None:
+    #We're not running in Canopy
+    #Need to launch a new application
+    root = QApplication(sys.argv)
+#import tkinter
+#from tkinter import filedialog
+#from tkinter.colorchooser import askcolor
+#import threading
 #import org.python.core.PyString as String
+#root = tkinter.Tk()
+#root.withdraw()
+
+#roots = []
 
 # Support a media shortcut
 
@@ -451,11 +466,15 @@ def _checkPixel(raw):
 class Color:
     def __init__(self,r,g=None,b=None):
         if b == None:
-            #In this case, r should be a tuple or Color
+            #In this case, r should be a tuple or Color or QColor
             if isinstance(r, Color):
                 self.r = r.getRed()
                 self.g = r.getGreen()
                 self.b = r.getBlue()
+            elif isinstance(r, QColor):
+                self.r = r.red()
+                self.g = r.green()
+                self.b = r.blue()
             else:
                 self.r = r[0]
                 self.g = r[1]
@@ -556,6 +575,10 @@ class Color:
     
     def getRGB(self):
         return (self.getRed(), self.getGreen(), self.getBlue())
+    
+    #Convert to QColor
+    def toQColor(self):
+        return QColor(*self.getRGB())
 
 #Done
 def pickAColor():
@@ -577,18 +600,20 @@ def pickAColor():
     #return runner.color
     #root.lift()
     #root.update()
-    root = tkinter.Tk()
-    root.withdraw()
-    #root.lift()
-    
-    if platform() == 'Darwin':  # How Mac OS X is identified by Python
-        system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
-    
-    root.focus_force()
-    col = askcolor()
-    root.update()
-    root.destroy()
-    return Color(int(col[0][0]), int(col[0][1]), int(col[0][2]))
+    # root = tkinter.Tk()
+    # root.withdraw()
+    # #root.lift()
+    # 
+    # if platform() == 'Darwin':  # How Mac OS X is identified by Python
+    #     system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+    # 
+    # root.focus_force()
+    # col = askcolor()
+    # root.update()
+    # root.destroy()
+    col = QColorDialog.getColor()
+    #return Color(int(col[0][0]), int(col[0][1]), int(col[0][2]))
+    return Color(col)
 
 
 
@@ -614,26 +639,83 @@ class Pixel:
         self.picture = picture
         self.x = x
         self.y = y
-        self.color = Color(picture.getpixel((x,y)))
+        #self.color = Color(picture.getpixel((x,y)))
+        self.color = Color(picture.pixel(x, y))
     
     #Render as string
     def __str__(self):
         return "Pixel red=%d green=%d blue=%d" % self.color.getRGB()
+    
+    #Get red
+    def getRed(self):
+        return self.color.getRed()
+    
+    #Get green
+    def getGreen(self):
+        return self.color.getGreen()
+    
+    #Get blue
+    def getBlue(self):
+        return self.color.getBlue()
+    
+    #Get color
+    def getColor(self):
+        return self.color
+    
+    #Set color
+    def setColor(self, r, g=None, b=None):
+        if g == None:
+            if isinstance(r, Color):
+                self.color = r
+            elif isinstance(r, tuple) and len(r) == 3:
+                self.color = Color(r)
+            else:
+                print("Invalid color arguments")
+                raise ValueError
+        else:
+            self.color = Color(r, g, b)
+    
+    #Set red
+    def setRed(self, r):
+        self.color = Color(r, self.color.getGreen(), self.color.getBlue())
+    
+    #Set green
+    def setGreen(self, g):
+        self.color = Color(self.color.getGreen(), g, self.color.getBlue())
+    
+    #Set blue
+    def setBlue(self, b):
+        self.color = Color(self.color.getGreen(), self.color.getBlue(), b)
+    
+    #Update picture
+    def updatePicture(self):
+        self.picture.setPixel(self.x, self.y, self.color)
 
 #Picture class
-#Mostly just a wrapper for PIL Images
+#Mostly just a wrapper for QImages
 class Picture:
     #Constructor
     def __init__(self, width = None, height = None, aColor = None):
         self.filename = None
         self.height = height
         self.width = width
+        #Set up a window for displaying it
+        self.window = QWidget()
+        self.window.setWindowTitle("Image")
+        self.picLabel = QLabel(self.window)
         if height != None:
             if isinstance(aColor, Color):
                 col = aColor.getRGB()
+            elif isinstance(aColor, QColor):
+                col = (aColor.red(), aColor.green(), aColor.blue())
             else:
                 col = aColor
-            self.image = PIL.Image.new('RGB', (width, height), col)
+            #Qt image
+            self.image = QImage(width, height, QImage.Format_RGB32)
+            if col is not None:
+                self.image.fill(QColor(*col))
+            #self.frame = None
+            self.window.resize(width, height)
     
     #Match JES's printing of a picture
     def __str__(self):
@@ -649,10 +731,15 @@ class Picture:
     #Load a file into the Picture object
     def loadOrFail(self, filename):
         try:
-            self.image = PIL.Image.open(filename)
+            #self.image = PIL.Image.open(filename)
+            self.image = QImage(filename)
+            if self.image.isNull():
+                #Load failed
+                raise IOError
             self.filename = filename
-            self.height = self.image.height
-            self.width = self.image.width
+            self.height = self.image.height()
+            self.width = self.image.width()
+            self.window.resize(self.width, self.height)
         except IOError:
             raise IOError(filename + " could not be opened or was not a picture. Check that you specified the path")
     
@@ -673,11 +760,77 @@ class Picture:
     def getHeight(self):
         return self.height
     
+    #Set the (x,y) pixel to Color col
+    def setPixel(self, x, y, col):
+        if not isinstance(col, Color):
+            print("non-color passed to setPixel")
+            raise ValueError
+        #self.image.putpixel((x,y), col.getRGB())
+        #NOTE: There's a warning about this being a slow operation
+        self.image.setPixel(x, y, col.toQColor())
+    
+    #Print the picture in Canopy
+    def printPicture(self):
+        #return self.image
+        #Canopy prints out PIL images nicely
+        #So, we'll convert to and return a PIL image
+        #This is very hack-ish
+        #img = QImage("/tmp/example.png")
+        img = QImage(self.image)
+        img.save("/tmp/example.png", "PNG")
+        pil_im = PIL.Image.open("/tmp/example.png")
+        # buffer = QBuffer()
+        # buffer.open(QIODevice.ReadWrite)
+        # img.save(buffer, "PNG")
+        # 
+        # strio = io.BytesIO()
+        # strio.write(buffer.data())
+        # buffer.close()
+        # strio.seek(0)
+        #pil_im = PIL.Image.open(strio)
+        return pil_im
+    
     #Show the picture
     def show(self, title = None):
-        #TODO use tkinter
-        self.image.show(title)
+        #self.image.show(title)
+        #root = tkinter.Tk()
+        #root.withdraw()
+        #second = tkinter.Toplevel()
+        if title != None:
+            self.window.setWindowTitle(title)
+        
+        pixmap = QPixmap.fromImage(self.image)
+        self.picLabel.setPixmap(pixmap)
+        
+        # Show window
+        self.window.show()
+        
+        #second.geometry("%dx%d" % (self.width, self.height))
+        #root.lift()
+        #canvas = tkinter.Canvas(second,width=self.width,height=self.height)
+        #canvas.pack()
+        #try:
+        #image = PIL.ImageTk.PhotoImage(self.image)
+        #except TclError:
+        #    #This is for debugging
+        #    second.destroy()
+        #    raise
+            
+        #canvas.create_image(0,0,image=image, anchor = 'nw')
+        
+        #second.update()
+        #self.frame = second #Keep reference around?
+        #th.start()
+        #second.update()
+        #second.mainloop()
+        #roots.append(root) #Keep a reference around
+        #return self.frame
     
+    #Repaint the picture
+    def repaint(self):
+        pixmap = QPixmap.fromImage(self.image)
+        self.picLabel.setPixmap(pixmap)
+        self.window.update()
 
 ##
 ## Global picture functions
@@ -707,10 +860,10 @@ def makeEmptyPicture(width, height, acolor = white):
     if width <= 0 or height <= 0:
         print("makeEmptyPicture(width, height[, acolor]): height and width must be greater than 0 each")
         raise ValueError
-    if isinstance(acolor, Color):
-        col = acolor.getRGB()
-    else:
-        col = acolor
+    #if isinstance(acolor, Color):
+    #    col = acolor.getRGB()
+    #else:
+    #    col = acolor
     picture = Picture(width, height, acolor)
     # picture.createImage(width, height)
     # picture.filename = ''
@@ -743,20 +896,42 @@ def getHeight(picture):
 
 #Done
 def show(picture, title=None):
+    #Old Plan:
+        #1. Create broken window with Tkinter
+        #2. Add unshow procedure
+        #3. Make it passed with stuff
+        #Downside: can't close window
     #picture.setTitle(getShortPath(picture.filename))
     #if title <> None:
-            #picture.setTitle(title)
+        #picture.setTitle(title)
     if not isinstance(picture, Picture):
         print("show(picture): Input is not a picture")
         raise ValueError
     picture.show(title)
+    #frm = picture.show(title)
+    #def on_closing():
+    #    print("Got here") #Debug?
+    #    frm.destroy()
+        
+    #frm.protocol("WM_DELETE_WINDOW", on_closing)
+
+#NEW
+#This is a Canopy thing
+def printPicture(picture):
+    if not isinstance(picture,Picture):
+        print("repaint(picture): Input is not a picture")
+        raise ValueError
+    return picture.printPicture()
 
 def repaint(picture):
     #if not (isinstance(picture, World) or isinstance(picture,Picture)):
     #    print "repaint(picture): Input is not a picture or a world"
     #    raise ValueError
     #picture.repaint()
-    pass #TODO
+    if not isinstance(picture,Picture):
+        print("repaint(picture): Input is not a picture")
+        raise ValueError
+    picture.repaint()
 
 ## adding graphics to your pictures! ##
 def addLine(picture, x1, y1, x2, y2, acolor=black):
@@ -1003,12 +1178,12 @@ def _setColorTo(color, other):
     #"""This function has side effects on purpose, see p49 """
     #return _setColorTo(color, color.darker())
 
+#Done
 def makeDarker(color):
-  if not isinstance(color,Color):
-      print("makeDarker(color): Input is not a color")
-      raise ValueError
-  return Color( color.makeDarker() )
-  #TODO maybe done?
+    if not isinstance(color,Color):
+        print("makeDarker(color): Input is not a color")
+        raise ValueError
+    return Color( color.makeDarker() )
 
 #def makeLighter(color):
   #"""This function has side effects on purpose, see p49"""
@@ -1016,18 +1191,17 @@ def makeDarker(color):
 
 #Done
 def makeLighter(color):
-  if not isinstance(color,Color):
-      print("makeLighter(color): Input is not a color")
-      raise ValueError
-  return Color( color.makeLighter() )
+    if not isinstance(color,Color):
+        print("makeLighter(color): Input is not a color")
+        raise ValueError
+    return Color( color.makeLighter() )
 
 #Done
 def makeBrighter(color): #This is the same as makeLighter(color)
-  if not isinstance(color,Color):
-      print("makeBrighter(color): Input is not a color")
-      raise ValueError
-  return Color( color.makeLighter() )
-  #TODO maybe done?
+    if not isinstance(color,Color):
+        print("makeBrighter(color): Input is not a color")
+        raise ValueError
+    return Color( color.makeLighter() )
 
 #Done
 def makeColor(red,green=None,blue=None):
@@ -1187,17 +1361,18 @@ def pickAFile():
     #return FileChooser.pickAFile()
     #root.update()
     #This is to prevent stupid windows from hanging around
-    root = tkinter.Tk()
-    root.withdraw()
+    #root = tkinter.Tk()
+    #root.withdraw()
     #root.lift()
     
-    if platform() == 'Darwin':  # How Mac OS X is identified by Python
-        system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+    #if platform() == 'Darwin':  # How Mac OS X is identified by Python
+    #    system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
     
-    root.focus_force()
-    ret = tkinter.filedialog.askopenfilename()
-    root.update()
-    root.destroy()
+    #root.focus_force()
+    #ret = tkinter.filedialog.askopenfilename()
+    #root.update()
+    #root.destroy()
+    ret = QFileDialog.getOpenFileName()
     return ret
 
 #Done
@@ -1205,17 +1380,18 @@ def pickAFolder():
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #dir = FileChooser.pickADirectory() TODO
-    root = tkinter.Tk()
-    root.withdraw()
+    #root = tkinter.Tk()
+    #root.withdraw()
     #root.lift()
     
-    if platform() == 'Darwin':  # How Mac OS X is identified by Python
-        system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+    #if platform() == 'Darwin':  # How Mac OS X is identified by Python
+    #    system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
     
-    root.focus_force()
-    dirc = tkinter.filedialog.askdirectory()
-    root.update()
-    root.destroy()
+    #root.focus_force()
+    #dirc = tkinter.filedialog.askdirectory()
+    #root.update()
+    #root.destroy()
+    dirc = QFileDialog.getExistingDirectory()
     if ( dirc != None ):
         return dirc + os.sep
     return None
