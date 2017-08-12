@@ -116,19 +116,19 @@ _lastFilePath = ""
 true = 1
 false = 0
 
+#Done
 def setMediaPath(file=None):
     global mediaFolder
-    #if(file == None):
-    #    FileChooser.pickMediaPath()
-    #else:	
-    #    FileChooser.setMediaPath( file )
+    if(file == None):
+        mediaFolder = pickAFolder()
+    else:	
+        mediaFolder = file
     #mediaFolder = getMediaPath()
-    #return mediaFolder
-    #TODO
+    return mediaFolder
 
 def getMediaPath( filename = "" ):
+    return mediaFolder + os.sep + filename
     #return FileChooser.getMediaPath( filename )
-    pass #TODO
 
 #Done
 def setMediaFolder(file=None):
@@ -1408,7 +1408,8 @@ def duplicatePicture(picture):
 #
 
 #Done
-def pickAFile():
+def pickAFile(sdir = None):
+    global mediaFolder
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #return FileChooser.pickAFile()
@@ -1425,12 +1426,16 @@ def pickAFile():
     #ret = tkinter.filedialog.askopenfilename()
     #root.update()
     #root.destroy()
-    ret = QFileDialog.getOpenFileName()
+    if sdir is None:
+        ret = QFileDialog.getOpenFileName(directory = mediaFolder)
+    else:
+        ret = QFileDialog.getOpenFileName(directory = sdir)
     return ret
 
 #New
 #Done
-def pickASaveFile():
+def pickASaveFile(sdir = None):
+    global mediaFolder
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #return FileChooser.pickAFile()
@@ -1447,11 +1452,15 @@ def pickASaveFile():
     #ret = tkinter.filedialog.askopenfilename()
     #root.update()
     #root.destroy()
-    ret = QFileDialog.getSaveFileName()
+    if sdir is None:
+        ret = QFileDialog.getSaveFileName(directory = mediaFolder)
+    else:
+        ret = QFileDialog.getSaveFileName(directory = sdir)
     return ret
 
 #Done
-def pickAFolder():
+def pickAFolder(sdir = None):
+    global mediaFolder
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #dir = FileChooser.pickADirectory() TODO
@@ -1466,7 +1475,10 @@ def pickAFolder():
     #dirc = tkinter.filedialog.askdirectory()
     #root.update()
     #root.destroy()
-    dirc = QFileDialog.getExistingDirectory()
+    if sdir is None:
+        dirc = QFileDialog.getExistingDirectory(directory = mediaFolder)
+    else:
+        dirc = QFileDialog.getExistingDirectory(directory = sdir)
     if ( dirc != None ):
         return dirc + os.sep
     return None
