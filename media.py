@@ -475,6 +475,12 @@ class Color:
                 self.r = r.red()
                 self.g = r.green()
                 self.b = r.blue()
+            elif isinstance(r, int):
+                #This case is necessary because of how QImage.pixel() works
+                cl = QColor(r)
+                self.r = cl.red()
+                self.g = cl.green()
+                self.b = cl.blue()
             else:
                 self.r = r[0]
                 self.g = r[1]
@@ -579,6 +585,11 @@ class Color:
     #Convert to QColor
     def toQColor(self):
         return QColor(*self.getRGB())
+    
+    #Convert to color integer
+    def toQColorInt(self):
+        return self.toQColor().rgb()
+        
 
 #Done
 def pickAColor():
@@ -640,7 +651,7 @@ class Pixel:
         self.x = x
         self.y = y
         #self.color = Color(picture.getpixel((x,y)))
-        self.color = Color(picture.pixel(x, y))
+        self.color = picture.getPixelColor(x, y)
     
     #Render as string
     def __str__(self):
@@ -686,6 +697,18 @@ class Pixel:
     #Set blue
     def setBlue(self, b):
         self.color = Color(self.color.getGreen(), self.color.getBlue(), b)
+    
+    #Get color
+    def getColor(self):
+        return self.color
+    
+    #Get x
+    def getX(self):
+        return self.x
+    
+    #Get y
+    def getY(self):
+        return self.y
     
     #Update picture
     def updatePicture(self):
@@ -743,6 +766,10 @@ class Picture:
         except IOError:
             raise IOError(filename + " could not be opened or was not a picture. Check that you specified the path")
     
+    #Set all pixels to a color
+    def setAllPixelsToAColor(self, col):
+        self.image.fill(QColor(*col.getRGB()))
+    
     #Get Pixels
     def getPixels(self):
         ##Get the raw data
@@ -751,6 +778,14 @@ class Picture:
         #return [Pixel(self, 
         #On second thought, let's just mirror the Pixel class in JES
         return [Pixel(self, x, y) for y in range(self.height) for x in range(self.width)]
+    
+    #Get Pixel
+    def getPixel(self, x, y):
+        return Pixel(self, x, y)
+    
+    #Get pixel color
+    def getPixelColor(self, x, y):
+        return Color(self.image.pixel(x, y))
     
     #Get width
     def getWidth(self):
@@ -767,7 +802,7 @@ class Picture:
             raise ValueError
         #self.image.putpixel((x,y), col.getRGB())
         #NOTE: There's a warning about this being a slow operation
-        self.image.setPixel(x, y, col.toQColor())
+        self.image.setPixel(x, y, col.toQColorInt())
     
     #Print the picture in Canopy
     def printPicture(self):
@@ -831,6 +866,21 @@ class Picture:
         pixmap = QPixmap.fromImage(self.image)
         self.picLabel.setPixmap(pixmap)
         self.window.update()
+    
+    #Copy the picture other into this one at position (x,y) for upper left
+    def copyInto(self, other, x, y):
+        painter = QPainter()
+        painter.begin(self.image)
+        painter.drawImage(x, y, other.image)
+        painter.end()
+    
+    #Save the picture
+    #If fname is None, overwrite the file
+    def writeOrFail(self, fname = None, fmt = None):
+        itWorked = self.image.save(fname, fmt)
+        if not itWorked:
+            print("Saving image failed")
+            raise IOError
 
 ##
 ## Global picture functions
@@ -1049,100 +1099,104 @@ def addArcFilled(picture,x,y,w,h,start,angle,acolor=black):
 ## in the Java.
 ##
 ## 29 Oct 2008: -1 changed to Picture._PictureIndexOffset
+## note: Nathan Fox got rid of this offset thing
+#Done
 def getPixel(picture,x,y):
-    #if not isinstance(picture, Picture):
-    #    print "getPixel(picture,x,y): First input is not a picture"
-    #    raise ValueError
-    #if ( x < Picture._PictureIndexOffset ) or ( x > getWidth(picture) - 1 + Picture._PictureIndexOffset ):
-    #    print "getPixel(picture,x,y): x (= %s) is less than %s or bigger than the width (= %s)" % (x,Picture._PictureIndexOffset,getWidth(picture) - 1 + Picture._PictureIndexOffset)
-    #    raise ValueError
-    #if ( y < Picture._PictureIndexOffset ) or ( y > getHeight(picture) - 1 + Picture._PictureIndexOffset ):
-    #    print "getPixel(picture,x,y): y (= %s) is less than %s or bigger than the height (= %s)" % (y,Picture._PictureIndexOffset,getHeight(picture) - 1 + Picture._PictureIndexOffset)
-    #    raise ValueError
+    if not isinstance(picture, Picture):
+        print("getPixel(picture,x,y): First input is not a picture")
+        raise ValueError
+    # if ( x < Picture._PictureIndexOffset ) or ( x > getWidth(picture) - 1 + Picture._PictureIndexOffset ):
+    #     print("getPixel(picture,x,y): x (= %s) is less than %s or bigger than the width (= %s)" % (x,Picture._PictureIndexOffset,getWidth(picture) - 1 + Picture._PictureIndexOffset)
+    #     raise ValueError
+    # if ( y < Picture._PictureIndexOffset ) or ( y > getHeight(picture) - 1 + Picture._PictureIndexOffset ):
+    #     print "getPixel(picture,x,y): y (= %s) is less than %s or bigger than the height (= %s)" % (y,Picture._PictureIndexOffset,getHeight(picture) - 1 + Picture._PictureIndexOffset)
+    #     raise ValueError
+    if ( x < 0 ) or ( x > getWidth(picture) ):
+        print("getPixel(picture,x,y): x (= %s) is less than %s or bigger than the width (= %s)" % (x, 0, getWidth(picture) - 1))
+        raise ValueError
+    if ( y < 0 ) or ( y > getHeight(picture) - 1 ):
+        print("getPixel(picture,x,y): y (= %s) is less than %s or bigger than the height (= %s)" % (y, 0, getHeight(picture) - 1))
+        raise ValueError
 
     #return picture.getPixel(x - Picture._PictureIndexOffset, y - Picture._PictureIndexOffset)
-    pass #TODO
+    return picture.getPixel(x, y)
 
 #Added as a better name for getPixel
 #Done
 def getPixelAt(picture,x,y):
     return getPixel(picture,x,y)
 
+#Done
 def setRed(pixel,value):
     #value = _checkPixel(value)
-    #if not isinstance(pixel, Pixel):
-    #    print "setRed(pixel,value): Input is not a pixel"
-    #    raise ValueError
-    #pixel.setRed(value)
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("setRed(pixel,value): Input is not a pixel")
+        raise ValueError
+    pixel.setRed(value)
 
+#Done
 def getRed(pixel):
-    #if not isinstance(pixel, Pixel):
-    #    print "getRed(pixel): Input is not a pixel"
-    #    raise ValueError
-    #return pixel.getRed()
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("getRed(pixel): Input is not a pixel")
+        raise ValueError
+    return pixel.getRed()
 
+#Done
 def setBlue(pixel,value):
     #value = _checkPixel(value)
-    #if not isinstance(pixel, Pixel):
-    #    print "setBlue(pixel,value): Input is not a pixel"
-    #    raise ValueError
-    #pixel.setBlue(value)
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("setBlue(pixel,value): Input is not a pixel")
+        raise ValueError
+    pixel.setBlue(value)
 
+#Done
 def getBlue(pixel):
-    #if not isinstance(pixel,Pixel):
-    #    print "getBlue(pixel): Input is not a pixel"
-    #    raise ValueError
-    #return pixel.getBlue()
-    pass #TODO
+    if not isinstance(pixel,Pixel):
+        print("getBlue(pixel): Input is not a pixel")
+        raise ValueError
+    return pixel.getBlue()
 
+#Done
 def setGreen(pixel,value):
     #value = _checkPixel(value)
-    #if not isinstance(pixel, Pixel):
-    #    print "setGreen(pixel,value): Input is not a pixel"
-    #    raise ValueError
-    #pixel.setGreen(value)
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("setGreen(pixel,value): Input is not a pixel")
+        raise ValueError
+    pixel.setGreen(value)
 
 def getGreen(pixel):
-    #if not isinstance(pixel, Pixel):
-    #    print "getGreen(pixel): Input is not a pixel"
-    #    raise ValueError
-    #return pixel.getGreen()
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("getGreen(pixel): Input is not a pixel")
+        raise ValueError
+    return pixel.getGreen()
 
+#Done
 def getColor(pixel):
-    #if not isinstance(pixel, Pixel):
-    #    print "getColor(pixel): Input is not a pixel"
-    #    raise ValueError
-    #return Color(pixel.getColor())
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("getColor(pixel): Input is not a pixel")
+        raise ValueError
+    return pixel.getColor()
 
 def setColor(pixel,color):
-    #if not isinstance(pixel, Pixel):
-    #    print "setColor(pixel,color): First input is not a pixel"
-    #    raise ValueError
-    #if not isinstance(color, Color):
-    #    print "setColor(pixel,color): Second input is not a color"
-    #    raise ValueError
-    #pixel.setColor(color.color)
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("setColor(pixel,color): First input is not a pixel")
+        raise ValueError
+    if not isinstance(color, Color):
+        print("setColor(pixel,color): Second input is not a color")
+        raise ValueError
+    pixel.setColor(color.color)
 
 def getX(pixel):
-    #if not isinstance(pixel, Pixel):
-    #    print "getX(pixel): Input is not a pixel"
-    #    raise ValueError
-    #return pixel.getX() + Picture._PictureIndexOffset
-    pass #TODO
+    if not isinstance(pixel, Pixel):
+        print("getX(pixel): Input is not a pixel")
+        raise ValueError
+    return pixel.getX()# + Picture._PictureIndexOffset
 
 def getY(pixel):
-    #if not isinstance(pixel,Pixel):
-    #    print "getY(pixel): Input is not a pixel"
-    #    raise ValueError
-    #return pixel.getY() + Picture._PictureIndexOffset
-    pass #TODO
+    if not isinstance(pixel,Pixel):
+        print("getY(pixel): Input is not a pixel")
+        raise ValueError
+    return pixel.getY()# + Picture._PictureIndexOffset
 
 #Done
 def distance(c1,c2):
@@ -1154,18 +1208,18 @@ def distance(c1,c2):
         raise ValueError
     return c1.distance(c2)
 
+#Done
 def writePictureTo(picture,filename):
-    #global mediaFolder
-    #if not os.path.isabs(filename):
-    #    filename = mediaFolder + filename
-    #if not isinstance(picture, Picture):
-    #    print "writePictureTo(picture,filename): First input is not a picture"
-    #    raise ValueError
-    #picture.writeOrFail(filename)
-    pass #TODO
-#   if not os.path.exists(filename):
-#       print "writePictureTo(pict,filename): Path is not valid"
-#       raise ValueError
+    global mediaFolder
+    if not os.path.isabs(filename):
+        filename = mediaFolder + filename
+    if not isinstance(picture, Picture):
+        print("writePictureTo(picture,filename): First input is not a picture")
+        raise ValueError
+    picture.writeOrFail(filename)
+    if not os.path.exists(filename):
+        print("writePictureTo(picture,filename): Path is not valid")
+        raise ValueError
 
 
 
@@ -1207,47 +1261,46 @@ def makeBrighter(color): #This is the same as makeLighter(color)
 def makeColor(red,green=None,blue=None):
     return Color( red, green, blue)
 
+#Done
 def setAllPixelsToAColor(picture,color):
-    ##"""This function sets the picture to one color"""
-    #if not isinstance(picture, Picture):
-    #    print "setAllPixelsToAColor(picture,color): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(color,Color):
-    #    print "setAllPixelsToAColor(picture,color): Second input is not a color"
-    #    raise ValueError
-    #picture.setAllPixelsToAColor(color.color)
-    #TODO maybe done?
-    pass #TODO
+    #"""This function sets the picture to one color"""
+    if not isinstance(picture, Picture):
+        print("setAllPixelsToAColor(picture,color): First input is not a picture")
+        raise ValueError
+    if not isinstance(color,Color):
+        print("setAllPixelsToAColor(picture,color): Second input is not a color")
+        raise ValueError
+    picture.setAllPixelsToAColor(color)
 
 
 def copyInto(smallPicture, bigPicture, startX, startY):
-    ##like copyInto(butterfly, jungle, 20,20)
-    #if not smallPicture.__class__ == Picture:
-    #    print "copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture"
-    #    raise ValueError
-    #if not bigPicture.__class__ == Picture:
-    #    print "copyInto(smallPicture, bigPicture, startX, startY): bigPicture must be a picture"
-    #    raise ValueError
-    #if (startX < Picture._PictureIndexOffset) or (startX > getWidth(bigPicture) - 1 + Picture._PictureIndexOffset):
-    #    print "copyInto(smallPicture, bigPicture, startX, startY): startX must be within the bigPicture"
-    #    raise ValueError
-    #if (startY < Picture._PictureIndexOffset) or (startY > getHeight(bigPicture) - 1 + Picture._PictureIndexOffset):
-    #    print "copyInto(smallPicture, bigPicture, startX, startY): startY must be within the bigPicture"
-    #    raise ValueError
-    #if (startX + getWidth(smallPicture) - 1) > (getWidth(bigPicture) - 1 + Picture._PictureIndexOffset) or \
-    #        (startY + getHeight(smallPicture) - 1) > (getHeight(bigPicture) - 1 + Picture._PictureIndexOffset):
-    #    print "copyInto(smallPicture, bigPicture, startX, startY): smallPicture won't fit into bigPicture"
-    #    raise ValueError
+    #like copyInto(butterfly, jungle, 20,20)
+    if not isinstance(smallPicture, Picture):
+        print("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
+        raise ValueError
+    if not isinstance(bigPicture, Picture):
+        print("copyInto(smallPicture, bigPicture, startX, startY): bigPicture must be a picture")
+        raise ValueError
+    if (startX < 0) or (startX > getWidth(bigPicture) - 1):
+        print("copyInto(smallPicture, bigPicture, startX, startY): startX must be within the bigPicture")
+        raise ValueError
+    if (startY < 0) or (startY > getHeight(bigPicture) - 1):
+        print("copyInto(smallPicture, bigPicture, startX, startY): startY must be within the bigPicture")
+        raise ValueError
+    if (startX + getWidth(smallPicture) - 1) > (getWidth(bigPicture) - 1) or \
+            (startY + getHeight(smallPicture) - 1) > (getHeight(bigPicture) - 1):
+        print("copyInto(smallPicture, bigPicture, startX, startY): smallPicture won't fit into bigPicture")
+        raise ValueError
 
-    #xOffset = startX - Picture._PictureIndexOffset
-    #yOffset = startY - Picture._PictureIndexOffset
+    xOffset = startX
+    yOffset = startY
 
     #for x in range(0, getWidth(smallPicture)):
     #    for y in range(0, getHeight(smallPicture)):
     #        bigPicture.setBasicPixel(x + xOffset, y + yOffset, smallPicture.getBasicPixel(x,y))
+    bigPicture.copyInto(smallPicture, xOffset, yOffset)
 
-    #return bigPicture
-    pass #TODO
+    return bigPicture
 
 # Alyce Brady's version of copyInto, with additional error-checking on the upper-left corner
 # Will copy as much of the original picture into the destination picture as will fit.
@@ -1373,6 +1426,28 @@ def pickAFile():
     #root.update()
     #root.destroy()
     ret = QFileDialog.getOpenFileName()
+    return ret
+
+#New
+#Done
+def pickASaveFile():
+    ## Note: this needs to be done in a threadsafe manner, see FileChooser
+    ## for details how this is accomplished.
+    #return FileChooser.pickAFile()
+    #root.update()
+    #This is to prevent stupid windows from hanging around
+    #root = tkinter.Tk()
+    #root.withdraw()
+    #root.lift()
+    
+    #if platform() == 'Darwin':  # How Mac OS X is identified by Python
+    #    system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+    
+    #root.focus_force()
+    #ret = tkinter.filedialog.askopenfilename()
+    #root.update()
+    #root.destroy()
+    ret = QFileDialog.getSaveFileName()
     return ret
 
 #Done
