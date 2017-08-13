@@ -46,7 +46,7 @@
 #                  with different font styles.
 #
 # 17 July 2007: (Pam Cutter, Kalamazoo College)
-#              Added global addOval, addOvalFilled, addArc and addArcFilled functions.
+#              Added 7global addOval, addOvalFilled, addArc and addArcFilled functions.
 #              Added global getNumSamples function as more meaningful name for getLength of a sound.
 #
 # 19 July 2007: (Pam Cutter, Kalamazoo College)
@@ -719,25 +719,34 @@ class Pixel:
 class Picture:
     #Constructor
     def __init__(self, width = None, height = None, aColor = None):
-        self.filename = None
-        self.height = height
-        self.width = width
+        if isinstance(width, Picture):
+            #We're duplicating a picture
+            self.height = width.image.height()
+            self.width = width.image.width()
+            self.filename = width.filename
+            self.image = QImage(width.image)
+        else:
+            #We're making a blank picture
+            self.filename = None
+            self.height = height
+            self.width = width
+            if height != None:
+                if isinstance(aColor, Color):
+                    col = aColor.getRGB()
+                elif isinstance(aColor, QColor):
+                    col = (aColor.red(), aColor.green(), aColor.blue())
+                else:
+                    col = aColor
+                #Qt image
+                self.image = QImage(width, height, QImage.Format_RGB32)
+                if col is not None:
+                    self.image.fill(QColor(*col))
         #Set up a window for displaying it
         self.window = QWidget()
         self.window.setWindowTitle("Image")
         self.picLabel = QLabel(self.window)
+        #self.frame = None
         if height != None:
-            if isinstance(aColor, Color):
-                col = aColor.getRGB()
-            elif isinstance(aColor, QColor):
-                col = (aColor.red(), aColor.green(), aColor.blue())
-            else:
-                col = aColor
-            #Qt image
-            self.image = QImage(width, height, QImage.Format_RGB32)
-            if col is not None:
-                self.image.fill(QColor(*col))
-            #self.frame = None
             self.window.resize(width, height)
     
     #Match JES's printing of a picture
@@ -874,6 +883,61 @@ class Picture:
         painter.drawImage(x, y, other.image)
         painter.end()
     
+    #Draw a line on the picture
+    def addLine(self, col, x1, y1, x2, y2):
+        painter = QPainter()
+        painter.begin(self.image)
+        painter.setPen(QColor(*col.getRGB()))
+        painter.drawLine(x1, y1, x2, y2)
+        painter.end()
+    
+    #Draw text on the picture
+    def addText(self, col, x, y, string):
+        painter = QPainter()
+        painter.begin(self.image)
+        painter.setPen(QColor(*col.getRGB()))
+        painter.drawText(x, y, string)
+        painter.end()
+    
+    #Draw a rectangle on the picture
+    def addRect(self, col, x, y, w, h, isFilled):
+        painter = QPainter()
+        qcol = QColor(*col.getRGB())
+        painter.begin(self.image)
+        painter.setPen(qcol)
+        if isFilled:
+            painter.fillRect(x, y, w, h, qcol)
+        else:
+            painter.drawRect(x, y, w, h)
+        painter.end()
+    
+    #Draw an oval on the picture
+    def addOval(self, col, x, y, w, h, isFilled):
+        painter = QPainter()
+        qcol = QColor(*col.getRGB())
+        painter.begin(self.image)
+        painter.setPen(qcol)
+        if isFilled:
+            painter.setBrush(QBrush(qcol))
+            #painter.fillRect(x, y, w, h, qcol)
+        #else:
+        painter.drawEllipse(x, y, w, h)
+        painter.end()
+    
+    def addArc(self, col, x, y, w, h, start, angle, isFilled):
+        painter = QPainter()
+        qcol = QColor(*col.getRGB())
+        painter.begin(self.image)
+        painter.setPen(qcol)
+        if isFilled:
+            painter.setBrush(QBrush(qcol))
+            #*16 because these functions use 16ths of degrees
+            painter.drawPie(x, y, w, h, start*16, angle*16)
+        else:
+            #*16 because these functions use 16ths of degrees
+            painter.drawArc(x, y, w, h, start*16, angle*16)
+        painter.end()
+    
     #Save the picture
     #If fname is None, overwrite the file
     def writeOrFail(self, fname = None, fmt = None):
@@ -984,31 +1048,31 @@ def repaint(picture):
     picture.repaint()
 
 ## adding graphics to your pictures! ##
+#Done
 def addLine(picture, x1, y1, x2, y2, acolor=black):
-    #if not isinstance(picture, Picture):
-    #    print "addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color"
-    #    raise ValueError
+    if not isinstance(picture, Picture):
+        print("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
+        raise ValueError
     ##g = picture.getBufferedImage().createGraphics()
     ##g.setColor(acolor.color)
     ##g.drawLine(x1 - 1,y1 - 1,x2 - 1,y2 - 1)
-    #picture.addLine(acolor,x1,y1,x2,y2)
-    pass #TODO
+    picture.addLine(acolor,x1,y1,x2,y2)
 
+#Done
 def addText(picture, x, y, string, acolor=black):
-    #if not isinstance(picture, Picture):
-    #    print "addText(picture, x, y, string[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addText(picture, x, y, string[, color]): Last input is not a color"
-    #    raise ValueError
+    if not isinstance(picture, Picture):
+        print("addText(picture, x, y, string[, color]): First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addText(picture, x, y, string[, color]): Last input is not a color")
+        raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
     ##g.drawString(string, x - 1, y - 1)
-    #picture.addText(acolor,x,y,string)
-    pass #TODO
+    picture.addText(acolor,x,y,string)
 
 # PamC: Added this function to allow different font styles
 def addTextWithStyle(picture, x, y, string, style, acolor=black):
@@ -1024,76 +1088,77 @@ def addTextWithStyle(picture, x, y, string, style, acolor=black):
     #picture.addTextWithStyle(acolor,x,y,string,style)
     pass #TODO
 
+#Done
 def addRect(picture, x,y,w,h, acolor=black):
-    #if not isinstance(picture, Picture):
-    #    print "addRect(picture, x, y, w, h[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addRect(picture, x, y, w, h[, color]): Last input is not a color"
-    #    raise ValueError
+    if not isinstance(picture, Picture):
+        print("addRect(picture, x, y, w, h[, color]): First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addRect(picture, x, y, w, h[, color]): Last input is not a color")
+        raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
     ##g.drawRect(x - 1,y - 1,w,h)
-    #picture.addRect(acolor,x,y,w,h)
-    pass #TODO
+    picture.addRect(acolor,x,y,w,h,False)
 
+#Done
 def addRectFilled(picture,x,y,w,h, acolor=black):
-    #if not isinstance(picture,Picture):
-    #    print "addRectFilled(picture, x, y, w, h[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addRectFilled(picture, x, y, w, h[, color]): Last input is not a color"
-    #    raise ValueError
+    if not isinstance(picture,Picture):
+        print("addRectFilled(picture, x, y, w, h[, color]): First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addRectFilled(picture, x, y, w, h[, color]): Last input is not a color")
+        raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
     ##g.fillRect(x - 1,y - 1,w,h)
-    #picture.addRectFilled(acolor,x,y,w,h)
-    pass #TODO
+    picture.addRect(acolor,x,y,w,h,True)
 
 # PamC: Added the following addOval, addOvalFilled, addArc, and addArcFilled
 # functions to add more graphics to pictures.
 def addOval(picture, x,y,w,h, acolor=black):
-    #if not isinstance(picture, Picture):
-    #    print "addOval(picture, x, y, w, h[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addOval(picture, x, y, w, h[, color]): Last input is not a color"
-    #    raise ValueError
+    if not isinstance(picture, Picture):
+        print("addOval(picture, x, y, w, h[, color]): First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addOval(picture, x, y, w, h[, color]): Last input is not a color")
+        raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
     ##g.drawRect(x - 1,y - 1,w,h)
-    #picture.addOval(acolor,x,y,w,h)
-    pass #TODO
+    picture.addOval(acolor,x,y,w,h,False)
 
+#Done
 def addOvalFilled(picture,x,y,w,h,acolor=black):
-    #if not isinstance(picture,Picture):
-    #    print "addOvalFilled(picture, x, y, w, h[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addOvalFilled(picture, x, y, w, h[, color]): Last input is not a color"
-    #    raise ValueError
-    #picture.addOvalFilled(acolor,x,y,w,h)
-    pass #TODO
+    if not isinstance(picture,Picture):
+        print("addOvalFilled(picture, x, y, w, h[, color]): First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addOvalFilled(picture, x, y, w, h[, color]): Last input is not a color")
+        raise ValueError
+    picture.addOval(acolor,x,y,w,h,True)
 
+#Done
+#Note: Uses degrees
 def addArc(picture,x,y,w,h,start,angle,acolor=black):
-    #if not isinstance(picture,Picture):
-    #    print "addArc(picture, x, y, w, h, start, angle[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addArc(picture, x, y, w, h[, color]): Last input is not a color"
-    #    raise ValueError
-    #picture.addArc(acolor,x,y,w,h,start,angle)
-    pass #TODO
+    if not isinstance(picture,Picture):
+        print("addArc(picture, x, y, w, h, start, angle[, color]): First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addArc(picture, x, y, w, h[, color]): Last input is not a color")
+        raise ValueError
+    picture.addArc(acolor,x,y,w,h,start,angle,False)
 
+#Note: Uses degrees
 def addArcFilled(picture,x,y,w,h,start,angle,acolor=black):
-    #if not isinstance(picture,Picture):
-    #    print "addArcFilled(picture, x, y, w, h[, color]): First First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addArcFill(picture, x, y, w, h[, color]): Last input is not a color"
-    #    raise ValueError
-    #picture.addArcFilled(acolor,x,y,w,h,start,angle)
-    pass #TODO
+    if not isinstance(picture,Picture):
+        print("addArcFilled(picture, x, y, w, h[, color]): First First input is not a picture")
+        raise ValueError
+    if not isinstance(acolor, Color):
+        print("addArcFill(picture, x, y, w, h[, color]): Last input is not a color")
+        raise ValueError
+    print("Does JES do pie or chord??")#TODO remove this
+    picture.addArc(acolor,x,y,w,h,start,angle,True)
 
 ## note the -1; in JES we think of pictures as starting at (1,1) but not
 ## in the Java.
@@ -1318,14 +1383,13 @@ def copyInto(smallPicture, bigPicture, startX, startY):
 #    print "copyInto(origPict, destPict, upperLeftX, upperLeftY): upperLeftY must be within the destPict"
 #    raise ValueError
 #  return origPict.copyInto(destPict, upperLeftX-1, upperLeftY-1)
-
+#Done
 def duplicatePicture(picture):
-    #"""returns a copy of the picture"""
-    #if not isinstance(picture, Picture):
-    #    print "duplicatePicture(picture): Input is not a picture"
-    #    raise ValueError
-    #return Picture(picture)
-    pass #TODO
+    """returns a copy of the picture"""
+    if not isinstance(picture, Picture):
+        print("duplicatePicture(picture): Input is not a picture")
+        raise ValueError
+    return Picture(picture)
 
 # Alyce Brady/ Pam Cutter: Function that crops a picture
 #def cropPicture(picture, upperLeftX, upperLeftY, width, height):
