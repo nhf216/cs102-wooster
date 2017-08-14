@@ -848,6 +848,8 @@ class Picture:
         
         # Show window
         self.window.show()
+        self.window.activateWindow()
+        self.window.raise_()
         
         #second.geometry("%dx%d" % (self.width, self.height))
         #root.lift()
