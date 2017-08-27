@@ -1039,6 +1039,7 @@ def printPicture(picture):
         raise ValueError
     return picture.printPicture()
 
+#Done
 def repaint(picture):
     #if not (isinstance(picture, World) or isinstance(picture,Picture)):
     #    print "repaint(picture): Input is not a picture or a world"
@@ -1735,10 +1736,10 @@ def quit():
 # 
 # # end of stuff imported for worlds and turtles
 # 
-# # used in the book
-# def printNow(text):
-#     #sys.stdout.printNow("%s\n" % text)
-#     pass #TODO
+# used in the book
+#Done
+def printNow(text):
+    print("%s\n" % text)
 # 
 # class Movie:
 #     #TODO probably needs major overhaul
