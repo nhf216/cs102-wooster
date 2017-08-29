@@ -848,6 +848,8 @@ class Picture:
         
         # Show window
         self.window.show()
+        self.window.activateWindow()
+        self.window.raise_()
         
         #second.geometry("%dx%d" % (self.width, self.height))
         #root.lift()
@@ -1404,76 +1406,60 @@ def duplicatePicture(picture):
 #    raise ValueError
 #  return picture.crop(upperLeftX-1, upperLeftY-1, width, height)
 
-##
-# Input and Output interfaces
-#
-# Note: These calls must be done in a threadsafe manner since the JESThread will be
-# executing them rather than the GUI's event dispatch thread.  See SimpleInput/Output.java
-# for the threadsafe execution.
-##
-
-#  radius = SimpleInput.getNumber("Enter the radius of the cylinder")
-#  SimpleOutput.showInformation("The volume of the cylinder is %.02f " % volume)
-
-#Done
-def requestNumber(message, minn=-2147483647, maxx=2147483647, dec=15):
-    #return SimpleInput.getNumber(message)
-    tpl = QInputDialog.getDouble(None, "Please enter a number", message,\
-        decimals=dec, min=minn, max=maxx)
-    if tpl[1]:
-        return tpl[0]
-    else:
-        return None
-
-#Done
-def requestInteger(message, minn=-2147483647, maxx=2147483647, stp=1):
-    #return SimpleInput.getIntNumber(message)
-    tpl = QInputDialog.getInt(None, "Please enter an integer", message,\
-        step=stp, min=minn, max=maxx)
-    if tpl[1]:
-        return tpl[0]
-    else:
-        return None
-
-#Done
-def requestIntegerInRange(message, min, max):
-    if min >= max:
-        print("requestIntegerInRange(message, min, max): min >= max not allowed")
-        raise ValueError
-
-    #return SimpleInput.getIntNumber(message, min, max)
-    return requestInteger(message, minn=min, maxx=max)
-
-#Done
-def requestString(message):
-    tpl = QInputDialog.getText(None, "Please enter some text", message)
-    if tpl[1]:
-        return tpl[0]
-    else:
-        return None
-
-
-#5/15/09 Dorn: Updated input and raw_input to read from the console
-#def input(message=None):
-#    im = JESInputManager()
-#    return eval(im.readInput(message))
-
-#def raw_input(message=None):
-#    im = JESInputManager()
-#    return im.readInput(message)
-    
-#Done
-def showWarning(message):
-    QMessageBox.warning(None, "Warning!", message)
-
-#Done
-def showInformation(message):
-    QMessageBox.information(None, "Info", message)
-
-#Done
-def showError(message):
-    QMessageBox.critical(None, "Error!!", message)
-
+# ##
+# # Input and Output interfaces
+# #
+# # Note: These calls must be done in a threadsafe manner since the JESThread will be
+# # executing them rather than the GUI's event dispatch thread.  See SimpleInput/Output.java
+# # for the threadsafe execution.
+# ##
+# 
+# #  radius = SimpleInput.getNumber("Enter the radius of the cylinder")
+# #  SimpleOutput.showInformation("The volume of the cylinder is %.02f " % volume)
+# 
+# def requestNumber(message):
+#     #return SimpleInput.getNumber(message)
+#     pass #TODO
+# 
+# def requestInteger(message):
+#     #return SimpleInput.getIntNumber(message)
+#     pass #TODO
+# 
+# def requestIntegerInRange(message, min, max):
+#     if min >= max:
+#         print("requestIntegerInRange(message, min, max): min >= max not allowed")
+#         raise ValueError
+# 
+#     #return SimpleInput.getIntNumber(message, min, max)
+#     #TODO
+# 
+# def requestString(message):
+#     #return SimpleInput.getString(message)
+#     pass #TODO
+# 
+# 
+# #5/15/09 Dorn: Updated input and raw_input to read from the console
+# #def input(message=None):
+# #    im = JESInputManager()
+# #    return eval(im.readInput(message))
+# 
+# #def raw_input(message=None):
+# #    im = JESInputManager()
+# #    return im.readInput(message)
+#     
+# 
+# def showWarning(message):
+#     #return SimpleOutput.showWarning(message)
+#     pass #TODO
+# 
+# def showInformation(message):
+#     #return SimpleOutput.showInformation(message)
+#     pass #TODO
+# 
+# def showError(message):
+#     #return SimpleOutput.showError(message)
+#     pass #TODO
+# 
 # 
 # ##
 # # Java Music Interface
