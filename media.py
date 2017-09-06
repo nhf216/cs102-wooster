@@ -116,6 +116,9 @@ _lastFilePath = ""
 true = 1
 false = 0
 
+#List of things to keep around
+keepAround = []
+
 #Done
 def setMediaPath(file=None):
     global mediaFolder
@@ -719,6 +722,7 @@ class Pixel:
 class Picture:
     #Constructor
     def __init__(self, width = None, height = None, aColor = None):
+        global keepAround
         if isinstance(width, Picture):
             #We're duplicating a picture
             self.height = width.image.height()
@@ -748,6 +752,9 @@ class Picture:
         #self.frame = None
         if height != None:
             self.window.resize(width, height)
+        
+        #Keep a copy around forever (bad to do generally, but important for this)
+        keepAround.append(self)
     
     #Match JES's printing of a picture
     def __str__(self):
