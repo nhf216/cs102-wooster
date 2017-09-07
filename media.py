@@ -120,6 +120,21 @@ false = 0
 #List of things to keep around
 keepAround = []
 
+#Check supported image types
+suppTypes = QImageReader.supportedImageFormats()
+supportedImageTypes = set([])
+for typ in suppTypes:
+    supportedImageTypes.add(str(typ)[2:-1])
+
+#Is the type of this file supported?
+def isSupportedImageFormat(fname):
+    inddot = fname.rfind(".")
+    if inddot == -1:
+        tstr = fname
+    else:
+        tstr = fname[inddot+1:]
+    return tstr.lower() in supportedImageTypes
+
 #Done
 def setMediaPath(file=None):
     global mediaFolder
@@ -771,8 +786,27 @@ class Picture:
     #Load a file into the Picture object
     def loadOrFail(self, filename):
         try:
+            #Check if it's supported
+            suppt = isSupportedImageFormat(filename)
+            if not suppt:
+                #print("Warning! Attempting to open unsupported file type!")
+                ##Make a PNG and mess with that instead
+                #First, open a PIL image
+                self.pil_im = PIL.Image.open(filename)
+                #Next, create a temporary PNG file
+                tmpfl = tempfile.mkstemp(suffix = '.png')
+                #Now, keep track of the file name to work with
+                self.workfile = tmpfl[1]
+                #Finally, export the PIL image as a PNG to the temp file
+                self.pil_im.save(tmpfl[1])
+            else:
+                #Nothing went wrong, so pil_im should be None
+                self.pil_im = None
+                #The "actual" file is the same as the specified file
+                self.workfile = filename
             #self.image = PIL.Image.open(filename)
-            self.image = QImage(filename)
+            #Load the QImage
+            self.image = QImage(self.workfile)
             if self.image.isNull():
                 #Load failed
                 raise IOError
@@ -958,7 +992,25 @@ class Picture:
     #Save the picture
     #If fname is None, overwrite the file
     def writeOrFail(self, fname = None, fmt = None):
-        itWorked = self.image.save(fname, fmt)
+        if fname == None:
+            fil = self.filename
+        else:
+            fil = fname
+        #Check if it's supported
+        suppt = (fmt == None and isSupportedImageFormat(fil)) or\
+            (fmt != None and isSupportedImageFormat(fmt))
+        if not suppt:
+            #print("Warning! Attempting to save unsupported file type!")
+            #Save as a temporary PNG first
+            itWorked = self.image.save(self.workfile, 'PNG')
+            if itWorked:
+                #Then, open the PNG as a PIL image
+                pil_im = PIL.Image.open(self.workfile)
+                #Then, save the PIL image where we want
+                pil_im.save(fil, fmt)
+        else:
+            #Everything's good.  Just save the iamge
+            itWorked = self.image.save(fname, fmt)
         if not itWorked:
             print("Saving image failed")
             raise IOError
