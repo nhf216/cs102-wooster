@@ -73,6 +73,7 @@
 import sys
 import os
 import math
+import tempfile
 #import traceback
 #import user
 
@@ -821,6 +822,7 @@ class Picture:
         self.image.setPixel(x, y, col.toQColorInt())
     
     #Print the picture in Canopy
+    #TODO make Windows-friendly
     def printPicture(self):
         #return self.image
         #Canopy prints out PIL images nicely
@@ -828,8 +830,14 @@ class Picture:
         #This is very hack-ish
         #img = QImage("/tmp/example.png")
         img = QImage(self.image)
-        img.save("/tmp/example.png", "PNG")
-        pil_im = PIL.Image.open("/tmp/example.png")
+        #Create a temporary file
+        tmpfl = tempfile.mkstemp(suffix = '.png')
+        #print(tmpfl)
+        #tmpfl.close()
+        #img.save("/tmp/example.png", "PNG")
+        #pil_im = PIL.Image.open("/tmp/example.png")
+        img.save(tmpfl[1], "PNG")
+        pil_im = PIL.Image.open(tmpfl[1])
         # buffer = QBuffer()
         # buffer.open(QIODevice.ReadWrite)
         # img.save(buffer, "PNG")
