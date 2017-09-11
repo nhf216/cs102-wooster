@@ -1230,7 +1230,6 @@ def addArcFilled(picture,x,y,w,h,start,angle,acolor=black):
     if not isinstance(acolor, Color):
         print("addArcFill(picture, x, y, w, h[, color]): Last input is not a color")
         raise ValueError
-    print("Does JES do pie or chord??")#TODO remove this
     picture.addArc(acolor,x,y,w,h,start,angle,True)
 
 ## note the -1; in JES we think of pictures as starting at (1,1) but not
