@@ -704,18 +704,22 @@ class Pixel:
                 raise ValueError
         else:
             self.color = Color(r, g, b)
+        self.updatePicture()
     
     #Set red
     def setRed(self, r):
         self.color = Color(r, self.color.getGreen(), self.color.getBlue())
+        self.updatePicture()
     
     #Set green
     def setGreen(self, g):
         self.color = Color(self.color.getGreen(), g, self.color.getBlue())
+        self.updatePicture()
     
     #Set blue
     def setBlue(self, b):
         self.color = Color(self.color.getGreen(), self.color.getBlue(), b)
+        self.updatePicture()
     
     #Get color
     def getColor(self):
@@ -1318,7 +1322,7 @@ def setColor(pixel,color):
     if not isinstance(color, Color):
         print("setColor(pixel,color): Second input is not a color")
         raise ValueError
-    pixel.setColor(color.color)
+    pixel.setColor(color)
 
 def getX(pixel):
     if not isinstance(pixel, Pixel):
@@ -1624,10 +1628,30 @@ def quit():
 # #
 # # TODO modify viewer.changeToBaseOne
 # 
+# class PictureExplorer:
+#     #TODO
+#     
+#     #Constructor
+#     #Should create window, populate with (0,0)
+#     #remember it globally (to avoid garbage collection issues)
+#     #and show it
+#     def __init__(self, pic):
+#         pass
+# 
+# #Open explorer tool for media (currently only pictures)
+# def explore(media):
+#     if isinstance(media, Picture):
+#         openPictureTool(media)
+#     else:
+#         print("Exploration of media is not supported")
+#         raise ValueError
+# 
+# #Try to mimic functionality of JES picture explorer
 # def openPictureTool(picture):
 #     #import PictureExplorer
-#     #thecopy = duplicatePicture(picture)
-#     #viewer = PictureExplorer(thecopy)
+#     thecopy = duplicatePicture(picture)
+#     #Constructor has side effect of showing it
+#     PictureExplorer(thecopy)
 # 
 # #    viewer.changeToBaseOne();
 #     #viewer.setTitle(getShortPath(picture.getFileName() ))
