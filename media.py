@@ -87,6 +87,7 @@ import PIL
 
 #Use Qt for everything
 from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 # Create an PyQT4 application object.
 #If we're running in Canopy, there already is one
 root = QApplication.instance()
@@ -818,6 +819,7 @@ class Picture:
             self.height = self.image.height()
             self.width = self.image.width()
             self.window.resize(self.width, self.height)
+            self.window.setWindowTitle(self.filename)
         except IOError:
             raise IOError(filename + " could not be opened or was not a picture. Check that you specified the path")
     
@@ -903,6 +905,7 @@ class Picture:
         self.window.show()
         self.window.activateWindow()
         self.window.raise_()
+        self.window.activateWindow()
         
         #second.geometry("%dx%d" % (self.width, self.height))
         #root.lift()
@@ -1476,60 +1479,76 @@ def duplicatePicture(picture):
 #    raise ValueError
 #  return picture.crop(upperLeftX-1, upperLeftY-1, width, height)
 
-# ##
-# # Input and Output interfaces
-# #
-# # Note: These calls must be done in a threadsafe manner since the JESThread will be
-# # executing them rather than the GUI's event dispatch thread.  See SimpleInput/Output.java
-# # for the threadsafe execution.
-# ##
-# 
-# #  radius = SimpleInput.getNumber("Enter the radius of the cylinder")
-# #  SimpleOutput.showInformation("The volume of the cylinder is %.02f " % volume)
-# 
-# def requestNumber(message):
-#     #return SimpleInput.getNumber(message)
-#     pass #TODO
-# 
-# def requestInteger(message):
-#     #return SimpleInput.getIntNumber(message)
-#     pass #TODO
-# 
-# def requestIntegerInRange(message, min, max):
-#     if min >= max:
-#         print("requestIntegerInRange(message, min, max): min >= max not allowed")
-#         raise ValueError
-# 
-#     #return SimpleInput.getIntNumber(message, min, max)
-#     #TODO
-# 
-# def requestString(message):
-#     #return SimpleInput.getString(message)
-#     pass #TODO
-# 
-# 
-# #5/15/09 Dorn: Updated input and raw_input to read from the console
-# #def input(message=None):
-# #    im = JESInputManager()
-# #    return eval(im.readInput(message))
-# 
-# #def raw_input(message=None):
-# #    im = JESInputManager()
-# #    return im.readInput(message)
-#     
-# 
-# def showWarning(message):
-#     #return SimpleOutput.showWarning(message)
-#     pass #TODO
-# 
-# def showInformation(message):
-#     #return SimpleOutput.showInformation(message)
-#     pass #TODO
-# 
-# def showError(message):
-#     #return SimpleOutput.showError(message)
-#     pass #TODO
-# 
+##
+# Input and Output interfaces
+#
+# Note: These calls must be done in a threadsafe manner since the JESThread will be
+# executing them rather than the GUI's event dispatch thread.  See SimpleInput/Output.java
+# for the threadsafe execution.
+##
+
+#  radius = SimpleInput.getNumber("Enter the radius of the cylinder")
+#  SimpleOutput.showInformation("The volume of the cylinder is %.02f " % volume)
+
+#Done
+def requestNumber(message, minn=-2147483647, maxx=2147483647, dec=15):
+    #return SimpleInput.getNumber(message)
+    tpl = QInputDialog.getDouble(None, "Please enter a number", message,\
+        decimals=dec, min=minn, max=maxx)
+    if tpl[1]:
+        return tpl[0]
+    else:
+        return None
+
+#Done
+def requestInteger(message, minn=-2147483647, maxx=2147483647, stp=1):
+    #return SimpleInput.getIntNumber(message)
+    tpl = QInputDialog.getInt(None, "Please enter an integer", message,\
+        step=stp, min=minn, max=maxx)
+    if tpl[1]:
+        return tpl[0]
+    else:
+        return None
+
+#Done
+def requestIntegerInRange(message, min, max):
+    if min >= max:
+        print("requestIntegerInRange(message, min, max): min >= max not allowed")
+        raise ValueError
+
+    #return SimpleInput.getIntNumber(message, min, max)
+    return requestInteger(message, minn=min, maxx=max)
+
+#Done
+def requestString(message):
+    tpl = QInputDialog.getText(None, "Please enter some text", message)
+    if tpl[1]:
+        return tpl[0]
+    else:
+        return None
+
+
+#5/15/09 Dorn: Updated input and raw_input to read from the console
+#def input(message=None):
+#    im = JESInputManager()
+#    return eval(im.readInput(message))
+
+#def raw_input(message=None):
+#    im = JESInputManager()
+#    return im.readInput(message)
+    
+#Done
+def showWarning(message):
+    QMessageBox.warning(None, "Warning!", message)
+
+#Done
+def showInformation(message):
+    QMessageBox.information(None, "Info", message)
+
+#Done
+def showError(message):
+    QMessageBox.critical(None, "Error!!", message)
+
 # 
 # ##
 # # Java Music Interface
@@ -1627,30 +1646,165 @@ def quit():
 # #
 # # TODO modify viewer.changeToBaseOne
 # 
-# class PictureExplorer:
-#     #TODO
-#     
-#     #Constructor
-#     #Should create window, populate with (0,0)
-#     #remember it globally (to avoid garbage collection issues)
-#     #and show it
-#     def __init__(self, pic):
-#         pass
-# 
-# #Open explorer tool for media (currently only pictures)
-# def explore(media):
-#     if isinstance(media, Picture):
-#         openPictureTool(media)
-#     else:
-#         print("Exploration of media is not supported")
-#         raise ValueError
-# 
-# #Try to mimic functionality of JES picture explorer
-# def openPictureTool(picture):
-#     #import PictureExplorer
-#     thecopy = duplicatePicture(picture)
-#     #Constructor has side effect of showing it
-#     PictureExplorer(thecopy)
+COL_BLOCK_SIZE = 20
+#Need this mini-class for registering mouse clicks on picture in explorer
+class ClickableLabel(QLabel):
+    #Need to include the explorer so we can talk to it
+    def __init__(self, parent, pexplore):
+        super().__init__(parent)
+        self.pexplore = pexplore
+    
+    #Here's where the mouse click is registered
+    def mousePressEvent(self, QMouseEvent):
+        self.pexplore.imageClicked(QMouseEvent.pos())
+
+#Emulate the JES Picture Explorer
+class PictureExplorer(QWidget):
+    #TODO crosshair
+    #TODO make look nice
+    #TODO box around color block
+    #TODO box around picture
+    
+    #Constructor
+    #Should create window, populate with (0,0)
+    #remember it globally (to avoid garbage collection issues)
+    #and show it
+    def __init__(self, pic):
+        super().__init__()
+        self.setWindowTitle("Image Explorer: " + str(pic))
+        self.pic = pic
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        #self.window.setLayout(QGridLayout())
+        #Starting coords
+        self.coord_x = 0
+        self.coord_y = 0
+        #Frame for X and Y
+        self.XYFrame = QFrame(self)
+        layoutXY = QHBoxLayout()
+        self.XYFrame.setLayout(layoutXY)
+        self.block_edit = False
+        #X
+        xlabel = QLabel(self.XYFrame)
+        xlabel.setText("X:")
+        layoutXY.addWidget(xlabel)
+        #xwidget = QSpinBox(self.XYFrame)
+        self.xwidget = QSpinBox(self.XYFrame)
+        self.xwidget.setRange(0, pic.getWidth()-1)
+        self.xwidget.setValue(self.coord_x)
+        #Testing connections
+        #QObject.connect(xwidget, SIGNAL('valueChanged(int)'), self, SLOT('test(int)'))
+        QObject.connect(self.xwidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
+        layoutXY.addWidget(self.xwidget)
+        #Y
+        ylabel = QLabel(self.XYFrame)
+        ylabel.setText("Y:")
+        layoutXY.addWidget(ylabel)
+        self.ywidget = QSpinBox(self.XYFrame)
+        self.ywidget.setRange(0, pic.getHeight()-1)
+        self.ywidget.setValue(self.coord_y)
+        QObject.connect(self.ywidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
+        layoutXY.addWidget(self.ywidget)
+        layout.addWidget(self.XYFrame)
+        #Frame for color stuff
+        self.colFrame = QFrame(self)
+        layoutCol = QHBoxLayout()
+        self.colFrame.setLayout(layoutCol)
+        #RGB text
+        self.rgblabel = QLabel(self.colFrame)
+        #col = getColor(getPixel(pic,self.coord_x,self.coord_y)).getRGB()
+        #self.rgblabel.setText("R: " + str(col[0]) + " G: " + str(col[1]) + \
+        #    " B: " + str(col[2]))
+        layoutCol.addWidget(self.rgblabel)
+        colloclabel = QLabel(self.colFrame)
+        colloclabel.setText("Color at location:")
+        layoutCol.addWidget(colloclabel)
+        #Color block
+        # colimg = QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QImage.Format_RGB32)
+        # colimg.fill(QColor(*col)) #TODO
+        self.colLabel = QLabel(self.colFrame)
+        #self.setColorBlock(*col)
+        self.updateColorStuff()
+        # pixmap1 = QPixmap.fromImage(colimg)
+        # self.colLabel.setPixmap(pixmap1)
+        layoutCol.addWidget(self.colLabel)
+        layout.addWidget(self.colFrame)
+        #Picture window
+        #self.picLabel = QLabel(self)
+        self.picLabel = ClickableLabel(self, self)
+        pixmap2 = QPixmap.fromImage(pic.image)
+        self.picLabel.setPixmap(pixmap2)
+        layout.addWidget(self.picLabel)
+        #Resize the window
+        self.resize(pic.getWidth(), pic.getHeight() + COL_BLOCK_SIZE)
+        #Remember the window
+        keepAround.append(self)
+        #Show the window
+        self.show()
+    
+    #Update color text and color block
+    #based on self.coord_x and self.coord_y
+    def updateColorStuff(self):
+        #Get the color
+        col = getColor(getPixel(self.pic,self.coord_x,self.coord_y)).getRGB()
+        #Color text
+        self.rgblabel.setText("R: " + str(col[0]) + " G: " + str(col[1]) + \
+            " B: " + str(col[2]))
+        #Color block
+        colimg = QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QImage.Format_RGB32)
+        colimg.fill(QColor(*col))
+        pixmap1 = QPixmap.fromImage(colimg)
+        self.colLabel.setPixmap(pixmap1)
+    
+    # @pyqtSlot(int)
+    # def test(self, x):
+    #     print("hello " + str(x))
+    
+    #Position was updated via x/y boxes
+    #Update color and label accordingly
+    @pyqtSlot()
+    def updatedPos(self):
+        #Only do this if we manually changed the numbers
+        if not self.block_edit:
+            #Update the current coords
+            self.coord_x = self.xwidget.value()
+            self.coord_y = self.ywidget.value()
+            #Update the stuff that can change
+            self.updateColorStuff()
+            #Repaint the window
+            self.update()
+    
+    #Clicked on image
+    def imageClicked(self, pt):
+        #Make sure we don't issue duplicate updates
+        self.block_edit = True
+        #Update the current coords
+        self.coord_x = pt.x()
+        self.coord_y = pt.y()
+        #Change the spinboxes to the new coords
+        self.xwidget.setValue(self.coord_x)
+        self.ywidget.setValue(self.coord_y)
+        #Update the stuff that can change
+        self.updateColorStuff()
+        #Repaint the window
+        self.update()
+        #Manual updates are safe again
+        self.block_edit = False
+
+#Open explorer tool for media (currently only pictures)
+def explore(media):
+    if isinstance(media, Picture):
+        openPictureTool(media)
+    else:
+        print("Exploration of this media is not supported")
+        raise ValueError
+
+#Try to mimic functionality of JES picture explorer
+def openPictureTool(picture):
+    #import PictureExplorer
+    thecopy = duplicatePicture(picture)
+    #Constructor has side effect of showing it
+    PictureExplorer(thecopy)
 # 
 # #    viewer.changeToBaseOne();
 #     #viewer.setTitle(getShortPath(picture.getFileName() ))
