@@ -1362,6 +1362,11 @@ def writePictureTo(picture,filename):
         raise ValueError
 
 
+#New
+#Call save dialog then write picture to where saved
+def savePicture(picture):
+    fil = pickASaveFile()
+    writePictureTo(picture, fil)
 
 # not to be confused with setColor, totally different, don't document/export
 def _setColorTo(color, other):
@@ -1741,6 +1746,9 @@ class PictureExplorer(QWidget):
         keepAround.append(self)
         #Show the window
         self.show()
+        self.activateWindow()
+        self.raise_()
+        self.activateWindow()
     
     #Update color text and color block
     #based on self.coord_x and self.coord_y
