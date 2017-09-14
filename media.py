@@ -74,6 +74,7 @@ import sys
 import os
 import math
 import tempfile
+import numbers
 #import traceback
 #import user
 
@@ -513,9 +514,42 @@ class Color:
         else:
             # self.color = awt.Color(r,g,b)
             #self.color = awt.Color( _checkPixel(r), _checkPixel(g), _checkPixel(b) )
+            if not isinstance(r, numbers.Number):
+                print("First color component (red) not a number")
+                raise ValueError
+            if not isinstance(g, numbers.Number):
+                print("Second color component (green) not a number")
+                raise ValueError
+            if not isinstance(b, numbers.Number):
+                print("Third color component (blue) not a number")
+                raise ValueError
             self.r = r
             self.g = g
             self.b = b
+        #Fix out-of-bounds
+        self.validateColor()
+    
+    #If any component is not in range 0 to 255, fix that
+    #If any component is not an integer, fix that
+    def validateColor(self):
+        if self.r < 0:
+            self.r = 0
+        elif self.r > 255:
+            self.r = 255
+        if self.g < 0:
+            self.g = 0
+        elif self.g > 255:
+            self.g = 255
+        if self.b < 0:
+            self.b = 0
+        elif self.b > 255:
+            self.b = 255
+        if not isinstance(self.r, int):
+            self.r = int(self.r)
+        if not isinstance(self.g, int):
+            self.g = int(self.g)
+        if not isinstance(self.b, int):
+            self.b = int(self.b)
 
     def __str__(self):
         return "color r="+str(self.getRed())+" g="+str(self.getGreen())+" b="+str(self.getBlue())
@@ -568,9 +602,19 @@ class Color:
     def setRGB(self, r, g, b):
     #    # self.color = awt.Color(r,g,b)
     #    self.color = awt.Color(_checkPixel(r), _checkPixel(g), _checkPixel(b))
+        if not isinstance(r, numbers.Number):
+            print("First color component (red) not a number")
+            raise ValueError
+        if not isinstance(g, numbers.Number):
+            print("Second color component (green) not a number")
+            raise ValueError
+        if not isinstance(b, numbers.Number):
+            print("Third color component (blue) not a number")
+            raise ValueError
         self.r = r
         self.g = g
         self.b = b
+        self.validateColor()
     
 
     def getRed(self):
@@ -714,12 +758,12 @@ class Pixel:
     
     #Set green
     def setGreen(self, g):
-        self.color = Color(self.color.getGreen(), g, self.color.getBlue())
+        self.color = Color(self.color.getRed(), g, self.color.getBlue())
         self.updatePicture()
     
     #Set blue
     def setBlue(self, b):
-        self.color = Color(self.color.getGreen(), self.color.getBlue(), b)
+        self.color = Color(self.color.getRed(), self.color.getGreen(), b)
         self.updatePicture()
     
     #Get color
@@ -768,11 +812,14 @@ class Picture:
                     self.image.fill(QColor(*col))
         #Set up a window for displaying it
         self.window = QWidget()
-        self.window.setWindowTitle("Image")
+        if self.filename == None:
+            self.window.setWindowTitle("Image")
+        else:
+            self.window.setWindowTitle(self.filename)
         self.picLabel = QLabel(self.window)
         #self.frame = None
-        if height != None:
-            self.window.resize(width, height)
+        if self.height != None:
+            self.window.resize(self.width, self.height)
         
         #Keep a copy around forever (bad to do generally, but important for this)
         keepAround.append(self)
