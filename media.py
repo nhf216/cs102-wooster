@@ -1097,6 +1097,9 @@ def makeEmptyPicture(width, height, acolor = white):
     if width <= 0 or height <= 0:
         print("makeEmptyPicture(width, height[, acolor]): height and width must be greater than 0 each")
         raise ValueError
+    if not isinstance(acolor, Color):
+        print("makeEmptyPicture(width, height[, acolor]): acolor must be a color")
+        raise ValueError
     #if isinstance(acolor, Color):
     #    col = acolor.getRGB()
     #else:
