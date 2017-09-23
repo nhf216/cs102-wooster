@@ -189,6 +189,11 @@ def setLibPath(directory=None):
         print("Note: There is no directory at ",directory)
         raise ValueError
     return directory
+
+#This is not actually a media function
+#Instead, it lets us print out range objects like in Python 2
+def printRange(rng):
+    print([x for x in rng])
     
 # ##
 # ## Global sound functions
