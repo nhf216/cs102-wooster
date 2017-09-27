@@ -1422,10 +1422,11 @@ def writePictureTo(picture,filename):
 def savePicture(picture):
     fil = pickASaveFile()
     #Try to get a format
-    #If no format given, make it jpeg
+    #If no format given, yell at the user
     dotloc = fil.rfind(".")
     if dotloc == -1:
-        fil = fil + ".jpg"
+        print("Error: No file extension provided")
+        raise ValueError
     writePictureTo(picture, fil)
 
 # not to be confused with setColor, totally different, don't document/export
