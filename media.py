@@ -1069,7 +1069,7 @@ class Picture:
                 pil_im.save(fil, fmt)
         else:
             #Everything's good.  Just save the iamge
-            itWorked = self.image.save(fname, fmt)
+            itWorked = self.image.save(fil, fmt)
         if not itWorked:
             print("Saving image failed")
             raise IOError
@@ -1421,6 +1421,11 @@ def writePictureTo(picture,filename):
 #Call save dialog then write picture to where saved
 def savePicture(picture):
     fil = pickASaveFile()
+    #Try to get a format
+    #If no format given, make it jpeg
+    dotloc = fil.rfind(".")
+    if dotloc == -1:
+        fil = fil + ".jpg"
     writePictureTo(picture, fil)
 
 # not to be confused with setColor, totally different, don't document/export
