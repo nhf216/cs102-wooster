@@ -724,6 +724,37 @@ def pickAColor():
     #return Color(int(col[0][0]), int(col[0][1]), int(col[0][2]))
     return Color(col)
 
+def colorPalette():
+    '''The built-in colors that you can use are:
+    black
+    white
+    blue
+    red
+    green
+    gray
+    darkGray
+    lightGray
+    yellow
+    orange
+    pink
+    magenta
+    cyan
+    '''
+    print ('''The built-in colors that you can use are:
+    black
+    white
+    blue
+    red
+    green
+    gray
+    darkGray
+    lightGray
+    yellow
+    orange
+    pink
+    magenta
+    cyan
+    ''')
 
 
 #Constants
@@ -1110,6 +1141,20 @@ class Picture:
 ##
 #Done
 def makePicture(filename):
+    '''
+    Student documentation:
+
+    The makePicture function takes a file name(with its extention) as an argument and returns a picture object containing that file.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makePicture("cat.jpg")
+
+    myPicture now contains the cat.jpg picture. Please keep in mind that your file name must be inside single quotes ('') or double quotes ("").
+    ------------------------------------------
+    Developer documentation:
+    '''
     global mediaFolder
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
@@ -1127,6 +1172,20 @@ def makePicture(filename):
 # with different background colors.
 #Done
 def makeEmptyPicture(width, height, acolor = white):
+    '''
+    Student documentation:
+
+    The makeEmptyPicture function takes a width a height and a color(the default color value is white) as arguments and returns a picture object with those specifications.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(300, 200, blue)
+
+    myPicture now contains a 300 by 200 pixel blue picture. To display a list of the built-in colors call the colorPalette function.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if width > 10000 or height > 10000:
         repValError("makeEmptyPicture(width, height[, acolor]): height and width must be less than 10000 each")
         #raise ValueError
@@ -1148,6 +1207,23 @@ def makeEmptyPicture(width, height, acolor = white):
     #return PIL.Image.new('RGB', (width, height), col)
 
 def getPixels(picture):
+    '''
+    Student documentation:
+
+    The getPixels function takes a picture as argument and returns all of the pixels in that picture as a list.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(300, 200, red)
+
+    for pix in getPixels(myPicture):
+        myPicture = pix.setBlue(255)
+
+    I now have a pink picture.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture, Picture):
         repValError("getPixels(picture): Input is not a picture")
         #raise ValueError
@@ -1159,6 +1235,22 @@ def getAllPixels(picture):
 
 #Done
 def getWidth(picture):
+    '''
+    Student documentation:
+
+    The getWidth function takes a picture as argument and returns it's width.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(300, 200)
+
+    print(getWidth(myPicture))
+
+    This prints 300.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture, Picture):
         repValError("getWidth(picture): Input is not a picture")
         #raise ValueError
@@ -1166,12 +1258,43 @@ def getWidth(picture):
 
 #Done
 def getHeight(picture):
+    '''
+    Student documentation:
+
+    The getHeight function takes a picture as argument and returns it's height.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(300, 200)
+
+    print(getHeight(myPicture))
+
+    This prints 200.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture,Picture):
         repValError("getHeight(picture): Input is not a picture")
     return picture.getHeight()
 
 #Done
 def show(picture, title=None):
+    '''
+    Student documentation:
+
+    The show function takes a picture and a window title(the window title is optional) as arguments and makes a window with those objects.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(300, 200, red)
+    show(myPicture, "a black picture")
+
+    I now have a black window with the title a black picture.
+    ------------------------------------------
+    Developer documentation:
+    '''
     #Old Plan:
         #1. Create broken window with Tkinter
         #2. Add unshow procedure
@@ -1212,6 +1335,22 @@ def repaint(picture):
 ## adding graphics to your pictures! ##
 #Done
 def addLine(picture, x1, y1, x2, y2, acolor=black):
+    '''
+    Student documentation:
+
+    The addLine function takes a picture , a first x coordinate, a first y coordinate, a second x coordinate, a second y coordinate and a color(the default color is black) as arguments and draws a line from the first coordinate to the second coordinate in the specified color.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(300, 200, red)
+    addLine(myPicture, 100, 0, 100, 100, blue)
+    show(myPicture, "red picture with a blue line")
+
+    I now have a red picture with a blue vertical line.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture, Picture):
         repValError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
         #raise ValueError
@@ -1225,6 +1364,22 @@ def addLine(picture, x1, y1, x2, y2, acolor=black):
 
 #Done
 def addText(picture, x, y, string, acolor=black):
+    '''
+    Student documentation:
+
+    The addText function takes a picture, a x coordinate, a y coordinate, the text you want to add and a color(the default color is black) as arguments and writes the text in the picture.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(200, 200)
+    addText(myPicture, 100, 100, "Hi")
+    show(myPicture, "a white picture with a black greeting")
+
+    I now have a white picture with a black greeting.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture, Picture):
         repValError("addText(picture, x, y, string[, color]): First input is not a picture")
         #raise ValueError
@@ -1252,6 +1407,22 @@ def addTextWithStyle(picture, x, y, string, style, acolor=black):
 
 #Done
 def addRect(picture, x,y,w,h, acolor=black):
+    '''
+    Student documentation:
+
+    The addText function takes a picture, a x coordinate, a y coordinate, the width and height of your unfilled rectangle and a color(the default color is black) as arguments and draws an unfilled rectangle in the picture.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(400, 400)
+    addRect(myPicture, 100, 100, 200, 200, blue)
+    show(myPicture, "a white picture with a blue unfilled rectangle")
+
+    I now have a white picture with a blue unfilled rectangle.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture, Picture):
         repValError("addRect(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
@@ -1265,6 +1436,22 @@ def addRect(picture, x,y,w,h, acolor=black):
 
 #Done
 def addRectFilled(picture,x,y,w,h, acolor=black):
+    '''
+    Student documentation:
+
+    The addRectFilled function takes a picture, a x coordinate, a y coordinate, the width and height of your filled rectangle and a color(the default color is black) as arguments and draws a filled rectangle in the picture.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(400, 400)
+    addRectFilled(myPicture, 100, 100, 200, 200, red)
+    show(myPicture, "a white picture with a red filled rectangle")
+
+    I now have a white picture with a red filled rectangle.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture,Picture):
         repValError("addRectFilled(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
@@ -1279,6 +1466,22 @@ def addRectFilled(picture,x,y,w,h, acolor=black):
 # PamC: Added the following addOval, addOvalFilled, addArc, and addArcFilled
 # functions to add more graphics to pictures.
 def addOval(picture, x,y,w,h, acolor=black):
+    '''
+    Student documentation:
+
+    The addOval function takes a picture, a x coordinate, a y coordinate, the width and height of your unfilled oval and a color(the default color is black) as arguments and draws an unfilled oval in the picture.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(400, 400)
+    addOval(myPicture, 100, 100, 200, 200, red)
+    show(myPicture, "a white picture with a red unfilled oval")
+
+    I now have a white picture with a red unfilled oval.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture, Picture):
         repValError("addOval(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
@@ -1292,6 +1495,22 @@ def addOval(picture, x,y,w,h, acolor=black):
 
 #Done
 def addOvalFilled(picture,x,y,w,h,acolor=black):
+    '''
+    Student documentation:
+
+    The addOvalFilled function takes a picture, a x coordinate, a y coordinate, the width and height of your filled oval and a color(the default color is black) as arguments and draws an filled oval in the picture.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(400, 400)
+    addOvalFilled(myPicture, 100, 100, 200, 200, pink)
+    show(myPicture, "a white picture with a pink unfilled oval")
+
+    I now have a white picture with a pink unfilled oval.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture,Picture):
         repValError("addOvalFilled(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
@@ -1328,6 +1547,22 @@ def addArcFilled(picture,x,y,w,h,start,angle,acolor=black):
 ## note: Nathan Fox got rid of this offset thing
 #Done
 def getPixel(picture,x,y):
+    '''
+    Student documentation:
+
+    The getPixel function takes a picture, a x coordinate and a y coordinate as arguments and returns the pixel at that index.
+    
+    Example:
+    from media.py import *
+
+    myPicture =  makeEmptyPicture(200, 200)
+    pix = getPixel(myPicture, 100, 100)
+    print(pix)
+
+    I now have a pix variable with the pixel at 99,99.
+    ------------------------------------------
+    Developer documentation:
+    '''
     if not isinstance(picture, Picture):
         repValError("getPixel(picture,x,y): First input is not a picture")
         #raise ValueError
