@@ -878,9 +878,12 @@ class Picture:
         #Set up a window for displaying it
         self.window = QWidget()
         if self.filename == None:
-            self.window.setWindowTitle("Image")
+            self.title = "Image"
+            #self.window.setWindowTitle("Image")
         else:
-            self.window.setWindowTitle(self.filename)
+            self.title = self.filename
+            #self.window.setWindowTitle(self.filename)
+        self.window.setWindowTitle(self.title)
         self.picLabel = QLabel(self.window)
         #self.frame = None
         if self.height != None:
@@ -932,7 +935,8 @@ class Picture:
             self.height = self.image.height()
             self.width = self.image.width()
             self.window.resize(self.width, self.height)
-            self.window.setWindowTitle(self.filename)
+            self.title = self.filename
+            self.window.setWindowTitle(self.title)
         except IOError:
             raise IOError(filename + " could not be opened or was not a picture. Check that you specified the path")
     
@@ -2063,7 +2067,7 @@ class PictureExplorer(QWidget):
     #and show it
     def __init__(self, pic):
         super().__init__()
-        self.setWindowTitle("Image Explorer: " + str(pic))
+        self.setWindowTitle("Image Explorer: " + pic.title)
         self.pic = duplicatePicture(pic)
         self.drawingPic = pic
         layout = QVBoxLayout()
