@@ -1755,9 +1755,69 @@ class ClickableLabel(QLabel):
     def mousePressEvent(self, QMouseEvent):
         self.pexplore.imageClicked(QMouseEvent.pos())
 
+#Crosshair on the image explorer
+class Crosshair:
+    #Construct a crosshair for a given picture
+    def __init__(self, pic):
+        #Keep track of the picture
+        self.pic = pic
+        #It starts un-rendered
+        self.is_rendered = False
+        #It doesn't have a position initially
+        self.x = None
+        self.y = None
+        #There are no saved pixels initially
+        self.saved_pixels = []
+        #Constants
+        #self.COLOR = white
+        self.SIZE = 7
+    
+    #Set the crosshair's position
+    #Unrender it, move it, render it
+    def setPosition(self, x, y):
+        self.unrender()
+        self.x = x
+        self.y = y
+        self.render()
+    
+    #Un-draw the crosshair
+    def unrender(self):
+        for pix in self.saved_pixels:
+            #Re-draw the pixel the way it was
+            self.pic.setPixel(*pix)
+        #Un-save the pixels
+        self.saved_pixels = []
+    
+    #Draw the crosshair
+    def render(self):
+        #+ sign SIZExSIZE, adaptive color
+        w = getWidth(self.pic)
+        h = getHeight(self.pic)
+        #What color is the pixel?
+        pcolor = getColor(getPixel(self.pic, self.x, self.y)).getRGB()
+        #Is it dark or light?
+        pcolorval = pcolor[0]+pcolor[1]+pcolor[2]
+        if pcolorval <= 382:
+            #It's dark, so use a white crosshair
+            color = white
+        else:
+            #It's light, so use a dark crosshair
+            color = black
+        for x in range(self.x-self.SIZE//2, self.x+self.SIZE//2+1):
+            if x >= 0 and x < w and x != self.x:
+                #Save what's currently there
+                self.saved_pixels.append((x, self.y, getColor(getPixel(self.pic, x, self.y))))
+                #Make it white
+                self.pic.setPixel(x, self.y, color)
+        for y in range(self.y-self.SIZE//2, self.y+self.SIZE//2+1):
+            if y >= 0 and y < w and y != self.y:
+                #Save what's currently there
+                self.saved_pixels.append((self.x, y, getColor(getPixel(self.pic, self.x, y))))
+                #Make it white
+                self.pic.setPixel(self.x, y, color)
+
 #Emulate the JES Picture Explorer
 class PictureExplorer(QWidget):
-    #TODO crosshair
     #TODO make look nice
     #TODO box around color block
     #TODO box around picture
@@ -1769,7 +1829,8 @@ class PictureExplorer(QWidget):
     def __init__(self, pic):
         super().__init__()
         self.setWindowTitle("Image Explorer: " + str(pic))
-        self.pic = pic
+        self.pic = duplicatePicture(pic)
+        self.drawingPic = pic
         layout = QVBoxLayout()
         self.setLayout(layout)
         #self.window.setLayout(QGridLayout())
@@ -1826,10 +1887,13 @@ class PictureExplorer(QWidget):
         # self.colLabel.setPixmap(pixmap1)
         layoutCol.addWidget(self.colLabel)
         layout.addWidget(self.colFrame)
+        #Crosshair
+        self.crosshair = Crosshair(self.drawingPic)
+        self.crosshair.setPosition(0, 0)
         #Picture window
         #self.picLabel = QLabel(self)
         self.picLabel = ClickableLabel(self, self)
-        pixmap2 = QPixmap.fromImage(pic.image)
+        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
         self.picLabel.setPixmap(pixmap2)
         layout.addWidget(self.picLabel)
         #Resize the window
@@ -1856,6 +1920,14 @@ class PictureExplorer(QWidget):
         pixmap1 = QPixmap.fromImage(colimg)
         self.colLabel.setPixmap(pixmap1)
     
+    #Update crosshair position and show it
+    def updateCrosshair(self):
+        #Move the crosshair
+        self.crosshair.setPosition(self.coord_x, self.coord_y)
+        #Redraw the picture
+        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
+        self.picLabel.setPixmap(pixmap2)
+    
     # @pyqtSlot(int)
     # def test(self, x):
     #     print("hello " + str(x))
@@ -1871,6 +1943,8 @@ class PictureExplorer(QWidget):
             self.coord_y = self.ywidget.value()
             #Update the stuff that can change
             self.updateColorStuff()
+            #Update the crosshair
+            self.updateCrosshair()
             #Repaint the window
             self.update()
     
@@ -1886,6 +1960,8 @@ class PictureExplorer(QWidget):
         self.ywidget.setValue(self.coord_y)
         #Update the stuff that can change
         self.updateColorStuff()
+        #Update the crosshair
+        self.updateCrosshair()
         #Repaint the window
         self.update()
         #Manual updates are safe again
