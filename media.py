@@ -221,6 +221,7 @@ class Sound:
     def __init__(self, arg1, arg2 = None):
         #arg1 can be a filename, a number of samples, or a Sound
         #arg2, if provided, is a sample rate
+        #super().__init__()
         if isinstance(arg1, Sound):
             #arg1 is a Sound. Copy it.
             pass #TODO
@@ -244,6 +245,23 @@ class Sound:
                 self.sampleRate = arg2
             self.fileName = None
             self.file = None
+        self.setUpFormat()
+        self.isPlaying = False
+    
+    def setUpFormat(self):
+        #Create the audio format
+        self.format = QAudioFormat()
+        self.format.setCodec('audio/pcm')
+        self.format.setSampleRate(self.sampleRate)
+        self.format.setSampleSize(self.sampleSize)
+        self.format.setChannelCount(self.numChannels)
+        #This is a WAV thing
+        if self.sampleSize == 8:
+            self.format.setSampleType(QAudioFormat.UnSignedInt)
+        elif self.sampleSize == 16:
+            self.format.setSampleType(QAudioFormat.SignedInt)
+        self.format.setByteOrder(QAudioFormat.LittleEndian)
+        #print(self.sampleRate, self.sampleSize, self.numChannels)
     
     #Convert to string
     def __str__(self):
@@ -264,33 +282,39 @@ class Sound:
         return self.numSamples
     
     #Play the sound
+    #Do nothing if it's already playing
     def play(self):
-        #TODO do these things elsewhere later
-        worked = self.file.open(QIODevice.ReadOnly)
-        #print(worked)
-        #Create the audio format
-        format = QAudioFormat()
-        format.setCodec('audio/pcm')
-        format.setSampleRate(self.sampleRate)
-        format.setSampleSize(self.sampleSize)
-        format.setChannelCount(self.numChannels)
-        #This is a WAV thing
-        if self.sampleSize == 8:
-            format.setSampleType(QAudioFormat.UnSignedInt)
-        elif self.sampleSize == 16:
-            format.setSampleType(QAudioFormat.SignedInt)
-        format.setByteOrder(QAudioFormat.LittleEndian)
-        #print(self.sampleRate, self.sampleSize, self.numChannels)
+        if not self.isPlaying:
+            worked = self.file.open(QIODevice.ReadOnly)
+            if not worked:
+                raise IOError("Failed to open sound file")
+            #print(worked)
+            
+            #Is it supported?
+            if not Sound.AUDIO_DEVICE.isFormatSupported(self.format):
+                raise RuntimeError("Sound format not supported")
         
-        #Is it supported?
-        if not Sound.AUDIO_DEVICE.isFormatSupported(format):
-            raise ValueError("Sound format not supported")
-        
-        audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, format)
-        #THIS IS CURRENTLY CRASHING PYTHON
-        audioOutput.start(self.file)
-        return audioOutput
-        
+            self.audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
+            #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged(QAudio.State)'), self, SLOT('finishedPlaying()'))
+            #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged'), self, SLOT('finishedPlaying(int)'))
+            #worked = self.audioOutput.stateChanged.connect(self.finishedPlaying)
+            self.audioOutput.stateChanged.connect(self.finishedPlaying)
+            #if not worked:
+            #    raise RuntimeError("Signal binding failed")
+            #connect(audioOutput,SIGNAL(stateChanged(QAudio.State)),SLOT(finishedPlaying(QAudio.State)))
+            self.audioOutput.start(self.file)
+            self.isPlaying = True
+        #return audioOutput
+    
+    def finishedPlaying(self, state):
+        print("yo")
+        #state = self.audioOutput.state()
+        #Is it finished?
+        if state == QAudio.IdleState:
+            self.audioOutput.stop()
+            self.file.close()
+            self.isPlaying = False
+            print("It's done!")
     
 # ##
 # ## Global sound functions
