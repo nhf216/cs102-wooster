@@ -89,6 +89,8 @@ import PIL
 #Use Qt for everything
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+from PyQt4.QtMultimedia import * #This is for sound/video (video later)
+import wave #This is for reading sound file metadata
 # Create an PyQT4 application object.
 #If we're running in Canopy, there already is one
 root = QApplication.instance()
@@ -205,6 +207,90 @@ def setLibPath(directory=None):
 #Instead, it lets us print out range objects like in Python 2
 def printRange(rng):
     print([x for x in rng])
+    
+#Sound class
+#Only supports WAV for now
+class Sound:
+    #Constants
+    SAMPLE_RATE = 22050
+    
+    #Default audio output device
+    AUDIO_DEVICE = QAudioDeviceInfo.defaultOutputDevice()
+    
+    #Constructor
+    def __init__(self, arg1, arg2 = None):
+        #arg1 can be a filename, a number of samples, or a Sound
+        #arg2, if provided, is a sample rate
+        if isinstance(arg1, Sound):
+            #arg1 is a Sound. Copy it.
+            pass #TODO
+        elif isinstance(arg1, str):
+            #arg1 is a file name
+            self.fileName = arg1
+            self.file = QFile(self.fileName)
+            #Get the metadata
+            wav = wave.open(self.fileName)
+            self.numSamples = wav.getnframes()
+            self.sampleRate = wav.getframerate()
+            self.sampleSize = wav.getsampwidth() * 8
+            self.numChannels = wav.getnchannels()
+            wav.close()
+        elif isinstance(arg1, int):
+            #arg1 is a number of samples
+            self.numSamples = arg1
+            if arg2 is None:
+                self.sampleRate = Sound.SAMPLE_RATE
+            else:
+                self.sampleRate = arg2
+            self.fileName = None
+            self.file = None
+    
+    #Convert to string
+    def __str__(self):
+        ret = "Sound"
+        fileName = self.fileName
+
+        #if there is a file name then add that to the output
+        if fileName is not None:
+            ret = ret + " file: " + fileName
+
+        #add the length in frames
+        ret = ret + " number of samples: " + self.getLengthInFrames();
+
+        return ret;
+    
+    #Number of sample
+    def getLenthInFrames(self):
+        return self.numSamples
+    
+    #Play the sound
+    def play(self):
+        #TODO do these things elsewhere later
+        worked = self.file.open(QIODevice.ReadOnly)
+        #print(worked)
+        #Create the audio format
+        format = QAudioFormat()
+        format.setCodec('audio/pcm')
+        format.setSampleRate(self.sampleRate)
+        format.setSampleSize(self.sampleSize)
+        format.setChannelCount(self.numChannels)
+        #This is a WAV thing
+        if self.sampleSize == 8:
+            format.setSampleType(QAudioFormat.UnSignedInt)
+        elif self.sampleSize == 16:
+            format.setSampleType(QAudioFormat.SignedInt)
+        format.setByteOrder(QAudioFormat.LittleEndian)
+        #print(self.sampleRate, self.sampleSize, self.numChannels)
+        
+        #Is it supported?
+        if not Sound.AUDIO_DEVICE.isFormatSupported(format):
+            raise ValueError("Sound format not supported")
+        
+        audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, format)
+        #THIS IS CURRENTLY CRASHING PYTHON
+        audioOutput.start(self.file)
+        return audioOutput
+        
     
 # ##
 # ## Global sound functions
