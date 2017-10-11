@@ -213,6 +213,8 @@ def printRange(rng):
 class Sound:
     #Constants
     SAMPLE_RATE = 22050
+    NUM_CHANNELS = 2
+    SAMPLE_SIZE = 16
     
     #Default audio output device
     AUDIO_DEVICE = QAudioDeviceInfo.defaultOutputDevice()
@@ -224,17 +226,31 @@ class Sound:
         #super().__init__()
         if isinstance(arg1, Sound):
             #arg1 is a Sound. Copy it.
-            pass #TODO
+            self.fileName = None #It doesn't duplicate this part
+            # #Instead, use a temporary file, which gets changed
+            # #if they save the sound
+            # self.tempfile = tempfile.mkstemp(suffix = '.wav')
+            #self.file = QFile(arg1.fileName)
+            self.numSamples = arg1.numSamples
+            self.sampleRate = arg1.sampleRate
+            self.sampleSize = arg1.sampleSize
+            self.numChannels = arg1.numChannels
+            #Copy the raw data
+            self.data = bytearray(arg1.data)
+            #self.writeFile(self.tempfile[1])
+            #self.file = QFile(self.tempfile[1])
         elif isinstance(arg1, str):
             #arg1 is a file name
             self.fileName = arg1
-            self.file = QFile(self.fileName)
+            #self.file = QFile(self.fileName)
             #Get the metadata
             wav = wave.open(self.fileName)
             self.numSamples = wav.getnframes()
             self.sampleRate = wav.getframerate()
             self.sampleSize = wav.getsampwidth() * 8
             self.numChannels = wav.getnchannels()
+            #Get the raw data
+            self.data = bytearray(wav.readframes(self.numSamples))
             wav.close()
         elif isinstance(arg1, int):
             #arg1 is a number of samples
@@ -244,9 +260,20 @@ class Sound:
             else:
                 self.sampleRate = arg2
             self.fileName = None
-            self.file = None
+            self.numChannels = Sound.NUM_CHANNELS
+            self.sampleSize = Sound.SAMPLE_SIZE
+            #Blank data
+            self.data = bytearray([0 for i in range(self.numSamples * self.sampleSize)])
+            #self.file = None
+            # #Use a temporary file, which gets changed
+            # #if they save the sound
+            # #TODO instead just send the sound data directly
+            # self.tempfile = tempfile.mkstemp(suffix = '.wav')
+            
         self.setUpFormat()
-        self.isPlaying = False
+        #Tuples (QBuffer, QByteArray) used for playing multiple instances
+        self.buffs = []
+        #self.isPlaying = False
     
     def setUpFormat(self):
         #Create the audio format
@@ -273,62 +300,89 @@ class Sound:
             ret = ret + " file: " + fileName
 
         #add the length in frames
-        ret = ret + " number of samples: " + self.getLengthInFrames();
+        ret = ret + " number of samples: " + self.getLengthInFrames()
 
-        return ret;
+        return ret
     
     #Number of sample
-    def getLenthInFrames(self):
+    def getLengthInFrames(self):
         return self.numSamples
     
     #Play the sound
     #Do nothing if it's already playing
     def play(self):
-        if not self.isPlaying:
-            worked = self.file.open(QIODevice.ReadOnly)
-            if not worked:
-                raise IOError("Failed to open sound file")
-            #print(worked)
-            
-            #Is it supported?
-            if not Sound.AUDIO_DEVICE.isFormatSupported(self.format):
-                raise RuntimeError("Sound format not supported")
+        #if not self.isPlaying:
+        #Clean up finished instances
+        buffs = list(self.buffs)
+        for i in range(len(buffs)-1, -1, -1):
+            if buffs[i][0].atEnd():
+                #This one's done
+                self.buffs[i][0].close()
+                del self.buffs[i]
+                
+        qba = QByteArray(self.data)
+        buff = QBuffer(qba)
+        self.buffs.append((buff, qba))
+        #print("Still alive")
+        #worked = self.file.open(QIODevice.ReadOnly)
+        #worked = self.buff.open(QIODevice.ReadOnly)
+        worked = self.buffs[-1][0].open(QIODevice.ReadOnly)
+        if not worked:
+            raise IOError("Failed to open sound data stream")
+        #print(worked)
         
-            self.audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
-            #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged(QAudio.State)'), self, SLOT('finishedPlaying()'))
-            #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged'), self, SLOT('finishedPlaying(int)'))
-            #worked = self.audioOutput.stateChanged.connect(self.finishedPlaying)
-            self.audioOutput.stateChanged.connect(self.finishedPlaying)
-            #if not worked:
-            #    raise RuntimeError("Signal binding failed")
-            #connect(audioOutput,SIGNAL(stateChanged(QAudio.State)),SLOT(finishedPlaying(QAudio.State)))
-            self.audioOutput.start(self.file)
-            self.isPlaying = True
+        #Is it supported?
+        if not Sound.AUDIO_DEVICE.isFormatSupported(self.format):
+            raise RuntimeError("Sound format not supported")
+    
+        self.audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
+        #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged(QAudio.State)'), self, SLOT('finishedPlaying()'))
+        #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged'), self, SLOT('finishedPlaying(int)'))
+        #worked = self.audioOutput.stateChanged.connect(self.finishedPlaying)
+        #self.audioOutput.stateChanged.connect(self.finishedPlaying)
+        #if not worked:
+        #    raise RuntimeError("Signal binding failed")
+        #connect(audioOutput,SIGNAL(stateChanged(QAudio.State)),SLOT(finishedPlaying(QAudio.State)))
+        #self.audioOutput.start(self.file)
+        self.audioOutput.start(self.buffs[-1][0])
+            #self.isPlaying = True
         #return audioOutput
     
-    def finishedPlaying(self, state):
-        print("yo")
-        #state = self.audioOutput.state()
-        #Is it finished?
-        if state == QAudio.IdleState:
-            self.audioOutput.stop()
-            self.file.close()
-            self.isPlaying = False
-            print("It's done!")
+    # def finishedPlaying(self, state):
+    #     print("yo", state)
+    #     #state = self.audioOutput.state()
+    #     #Is it finished?
+    #     if state == QAudio.IdleState:
+    #         # self.audioOutput.stop()
+    #         # #self.file.close()
+    #         # self.buff.close()
+    #         # self.isPlaying = False
+    #         # print("It's done!")
+    #         pass
     
-# ##
-# ## Global sound functions
-# ##
-# def makeSound(filename):
-#     global mediaFolder
-#     if not os.path.isabs(filename):
-#         filename = mediaFolder + filename
-#     if not os.path.isfile(filename):
-#         #print("There is no file at "+filename)
-#         #raise ValueError
-#         repValError("There is no file at "+filename)
-#     #return Sound(filename)
-#     #TODO
+    #Write this sound to the given file (given by descriptor)
+    def writeFile(self, fil, data):
+        fd = wave.open(fil, 'wb')
+        fd.setnchannels(self.numChannels)
+        fd.setnframes(self.numSamples)
+        fd.setframerate(self.sampleRate)
+        fd.setsampwidth(self.sampleSize // 8)
+        fd.writeframes(data)
+        fd.close()
+    
+##
+## Global sound functions
+##
+#Done
+def makeSound(filename):
+    global mediaFolder
+    if not os.path.isabs(filename):
+        filename = mediaFolder + filename
+    if not os.path.isfile(filename):
+        #print("There is no file at "+filename)
+        #raise ValueError
+        repValError("There is no file at "+filename)
+    return Sound(filename)
 # 
 # # MMO (1 Dec 2005): capped size of sound to 600
 # # Brian O (29 Apr 2008): changed first argument to be number of samples, added optional 2nd argument of sampling rate
