@@ -75,6 +75,7 @@ import os
 import math
 import tempfile
 import numbers
+import threading
 #import traceback
 #import user
 
@@ -271,8 +272,10 @@ class Sound:
             # self.tempfile = tempfile.mkstemp(suffix = '.wav')
             
         self.setUpFormat()
-        #Tuples (QBuffer, QByteArray) used for playing multiple instances
+        #Tuples (QBuffer, QByteArray, QAudioOutput) used for playing multiple instances
         self.buffs = []
+        #Cleanup lock
+        self.cleanupLock = threading.Lock()
         #self.isPlaying = False
     
     def setUpFormat(self):
@@ -312,53 +315,75 @@ class Sound:
     #Do nothing if it's already playing
     def play(self):
         #if not self.isPlaying:
-        #Clean up finished instances
-        buffs = list(self.buffs)
-        for i in range(len(buffs)-1, -1, -1):
-            if buffs[i][0].atEnd():
-                #This one's done
-                self.buffs[i][0].close()
-                del self.buffs[i]
+        
+        #Clean up zombie processes, if somehow there are some
+        self.cleanUpResources()
                 
         qba = QByteArray(self.data)
         buff = QBuffer(qba)
-        self.buffs.append((buff, qba))
+        audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
+        self.buffs.append((buff, qba, audioOutput))
         #print("Still alive")
         #worked = self.file.open(QIODevice.ReadOnly)
         #worked = self.buff.open(QIODevice.ReadOnly)
         worked = self.buffs[-1][0].open(QIODevice.ReadOnly)
         if not worked:
+            #Clean up the corrupted buffer
+            del self.buffs[-1]
             raise IOError("Failed to open sound data stream")
         #print(worked)
         
         #Is it supported?
         if not Sound.AUDIO_DEVICE.isFormatSupported(self.format):
+            #Clean up the corrupted buffer
+            del self.buffs[-1]
             raise RuntimeError("Sound format not supported")
     
-        self.audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
+        #self.audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
+        
         #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged(QAudio.State)'), self, SLOT('finishedPlaying()'))
         #worked = QObject.connect(self.audioOutput, SIGNAL('stateChanged'), self, SLOT('finishedPlaying(int)'))
         #worked = self.audioOutput.stateChanged.connect(self.finishedPlaying)
         #self.audioOutput.stateChanged.connect(self.finishedPlaying)
+        self.buffs[-1][-1].stateChanged.connect(self.finishedPlaying)
         #if not worked:
         #    raise RuntimeError("Signal binding failed")
         #connect(audioOutput,SIGNAL(stateChanged(QAudio.State)),SLOT(finishedPlaying(QAudio.State)))
         #self.audioOutput.start(self.file)
-        self.audioOutput.start(self.buffs[-1][0])
+        #self.audioOutput.start(self.buffs[-1][0])
+        self.buffs[-1][-1].start(self.buffs[-1][0])
             #self.isPlaying = True
         #return audioOutput
     
-    # def finishedPlaying(self, state):
-    #     print("yo", state)
-    #     #state = self.audioOutput.state()
-    #     #Is it finished?
-    #     if state == QAudio.IdleState:
-    #         # self.audioOutput.stop()
-    #         # #self.file.close()
-    #         # self.buff.close()
-    #         # self.isPlaying = False
-    #         # print("It's done!")
-    #         pass
+    def cleanUpResources(self):
+        #Acquire lock; don't want multiple threads in here at once
+        self.cleanupLock.acquire()
+        try:
+            #Clean up finished instances of playing the sound
+            buffs = list(self.buffs)
+            for i in range(len(buffs)-1, -1, -1):
+                if buffs[i][0].atEnd():
+                    #This one's done
+                    self.buffs[i][0].close()
+                    self.buffs[i][-1].stop()
+                    del self.buffs[i]
+        finally:
+            #Release the lock
+            self.cleanupLock.release()
+    
+    #It was working with files, but failed with buffers (triggered too soon)
+    #Workaround is to manually call the clean up method
+    def finishedPlaying(self, state):
+        #print("yo", state)
+        #state = self.audioOutput.state()
+        #Is it finished?
+        if state == QAudio.IdleState:
+            # self.audioOutput.stop()
+            # #self.file.close()
+            # self.buff.close()
+            # self.isPlaying = False
+            # print("It's done!")
+            self.cleanUpResources()
     
     #Write this sound to the given file (given by descriptor)
     def writeFile(self, fil, data):
@@ -383,48 +408,49 @@ def makeSound(filename):
         #raise ValueError
         repValError("There is no file at "+filename)
     return Sound(filename)
-# 
-# # MMO (1 Dec 2005): capped size of sound to 600
-# # Brian O (29 Apr 2008): changed first argument to be number of samples, added optional 2nd argument of sampling rate
-# def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
-#     if numSamples <= 0 or samplingRate <= 0:
-#         #print("makeEmptySound(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
-#         #raise ValueError
-#         repValError("makeEmptySound(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
-#     if (numSamples/samplingRate) > 600:
-#         #print("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
-#         #raise ValueError
-#         repValError("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds")   
-#     #return Sound(numSamples, samplingRate)
-#     #TODO
-# #    if size > 600:
-# #        #print "makeEmptySound(size): size must be 600 seconds or less"
-# #        #raise ValueError
-# #        repValError("makeEmptySound(size): size must be 600 seconds or less")
-# #    return Sound(size * Sound.SAMPLE_RATE)
-# 
-# # Brian O (5 May 2008): Added method for creating sound by duration
-# def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
-#     if seconds <= 0 or samplingRate <= 0:
-#         #print("makeEmptySoundBySeconds(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
-#         #raise ValueError
-#         repValError("makeEmptySoundBySeconds(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
-#     if seconds > 600:
-#         #print("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
-#         #raise ValueError
-#         repValError("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
-#     #return Sound(seconds * samplingRate, samplingRate)
-#     #TODO
-# 
-# # PamC: Added this function to duplicate a sound
-# def duplicateSound(sound):
-#   if not isinstance(sound, Sound):
-#         #print("duplicateSound(sound): Input is not a sound")
-#         #raise ValueError
-#         repValError("duplicateSound(sound): Input is not a sound")
-#   #return Sound(sound)
-#   #TODO
-# 
+
+# MMO (1 Dec 2005): capped size of sound to 600
+# Brian O (29 Apr 2008): changed first argument to be number of samples, added optional 2nd argument of sampling rate
+#Done
+def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
+    if numSamples <= 0 or samplingRate <= 0:
+        #print("makeEmptySound(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
+        #raise ValueError
+        repValError("makeEmptySound(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
+    if (numSamples/samplingRate) > 600:
+        #print("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
+        #raise ValueError
+        repValError("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds")   
+    return Sound(numSamples, samplingRate)
+
+#    if size > 600:
+#        #print "makeEmptySound(size): size must be 600 seconds or less"
+#        #raise ValueError
+#        repValError("makeEmptySound(size): size must be 600 seconds or less")
+#    return Sound(size * Sound.SAMPLE_RATE)
+
+# Brian O (5 May 2008): Added method for creating sound by duration
+#Done
+def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
+    if seconds <= 0 or samplingRate <= 0:
+        #print("makeEmptySoundBySeconds(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
+        #raise ValueError
+        repValError("makeEmptySoundBySeconds(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
+    if seconds > 600:
+        #print("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
+        #raise ValueError
+        repValError("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
+    return Sound(seconds * samplingRate, samplingRate)
+
+# PamC: Added this function to duplicate a sound
+#Done
+def duplicateSound(sound):
+    if not isinstance(sound, Sound):
+        #print("duplicateSound(sound): Input is not a sound")
+        #raise ValueError
+        repValError("duplicateSound(sound): Input is not a sound")
+    return Sound(sound)
+
 # def getSamples(sound):
 #     if not isinstance(sound, Sound):
 #         #print("getSamples(sound): Input is not a sound")
