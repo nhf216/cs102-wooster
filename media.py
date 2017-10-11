@@ -76,6 +76,7 @@ import math
 import tempfile
 import numbers
 import threading
+import collections
 #import traceback
 #import user
 
@@ -208,7 +209,49 @@ def setLibPath(directory=None):
 #Instead, it lets us print out range objects like in Python 2
 def printRange(rng):
     print([x for x in rng])
+
+#This is not actually a media function
+#Instead, it prints lists better
+def betterPrint(val):
+    print(recursive_str(val))
+
+#Recursively call str on all components of val
+#If val is not a sequence type, it's just str
+#No need to call directly
+#This is called by betterPrint
+def recursive_str(val):
+    if isinstance(val, collections.abc.Sequence) and not isinstance(val, str):
+        #It's a sequence; recurse!
+        return str(type(val)(map(str, val)))
+    else:
+        return str(val)
+
+#Sample class
+#A Sample knows its value, its position, and the Sound it's from
+class Sample:
+    #Constructor
+    #Takes a Sound and a position
+    #Finds the value
+    def __init__(self, sound, pos):
+        self.sound = sound
+        self.pos = pos
+        self.value = sound.getSampleValue(pos)
     
+    #Convert to a printable string
+    def __str__(self):
+        return 'Sample at ' + str(self.pos) + ' with value ' + str(self.value)
+    
+    #Get the Sample's value
+    def getValue(self):
+        return self.value
+    
+    #Set the Sample's value
+    def setValue(self, newVal):
+        #Update the Sound
+        self.sound.setSampleValue(self.pos, newVal)
+        #Update the Sample's internal value
+        self.value = newVal
+
 #Sound class
 #Only supports WAV for now
 class Sound:
@@ -277,6 +320,9 @@ class Sound:
         #Cleanup lock
         self.cleanupLock = threading.Lock()
         #self.isPlaying = False
+        #Set up "Samples" representation of data
+        #This is clunky but "necessary" for efficiency of JES operations
+        self.setUpSampleObjects()
     
     def setUpFormat(self):
         #Create the audio format
@@ -355,6 +401,8 @@ class Sound:
             #self.isPlaying = True
         #return audioOutput
     
+    #Go through the list of playing sound resources and destroy
+    #the ones that have finished playing
     def cleanUpResources(self):
         #Acquire lock; don't want multiple threads in here at once
         self.cleanupLock.acquire()
@@ -385,15 +433,82 @@ class Sound:
             # print("It's done!")
             self.cleanUpResources()
     
-    #Write this sound to the given file (given by descriptor)
-    def writeFile(self, fil, data):
-        fd = wave.open(fil, 'wb')
-        fd.setnchannels(self.numChannels)
-        fd.setnframes(self.numSamples)
-        fd.setframerate(self.sampleRate)
-        fd.setsampwidth(self.sampleSize // 8)
-        fd.writeframes(data)
-        fd.close()
+    # #Write this sound to the given file (given by descriptor)
+    # def writeFile(self, fil, data):
+    #     fd = wave.open(fil, 'wb')
+    #     fd.setnchannels(self.numChannels)
+    #     fd.setnframes(self.numSamples)
+    #     fd.setframerate(self.sampleRate)
+    #     fd.setsampwidth(self.sampleSize // 8)
+    #     fd.writeframes(data)
+    #     fd.close()
+    
+    def setUpSampleObjects(self):
+        ss = self.sampleSize // 8
+        if len(self.data) % ss != 0:
+            #The samples are corrupted
+            raise ValueError("You have half a sample at the end. Not sure why.")
+        self.samples = []
+        #Convert the binary stream to integers by sample size
+        #Make sure to use two's complement
+        for i in range(self.numSamples):
+            self.samples.append(Sample(self, i))
+    
+    #Get the ith sample value
+    def getSampleValue(self, i):
+        if self.sampleSize == 8:
+            #This is easy
+            val = int(self.data[i])
+        elif self.sampleSize == 16:
+            #This is harder
+            val = int.from_bytes(self.data[2*i:2*i+2], 'big', signed=True)
+            # val = self.data[2*i] * 256 + self.data[2*i+1]
+            # if val >= 32768:
+            #     #Need to make it be negative
+            #     val -= 65536
+        return val
+    
+    #Get all the samples, as a list
+    #DO NOT PRINT THIS!!!
+    def getSamples(self):
+        # ss = self.sampleSize // 8
+        # if len(self.data) % ss != 0:
+        #     #The samples are corrupted
+        #     raise ValueError("You have half a sample at the end. Not sure why.")
+        # ret = []
+        # #Convert the binary stream to integers by sample size
+        # #Make sure to use two's complement
+        # for i in range(self.numSamples):
+        #     ret.append(self.getSample(i))
+        # return ret
+        return self.samples
+    
+    #Set the value of the sample at position pos to value
+    #DO NOT CALL THIS IF YOU ARE USING Sample OBJECTS!
+    #This is called by Sample to update the Sound
+    #It will desync the Sample objects if you call it directly
+    def setSampleValue(self, pos, value):
+        if self.sampleSize == 8:
+            #This is easy
+            self.data[pos] = value
+        elif self.sampleSize == 16:
+            #This is harder
+            # #First, un-two's-complement it
+            # val = value
+            # if val < 0:
+            #     val = val + 65536
+            # #Then, extract the bytes
+            # hiByte = val // 256
+            # loByte = val % 256
+            # #Finally, set the data
+            # self.data[2*pos] = hiByte
+            # self.data[2*pos+1] = loByte
+            val = value.to_bytes(2, 'big', signed=True)
+            self.data[2*pos:2*pos+2]  = val
+    
+    #What is the sample size, in bits?
+    def getSampleSize(self):
+        return self.sampleSize
     
 ##
 ## Global sound functions
