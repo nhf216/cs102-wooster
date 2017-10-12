@@ -248,9 +248,17 @@ class Sample:
     #Set the Sample's value
     def setValue(self, newVal):
         #Update the Sound
-        self.sound.setSampleValue(self.pos, newVal)
+        self.sound.setSampleValueRaw(self.pos, newVal)
         #Update the Sample's internal value
         self.value = newVal
+    
+    #Get the Sound object
+    def getSound(self):
+        return self.sound
+    
+    #Get the position
+    def getIndex(self):
+        return self.pos
 
 #Sound class
 #Only supports WAV for now
@@ -323,6 +331,8 @@ class Sound:
         #Set up "Samples" representation of data
         #This is clunky but "necessary" for efficiency of JES operations
         self.setUpSampleObjects()
+        # #For blocking play
+        # self.blockEvent = None
     
     def setUpFormat(self):
         #Create the audio format
@@ -362,8 +372,8 @@ class Sound:
     def play(self):
         #if not self.isPlaying:
         
-        #Clean up zombie processes, if somehow there are some
-        self.cleanUpResources()
+        ##Clean up zombie processes, if somehow there are some
+        #self.cleanUpResources()
                 
         qba = QByteArray(self.data)
         buff = QBuffer(qba)
@@ -401,6 +411,40 @@ class Sound:
             #self.isPlaying = True
         #return audioOutput
     
+    # #Plays a sound, and blocks until done
+    # def blockingPlay(self):
+    #     #thrd = threading.Thread(target = self.play())
+    #     #thrd.start()
+    #     self.blockingEvent = threading.Event()
+    #     self.play()
+    #     # cv = threading.Condition()
+    #     # cv.acquire()
+    #     # while len(self.buffs) > 0:
+    #     #     cv.wait(0.01)
+    #     # #cv.wait_for(lambda: len(self.buffs) == 0)
+    #     # cv.release()
+    #     #while len(self.buffs) > 0:
+    #     #    #Hang around here
+    #     #    pass
+    #     self.blockingEvent.wait()
+    #     self.blockingEvent = None
+    #     #thrd.join()
+    
+    #Stop the sound from playing (however many times it's currently playing)
+    def stopPlaying(self):
+        #Acquire the cleanup lock
+        self.cleanupLock.acquire()
+        try:
+            #Clean up ALL instances of playing the sound
+            buffs = list(self.buffs)
+            for i in range(len(buffs)-1, -1, -1):
+                self.buffs[i][-1].stop()
+                self.buffs[i][0].close()
+                del self.buffs[i]
+        finally:
+            #Release the lock
+            self.cleanupLock.release()
+    
     #Go through the list of playing sound resources and destroy
     #the ones that have finished playing
     def cleanUpResources(self):
@@ -415,6 +459,9 @@ class Sound:
                     self.buffs[i][0].close()
                     self.buffs[i][-1].stop()
                     del self.buffs[i]
+            # if len(self.buffs) == 0 and self.blockingEvent is not None:
+            #     #Wake up the block!
+            #     self.blockingEvent.set()
         finally:
             #Release the lock
             self.cleanupLock.release()
@@ -433,15 +480,15 @@ class Sound:
             # print("It's done!")
             self.cleanUpResources()
     
-    # #Write this sound to the given file (given by descriptor)
-    # def writeFile(self, fil, data):
-    #     fd = wave.open(fil, 'wb')
-    #     fd.setnchannels(self.numChannels)
-    #     fd.setnframes(self.numSamples)
-    #     fd.setframerate(self.sampleRate)
-    #     fd.setsampwidth(self.sampleSize // 8)
-    #     fd.writeframes(data)
-    #     fd.close()
+    #Write this sound to the given
+    def writeToFile(self, fil):
+        fd = wave.open(fil, 'wb')
+        fd.setnchannels(self.numChannels)
+        fd.setnframes(self.numSamples)
+        fd.setframerate(self.sampleRate)
+        fd.setsampwidth(self.sampleSize // 8)
+        fd.writeframes(self.data)
+        fd.close()
     
     def setUpSampleObjects(self):
         ss = self.sampleSize // 8
@@ -483,11 +530,16 @@ class Sound:
         # return ret
         return self.samples
     
+    #Set a sample value
+    #DOES change the Sample objects
+    def setSampleValue(self, pos, value):
+        self.samples[pos].setValue(value)
+    
     #Set the value of the sample at position pos to value
     #DO NOT CALL THIS IF YOU ARE USING Sample OBJECTS!
     #This is called by Sample to update the Sound
     #It will desync the Sample objects if you call it directly
-    def setSampleValue(self, pos, value):
+    def setSampleValueRaw(self, pos, value):
         if self.sampleSize == 8:
             #This is easy
             self.data[pos] = value
@@ -509,6 +561,10 @@ class Sound:
     #What is the sample size, in bits?
     def getSampleSize(self):
         return self.sampleSize
+    
+    #What is the sampling rate?
+    def getSamplingRate(self):
+        return self.sampleRate
     
 ##
 ## Global sound functions
@@ -566,40 +622,42 @@ def duplicateSound(sound):
         repValError("duplicateSound(sound): Input is not a sound")
     return Sound(sound)
 
-# def getSamples(sound):
-#     if not isinstance(sound, Sound):
-#         #print("getSamples(sound): Input is not a sound")
-#         #raise ValueError
-#         repValError("getSamples(sound): Input is not a sound")
-# #    return Samples(sound)
-#     #return Samples.getSamples(sound)
-#     #TODO
-# 
-# def play(sound):
-#     #if not isinstance(sound,Sound):
-#     #    #print "play(sound): Input is not a sound"
-#     #    #raise ValueError
-#     #    repValError("play(sound): Input is not a sound")
-#     #sound.play()
-#     pass #TODO
-# 
+#Done
+def getSamples(sound):
+    if not isinstance(sound, Sound):
+        #print("getSamples(sound): Input is not a sound")
+        #raise ValueError
+        repValError("getSamples(sound): Input is not a sound")
+    return sound.getSamples()
+
+#Done
+def play(sound):
+    if not isinstance(sound,Sound):
+        #print "play(sound): Input is not a sound"
+        #raise ValueError
+        repValError("play(sound): Input is not a sound")
+    sound.play()
+
+#TODO there are weird issues with this one
+#It seems that blocking the main thread also blocks sound playback
+#This seems weird to me
+#(Note: "blocking main thread" includes infinite loop)
 # def blockingPlay(sound):
-#     #if not isinstance(sound,Sound):
-#     #    #print "blockingPlay(sound): Input is not a sound"
-#     #    #raise ValueError
-#     #    repValError("blockingPlay(sound): Input is not a sound")
-#     #sound.blockingPlay()
-#     pass #TODO
-# 
-# # Buck Scharfnorth (27 May 2008): Added method for stopping play of a sound
-# def stopPlaying(sound):
-#     #if not isinstance(sound,Sound):
-#     #    #print "stopPlaying(sound): Input is not a sound"
-#     #    #raise ValueError
-#     #    repValError("stopPlaying(sound): Input is not a sound")
-#     #sound.stopPlaying()
-#     pass #TODO
-# 
+#     if not isinstance(sound,Sound):
+#         #print "blockingPlay(sound): Input is not a sound"
+#         #raise ValueError
+#         repValError("blockingPlay(sound): Input is not a sound")
+#     sound.blockingPlay()
+
+# Buck Scharfnorth (27 May 2008): Added method for stopping play of a sound
+#Done
+def stopPlaying(sound):
+    if not isinstance(sound,Sound):
+        #print "stopPlaying(sound): Input is not a sound"
+        #raise ValueError
+        repValError("stopPlaying(sound): Input is not a sound")
+    sound.stopPlaying()
+
 # def playAtRate(sound,rate):
 #     #if not isinstance(sound, Sound):
 #     #    #print "playAtRate(sound,rate): First input is not a sound"
@@ -654,122 +712,120 @@ def duplicateSound(sound):
 #         #        repValError("blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound")
 #         #sound.blockingPlayAtRateInRange(rate, start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
 #         pass #TODO
-# 
-# def getSamplingRate(sound):
-#     #if not isinstance(sound, Sound):
-#     #    #print "getSamplingRate(sound): Input is not a sound"
-#     #    #raise ValueError
-#     #    repValError("getSamplingRate(sound): Input is not a sound")
-#     #return sound.getSamplingRate()
-#     pass #TODO
-# 
-# def setSampleValueAt(sound,index,value):
-#     #if not isinstance(sound, Sound):
-#     #    print "setSampleValueAt(sound,index,value): First input is not a sound"
-#     #    raise ValueError
-#     #if index < Sound._SoundIndexOffset:
-#     #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
-#     #    raise ValueError
-#     #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
-#     #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
-#     #    raise ValueError
-#     #sound.setSampleValue(index-Sound._SoundIndexOffset,int(value))
-#     pass #TODO
-# 
-# def getSampleValueAt(sound,index):
-#     #if not isinstance(sound,Sound):
-#     #    print "getSampleValueAt(sound,index): First input is not a sound"
-#     #    raise ValueError
-#     #if index < Sound._SoundIndexOffset:
-#     #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
-#     #    raise ValueError
-#     #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
-#     #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
-#     #    raise ValueError
-#     #return sound.getSampleValue(index-Sound._SoundIndexOffset)
-#     pass #TODO
-# 
-# def getSampleObjectAt(sound,index):
-#     #if not isinstance(sound, Sound):
-#     #    print "getSampleObjectAt(sound,index): First input is not a sound"
-#     #    raise ValueError
-#     # return sound.getSampleObjectAt(index-Sound._SoundIndexOffset)
-#     #if index < Sound._SoundIndexOffset:
-#     #    print "You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(Sound._SoundIndexOffset) + ".  Please try" + " again using an index in the range [" + str(Sound._SoundIndexOffset) + "," + str ( getLength( sound ) - 1 + Sound._SoundIndexOffset ) + "]."
-#     #    raise ValueError
-#     #if index > getLength(sound) - 1 + Sound._SoundIndexOffset:
-#     #    print "You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 + Sound._SoundIndexOffset )
-#     #    raise ValueError
-#     #return Sample(sound, index-Sound._SoundIndexOffset)
-#     pass #TODO
-# 
-# def setSample(sample,value):
-#     #if not isinstance(sample,Sample):
-#     #    print "setSample(sample,value): First input is not a sample"
-#     #    raise ValueError
-#     #if value > 32767:
-#     #    value = 32767
-#     #elif value < -32768:
-#     #    value = -32768
-#     ## Need to coerce value to integer
-#     #return sample.setValue( int(value) )
-#     pass #TODO
-# 
-# # PamC: Added this function to be a better name than setSample
-# #Done
-# def setSampleValue(sample, value):
-#   setSample(sample, value)
-# 
-# def getSample(sample):
-#     #if not isinstance(sample, Sample):
-#     #    print "getSample(sample): Input is not a sample"
-#     #    raise ValueError
-#     #return sample.getValue()
-#     pass #TODO
-# 
-# # PamC: Added this to be a better name for getSample
-# #Done
-# def getSampleValue(sample):
-#     return getSample(sample)
-# 
-# def getSound(sample):
-#     #if not isinstance(sample,Sample):
-#     #    print "getSound(sample): Input is not a sample"
-#     #    raise ValueError
-#     #return sample.getSound()
-#     pass #TODO
-# 
-# def getLength(sound):
-#     #if not isinstance(sound, Sound):
-#     #    print "getLength(sound): Input is not a sound"
-#     #    raise ValueError
-#     #return sound.getLength()
-#     pass #TODO
-# 
-# # PamC: Added this function as a more meaningful name for getLength
-# #Done
-# def getNumSamples(sound):
-#     return getLength(sound)
-# 
-# # PamC: Added this function to return the number of seconds
-# # in a sound
-# def getDuration(sound):
-#   #if not isinstance(sound, Sound):
-#   #  print "getDuration(sound): Input is not a sound"
-#   #  raise ValueError
-#   #return sound.getLength()/sound.getSamplingRate()
-#   pass #TODO
-# 
-# def writeSoundTo(sound,filename):
-#     #global mediaFolder
-#     #if not os.path.isabs(filename):
-#     #    filename = mediaFolder + filename
-#     #if not isinstance(sound, Sound):
-#     #    print "writeSoundTo(sound,filename): First input is not a sound"
-#     #    raise ValueError
-#     #sound.writeToFile(filename)
-#     pass #TODO
-# 
+
+#Done
+def getSamplingRate(sound):
+    if not isinstance(sound, Sound):
+        #print "getSamplingRate(sound): Input is not a sound"
+        #raise ValueError
+        repValError("getSamplingRate(sound): Input is not a sound")
+    return sound.getSamplingRate()
+
+#Done
+def setSampleValueAt(sound,index,value):
+    if not isinstance(sound, Sound):
+        repValError("setSampleValueAt(sound,index,value): First input is not a sound")
+    if index < Sound._SoundIndexOffset:
+        repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(0) + ".  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1 ) + "].")
+    if index > getLength(sound) - 1:
+        repValError("You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 ))
+    sound.setSampleValue(index, int(value))
+
+#Done
+def getSampleValueAt(sound,index):
+    if not isinstance(sound,Sound):
+        repValError("getSampleValueAt(sound,index): First input is not a sound")
+    if index < Sound._SoundIndexOffset:
+        repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than 0.  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1) + "].")
+    if index > getLength(sound) - 1:
+        repValError("You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 ))
+    return sound.getSampleValue(index)
+
+#Done
+def getSampleObjectAt(sound,index):
+    if not isinstance(sound, Sound):
+        repValError("getSampleObjectAt(sound,index): First input is not a sound")
+    return sound.getSampleObjectAt(index-Sound._SoundIndexOffset)
+    if index < Sound._SoundIndexOffset:
+        repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(0) + ".  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1 ) + "].")
+    if index > getLength(sound) - 1:
+        repValError("You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 ))
+    return sound.getSample(index)
+
+#Done
+def setSample(sample, value):
+    if not isinstance(sample,Sample):
+        repValError("setSample(sample,value): First input is not a Sample")
+    if value > 32767:
+        value = 32767
+    elif value < -32768:
+        value = -32768
+    # Need to coerce value to integer
+    sample.setValue( int(value) )
+
+# PamC: Added this function to be a better name than setSample
+#Done
+def setSampleValue(sample, value):
+  setSample(sample, value)
+
+#Done
+def getSample(sample):
+    if not isinstance(sample, Sample):
+        repValError("getSample(sample): Input is not a Sample")
+    return sample.getValue()
+
+# PamC: Added this to be a better name for getSample
+#Done
+def getSampleValue(sample):
+    return getSample(sample)
+
+#Done
+def getSound(sample):
+    if not isinstance(sample,Sample):
+        repValError("getSound(sample): Input is not a Sample")
+    return sample.getSound()
+
+#Done
+def getLength(sound):
+    if not isinstance(sound, Sound):
+        repValError("getLength(sound): Input is not a Sound")
+    return sound.getLengthInFrames()
+
+# PamC: Added this function as a more meaningful name for getLength
+#Done
+def getNumSamples(sound):
+    return getLength(sound)
+
+# PamC: Added this function to return the number of seconds
+# in a sound
+#Done
+def getDuration(sound):
+    if not isinstance(sound, Sound):
+        repValError("getDuration(sound): Input is not a Sound")
+    return getLength(sound) / getSamplingRate(sound)
+
+#Done
+def writeSoundTo(sound,filename):
+    global mediaFolder
+    if not os.path.isabs(filename):
+        filename = mediaFolder + filename
+    if not isinstance(sound, Sound):
+        repValError("writeSoundTo(sound,filename): First input is not a Sound")
+    sound.writeToFile(filename)
+
+#New
+def saveSound(sound):
+    fil = pickASaveFile()
+    #Try to get a format
+    #If no format given, yell at the user
+    # dotloc = fil.rfind(".")
+    # if dotloc == -1:
+    #     repValError("Error: No file extension provided")
+    #     #raise ValueError("Error: No file extension provided")
+    if len(fil) < 4 or (fil[-4:] != '.wav' and fil[-4:] != '.WAV'):
+        repValError("Error: Must specify .wav extension")
+    writeSoundTo(sound, fil)
+
 # ##
 # # Globals for styled text
 # ##
