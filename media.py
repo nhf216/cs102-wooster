@@ -745,21 +745,36 @@ def getSampleValueAt(sound,index):
 def getSampleObjectAt(sound,index):
     if not isinstance(sound, Sound):
         repValError("getSampleObjectAt(sound,index): First input is not a sound")
-    return sound.getSampleObjectAt(index-Sound._SoundIndexOffset)
     if index < Sound._SoundIndexOffset:
         repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(0) + ".  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1 ) + "].")
     if index > getLength(sound) - 1:
         repValError("You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 ))
     return sound.getSample(index)
 
+#New
+#Get sample size, in bits
+#Usually would be 16, but this code supports 8 as well
+def getSampleSize(sound):
+    if not isinstance(sound, Sound):
+        repValError("getSampleSize(sound): Input is not a sound")
+    return sound.getSampleSize()
+
 #Done
 def setSample(sample, value):
     if not isinstance(sample,Sample):
         repValError("setSample(sample,value): First input is not a Sample")
-    if value > 32767:
-        value = 32767
-    elif value < -32768:
-        value = -32768
+    ss = getSampleSize(getSound(sample))
+    if ss == 8:
+        vmax = 255
+        vmin = 0
+    elif ss == 16:
+        vmax = 32767
+        vmin = -32768
+    #Clip
+    if value > vmax:
+        value = vmax
+    elif value < vmin:
+        value = vmin
     # Need to coerce value to integer
     sample.setValue( int(value) )
 
