@@ -506,6 +506,35 @@ class Sound:
         fd.writeframes(self.data)
         fd.close()
     
+    #Represent the sound as an image of the given dimensions
+    #Used by Sound Explorer
+    def getImageRep(self, width, height):
+        #Find the height in the image of a given sample value
+        def findY(sval):
+            if self.sampleSize == 8:
+                return int((-height/256)*sval + height-1)
+            elif self.sampleSize == 16:
+                return int((-height/65536)*sval + height/2)
+        
+        #Create an empty black picture
+        ret = makeEmptyPicture(width, height, black)
+        
+        #Add the waveform, adjusted for proper step size
+        lastY = findY(getSampleValueAt(self, 0))
+        stepSize = max(self.numSamples // width, 1)
+        for i in range(stepSize, self.numSamples, stepSize):
+            curY = findY(getSampleValueAt(self, i))
+            addLine(ret, i//stepSize-1, lastY, i//stepSize, curY, white)
+            lastY = curY
+        
+        #Add the zero line
+        if self.sampleSize == 8:
+            addLine(ret, 0, height-1, width-1, height-1, cyan)
+        elif self.sampleSize == 16:
+            addLine(ret, 0, height//2, width-1, height//2, cyan)
+        
+        return ret
+    
     def setUpSampleObjects(self):
         ss = self.sampleSize // 8
         if len(self.data) % ss != 0:
@@ -739,7 +768,7 @@ def getSamplingRate(sound):
 def setSampleValueAt(sound,index,value):
     if not isinstance(sound, Sound):
         repValError("setSampleValueAt(sound,index,value): First input is not a sound")
-    if index < Sound._SoundIndexOffset:
+    if index < 0:
         repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(0) + ".  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1 ) + "].")
     if index > getLength(sound) - 1:
         repValError("You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 ))
@@ -749,7 +778,7 @@ def setSampleValueAt(sound,index,value):
 def getSampleValueAt(sound,index):
     if not isinstance(sound,Sound):
         repValError("getSampleValueAt(sound,index): First input is not a sound")
-    if index < Sound._SoundIndexOffset:
+    if index < 0:
         repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than 0.  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1) + "].")
     if index > getLength(sound) - 1:
         repValError("You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 ))
@@ -759,7 +788,7 @@ def getSampleValueAt(sound,index):
 def getSampleObjectAt(sound,index):
     if not isinstance(sound, Sound):
         repValError("getSampleObjectAt(sound,index): First input is not a sound")
-    if index < Sound._SoundIndexOffset:
+    if index < 0:
         repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(0) + ".  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1 ) + "].")
     if index > getLength(sound) - 1:
         repValError("You are trying to access the sample at index: " + str( index ) + ", but the last valid index is at " + str( getLength( sound ) - 1 ))
@@ -2596,15 +2625,184 @@ class PictureExplorer(QWidget):
         #Manual updates are safe again
         self.block_edit = False
 
-#Open explorer tool for media (currently only pictures)
+##START OF SOUND
+
+#Emulate the JES Sound Explorer
+class SoundExplorer(QWidget):
+    #TODO make look nice
+    #TODO selections
+    
+    #TODO make these variable/scrollable
+    PIC_WIDTH = 600
+    PIC_HEIGHT = 200
+    EXTRA_HEIGHT = 300
+    
+    #Constructor
+    #Should create window, populate with default values
+    #remember it globally (to avoid garbage collection issues)
+    #and show it
+    def __init__(self, sound):
+        super().__init__()
+        
+        self.sound = sound
+        
+        title = "Sound"
+        if sound.fileName is not None:
+            title = sound.fileName
+        self.setWindowTitle("Sound Explorer: " + title)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        
+        #What's selected?
+        self.index = 0
+        self.value = getSampleValueAt(sound, self.index)
+        
+        #Top row of buttons
+        self.playFrame = QFrame(self)
+        layoutPlay = QHBoxLayout()
+        self.playFrame.setLayout(layoutPlay)
+        self.playButton = QPushButton("Play Entire Sound", self.playFrame)
+        self.playButton.clicked.connect(sound.play)
+        self.playBeforeButton = QPushButton("Play Before", self.playFrame)
+        def lpb():
+            sound.play(0, self.index)
+        self.playBeforeButton.clicked.connect(lpb)
+        self.playAfterButton = QPushButton("Play After", self.playFrame)
+        def lpa():
+            sound.play(self.index)
+        self.playAfterButton.clicked.connect(lpa)
+        self.stopButton = QPushButton("Stop Playing", self.playFrame)
+        self.stopButton.clicked.connect(sound.stopPlaying)
+        layoutPlay.addWidget(self.playButton)
+        layoutPlay.addWidget(self.playBeforeButton)
+        layoutPlay.addWidget(self.playAfterButton)
+        layoutPlay.addWidget(self.stopButton)
+        layout.addWidget(self.playFrame)
+        
+        #Second row of buttons
+        #TODO selections
+        
+        #Sound image
+        self.imgFrame = QFrame(self)
+        imgLayout = QHBoxLayout()
+        self.imgFrame.setLayout(imgLayout)
+        self.picLabel = ClickableLabel(self, self)
+        self.pic = sound.getImageRep(SoundExplorer.PIC_WIDTH, SoundExplorer.PIC_HEIGHT)
+        self.drawingPic = duplicatePicture(self.pic)
+        pixmap = QPixmap.fromImage(self.drawingPic.image)
+        self.picLabel.setPixmap(pixmap)
+        imgLayout.addWidget(self.picLabel)
+        layout.addWidget(self.imgFrame)
+        
+        #Index/value row
+        self.indexValueFrame = QFrame(self)
+        layoutIV = QHBoxLayout()
+        self.indexValueFrame.setLayout(layoutIV)
+        self.ilabel = QLabel(self.indexValueFrame)
+        self.ilabel.setText("Current Index:")
+        layoutIV.addWidget(self.ilabel)
+        self.iwidget = QSpinBox(self.indexValueFrame)
+        self.iwidget.setRange(0, getLength(sound))
+        self.iwidget.setValue(self.index)
+        #QObject.connect(self.ywidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
+        self.iwidget.valueChanged.connect(self.updatedPos)
+        layoutIV.addWidget(self.iwidget)
+        self.vlabel = QLabel(self.indexValueFrame)
+        self.vlabel.setText("Sample Value:")
+        layoutIV.addWidget(self.vlabel)
+        self.vwidget = QLabel(self.indexValueFrame)
+        self.vwidget.setText(str(self.value))
+        #QObject.connect(self.ywidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
+        #self.iwidget.valueChanged(int).connect(self.updatedPos())
+        layoutIV.addWidget(self.vwidget)
+        layout.addWidget(self.indexValueFrame)
+        
+        #Samples between pixels row
+        self.sbetweenFrame = QFrame(self)
+        layoutSB = QHBoxLayout()
+        self.sbetweenFrame.setLayout(layoutSB)
+        self.sblabel = QLabel(self.sbetweenFrame)
+        self.sblabel.setText("The number of samples between pixels:")
+        layoutSB.addWidget(self.sblabel)
+        #TODO make variable
+        self.sbwidget = QLabel(self.sbetweenFrame)
+        self.sbwidget.setText(str(getLength(sound) // SoundExplorer.PIC_WIDTH))
+        layoutSB.addWidget(self.sbwidget)
+        layout.addWidget(self.sbetweenFrame)
+        
+        #Zoom row
+        #TODO zoom
+        
+        #Resize the window
+        self.resize(self.drawingPic.getWidth(), self.drawingPic.getHeight() + SoundExplorer.EXTRA_HEIGHT)
+        #Remember the window
+        keepAround.append(self)
+        #Show the window
+        self.show()
+        self.activateWindow()
+        self.raise_()
+        self.activateWindow()
+    
+    #Update value position and show it
+    def updateSelection(self):
+        self.drawingPic = duplicatePicture(self.pic)
+        #Draw the selection line
+        x_coord = int(self.index * (SoundExplorer.PIC_WIDTH / getLength(self.sound)))
+        addLine(self.drawingPic, x_coord, 0, x_coord, SoundExplorer.PIC_HEIGHT-1, cyan)
+        pixmap = QPixmap.fromImage(self.drawingPic.image)
+        self.picLabel.setPixmap(pixmap)
+    
+    # @pyqtSlot(int)
+    # def test(self, x):
+    #     print("hello " + str(x))
+    
+    #Position was updated via index box
+    #Update things
+    #@pyqtSlot()
+    def updatedPos(self):
+        #Only do this if we manually changed the numbers
+        if not self.block_edit:
+            #New index
+            self.index = self.iwidget.value()
+            self.value = getSampleValueAt(self.sound, self.index)
+            self.vwidget.setText(str(self.value))
+            #Update
+            self.updateSelection()
+            #Repaint the window
+            self.update()
+    
+    #Clicked on image
+    def imageClicked(self, pt):
+        #Make sure we don't issue duplicate updates
+        self.block_edit = True
+        #Update the index
+        self.index = int(pt.x() * (getLength(self.sound) / SoundExplorer.PIC_WIDTH))
+        self.value = getSampleValueAt(self.sound, self.index)
+        #Change the widgets to the new coords
+        self.iwidget.setValue(self.index)
+        self.vwidget.setText(str(self.value))
+        #Update the stuff that can change
+        self.updateSelection()
+        #Repaint the window
+        self.update()
+        #Manual updates are safe again
+        self.block_edit = False
+
+#END OF SOUND
+
+#Open explorer tool for media (currently only pictures and sound)
+#Sound
 def explore(media):
     if isinstance(media, Picture):
         openPictureTool(media)
+    elif isinstance(media, Sound):
+        openSoundTool(media)
     else:
         repValError("Exploration of this media is not supported")
         #raise ValueError
 
 #Try to mimic functionality of JES picture explorer
+#Done
 def openPictureTool(picture):
     #import PictureExplorer
     thecopy = duplicatePicture(picture)
@@ -2618,17 +2816,14 @@ def openPictureTool(picture):
 # def openFrameSequencerTool(movie):
 #     #FrameSequencerTool.FrameSequencerTool(movie)
 #     pass #TODO
-# 
-# def openSoundTool(sound):
-#     #import SoundExplorer
-#     #thecopy = Sound(sound)
-#     #viewer = SoundExplorer(thecopy, 0)
-#     #try:
-#     #    viewer.setTitle(getShortPath(sound.getFileName()))
-#     #except:
-#     #    viewer.setTitle("No File Name")
-#     pass #TODO
-# 
+
+#Try to mimic functionality of JES sound explorer
+def openSoundTool(sound):
+    #import SoundExplorer
+    thecopy = duplicateSound(sound)
+    #Constructor has side effect of showing it
+    SoundExplorer(thecopy)
+
 # #Done
 # def explore(someMedia):
 #     if isinstance(someMedia, Picture):
