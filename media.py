@@ -367,15 +367,30 @@ class Sound:
     def getLengthInFrames(self):
         return self.numSamples
     
+    #Get a "slice" of the raw data
+    def getDataSlice(self, start, stop):
+        return self.data[start * (self.sampleSize//8):stop * (self.sampleSize//8)]
+    
     #Play the sound
     #Do nothing if it's already playing
-    def play(self):
+    #Play from start to stop (default is the whole sound)
+    def play(self, start=0, stop=0):
         #if not self.isPlaying:
         
         ##Clean up zombie processes, if somehow there are some
         #self.cleanUpResources()
+        
+        #Make start and stop both positive
+        if start < 0:
+            newStart = self.numSamples + start
+        else:
+            newStart = start
+        if stop <= 0:
+            newStop = self.numSamples + stop
+        else:
+            newStop = stop
                 
-        qba = QByteArray(self.data)
+        qba = QByteArray(self.getDataSlice(newStart, newStop))
         buff = QBuffer(qba)
         audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
         self.buffs.append((buff, qba, audioOutput))
@@ -415,7 +430,7 @@ class Sound:
     # def blockingPlay(self):
     #     #thrd = threading.Thread(target = self.play())
     #     #thrd.start()
-    #     self.blockingEvent = threading.Event()
+    #     #self.blockingEvent = threading.Event()
     #     self.play()
     #     # cv = threading.Condition()
     #     # cv.acquire()
@@ -426,9 +441,10 @@ class Sound:
     #     #while len(self.buffs) > 0:
     #     #    #Hang around here
     #     #    pass
-    #     self.blockingEvent.wait()
-    #     self.blockingEvent = None
+    #     #self.blockingEvent.wait()
+    #     #self.blockingEvent = None
     #     #thrd.join()
+    #     #time.sleep(2)
     
     #Stop the sound from playing (however many times it's currently playing)
     def stopPlaying(self):
@@ -674,17 +690,15 @@ def stopPlaying(sound):
 #     #    repValError("playAtRateDur(sound,rate,dur): First input is not a sound")
 #     #sound.playAtRateDur(rate,dur)
 #     pass #TODO
-# 
-# #20June03 new functionality in JavaSound (ellie)
-# def playInRange(sound,start,stop):
-#         #if not isinstance(sound, Sound):
-#         #        #print "playInRange(sound,start,stop): First input is not a sound"
-#         #        #raise ValueError
-#         #        repValError("playInRange(sound,start,stop): First input is not a sound")
-#         ## sound.playInRange(start,stop)
-#         #sound.playAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
-#         pass #TODO
-# 
+
+#20June03 new functionality in JavaSound (ellie)
+def playInRange(sound,start,stop):
+        if not isinstance(sound, Sound):
+                repValError("playInRange(sound,start,stop): First input is not a sound")
+        # sound.playInRange(start,stop)
+        #sound.playAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
+        sound.play(start, stop)
+
 # #20June03 new functionality in JavaSound (ellie)
 # def blockingPlayInRange(sound,start,stop):
 #         #if not isinstance(sound, Sound):
