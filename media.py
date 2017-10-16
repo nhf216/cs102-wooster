@@ -77,6 +77,7 @@ import tempfile
 import numbers
 import threading
 import collections
+import numbers
 #import traceback
 #import user
 
@@ -560,6 +561,9 @@ class Sound:
             #     val -= 65536
         return val
     
+    def getSample(self, i):
+        return self.samples[i]
+    
     #Get all the samples, as a list
     #DO NOT PRINT THIS!!!
     def getSamples(self):
@@ -656,7 +660,7 @@ def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
         #print("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
         #raise ValueError
         repValError("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
-    return Sound(seconds * samplingRate, samplingRate)
+    return Sound(int(seconds * samplingRate), samplingRate)
 
 # PamC: Added this function to duplicate a sound
 #Done
@@ -861,6 +865,31 @@ def getDuration(sound):
     if not isinstance(sound, Sound):
         repValError("getDuration(sound): Input is not a Sound")
     return getLength(sound) / getSamplingRate(sound)
+
+#New
+#Frequency: Hertz
+#Amplitude: Max/min of the sine wave (should be between 0 and 32767)
+#Dur: Length, in seconds
+def pureTone(freq, amp, dur):
+    if not isinstance(freq, numbers.Number):
+        repValError("pureTone(freq, amp, dur): freq must be a number")
+    elif freq < 0:
+        repValError("pureTone(freq, amp, dur): freq must be nonnegative")
+    if not isinstance(amp, numbers.Number):
+        repValError("pureTone(freq, amp, dur): amp must be a number")
+    elif amp < 0 or amp > 32767:
+        repValError("pureTone(freq, amp, dur): amp must be between 0 and 32767 (inclusive)")
+    if not isinstance(dur, numbers.Number):
+        repValError("pureTone(freq, amp, dur): dur must be a number")
+    elif dur < 0:
+        repValError("pureTone(freq, amp, dur): dur must be nonnegative")
+    def getVal(i):
+        return int(amp*math.sin((freq*2*math.pi)*i/Sound.SAMPLE_RATE))
+        
+    sound = makeEmptySoundBySeconds(dur)
+    for i in range(int(dur * Sound.SAMPLE_RATE)):
+        setSample(getSampleObjectAt(sound, i), getVal(i))
+    return sound
 
 #Done
 def writeSoundTo(sound,filename):
@@ -2645,6 +2674,7 @@ class SoundExplorer(QWidget):
         super().__init__()
         
         self.sound = sound
+        self.block_edit = False
         
         title = "Sound"
         if sound.fileName is not None:
