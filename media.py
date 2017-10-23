@@ -844,6 +844,12 @@ def getSample(sample):
 def getSampleValue(sample):
     return getSample(sample)
 
+#New
+def getSampleIndex(sample):
+    if not isinstance(sample, Sample):
+        repValError("getSampleIndex(sample): Input is not a Sample")
+    return sample.getIndex()
+
 #Done
 def getSound(sample):
     if not isinstance(sample,Sample):
@@ -887,6 +893,7 @@ def pureTone(freq, amp, dur):
     elif dur < 0:
         repValError("pureTone(freq, amp, dur): dur must be nonnegative")
     def getVal(i):
+        #This is producing A440 currently, but it looks like it's off by a factor of 2
         return int(amp*math.sin((freq*math.pi)*i/Sound.SAMPLE_RATE))
         
     sound = makeEmptySoundBySeconds(dur)
