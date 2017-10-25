@@ -266,7 +266,7 @@ class Sample:
 class Sound:
     #Constants
     SAMPLE_RATE = 22050
-    NUM_CHANNELS = 2
+    NUM_CHANNELS = 1
     SAMPLE_SIZE = 16
     
     #Default audio output device
@@ -308,9 +308,9 @@ class Sound:
         elif isinstance(arg1, int):
             #arg1 is a number of samples
             self.numSamples = arg1
-            #Apparently the number of samples needs to be even or everything breaks?
-            if self.numSamples % 2 == 1:
-                self.numSamples += 1
+            # #Apparently the number of samples needs to be even or everything breaks?
+            # if self.numSamples % 2 == 1:
+            #     self.numSamples += 1
             if arg2 is None:
                 self.sampleRate = Sound.SAMPLE_RATE
             else:
@@ -893,8 +893,7 @@ def pureTone(freq, amp, dur):
     elif dur < 0:
         repValError("pureTone(freq, amp, dur): dur must be nonnegative")
     def getVal(i):
-        #This is producing A440 currently, but it looks like it's off by a factor of 2
-        return int(amp*math.sin((freq*math.pi)*i/Sound.SAMPLE_RATE))
+        return int(amp*math.sin((freq*2*math.pi)*i/Sound.SAMPLE_RATE))
         
     sound = makeEmptySoundBySeconds(dur)
     for i in range(int(dur * Sound.SAMPLE_RATE)):
