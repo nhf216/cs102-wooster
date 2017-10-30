@@ -585,7 +585,13 @@ class Sound:
     #Set a sample value
     #DOES change the Sample objects
     def setSampleValue(self, pos, value):
-        self.samples[pos].setValue(value)
+        #Clipping
+        val = value
+        if val < -32768:
+            val = -32768
+        elif val > 32767:
+            val = 32767
+        self.samples[pos].setValue(val)
     
     #Set the value of the sample at position pos to value
     #DO NOT CALL THIS IF YOU ARE USING Sample OBJECTS!
@@ -1346,6 +1352,10 @@ class Picture:
         if self.height != None:
             self.window.resize(self.width, self.height)
         
+        #Optimization
+        self.line = None
+        self.lineindex = -1
+        
         #Keep a copy around forever (bad to do generally, but important for this)
         keepAround.append(self)
     
@@ -1408,7 +1418,8 @@ class Picture:
         ##Convert them all to Pixel objects
         #return [Pixel(self, 
         #On second thought, let's just mirror the Pixel class in JES
-        return [Pixel(self, x, y) for y in range(self.height) for x in range(self.width)]
+        #return [Pixel(self, x, y) for y in range(self.height) for x in range(self.width)]
+        return [Pixel(self, x, y) for x in range(self.width) for y in range(self.height)]
     
     #Get Pixel
     def getPixel(self, x, y):
@@ -1416,7 +1427,20 @@ class Picture:
     
     #Get pixel color
     def getPixelColor(self, x, y):
-        return Color(self.image.pixel(x, y))
+        #return Color(self.image.pixel(x, y))
+        #Making it faster
+        #Get the line
+        if self.lineindex == y:
+            pixarray = self.line
+        else:
+            pixline = self.image.scanLine(y)
+            pixarray = pixline.asarray(4*self.width)
+            self.line = pixarray
+            self.lineindex = y
+        #pixline = self.image.scanLine(y)
+        #pixarray = pixline.asarray(4*self.width)
+        #Create a color
+        return Color(pixarray[4*x+2], pixarray[4*x+1], pixarray[4*x])
     
     #Get width
     def getWidth(self):
@@ -1433,7 +1457,21 @@ class Picture:
             #raise ValueError
         #self.image.putpixel((x,y), col.getRGB())
         #NOTE: There's a warning about this being a slow operation
-        self.image.setPixel(x, y, col.toQColorInt())
+        #self.image.setPixel(x, y, col.toQColorInt())
+        #Get the line
+        if self.lineindex == y:
+            pixarray = self.line
+        else:
+            pixline = self.image.scanLine(y)
+            pixarray = pixline.asarray(4*self.width)
+            self.line = pixarray
+            self.lineindex = y
+        #pixline = self.image.scanLine(y)
+        #pixarray = pixline.asarray(4*self.width)
+        #Set the corresponding bytes
+        pixarray[4*x] = col.getBlue() #Blue
+        pixarray[4*x+1] = col.getGreen() #Green
+        pixarray[4*x+2] = col.getRed() #Red
     
     #Print the picture in Canopy
     #TODO make Windows-friendly
