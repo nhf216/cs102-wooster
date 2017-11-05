@@ -1134,11 +1134,11 @@ class Color:
 
     def makeDarker(self):
       #return self.color.darker()
-        return Color(min(int(self.getRed() * 0.7), 0), min(int(self.getGreen() * 0.7), 0), min(int(self.getBlue() * 0.7), 0))
+        return Color(max(int(self.getRed() * 0.7), 0), max(int(self.getGreen() * 0.7), 0), max(int(self.getBlue() * 0.7), 0))
 
     def makeLighter(self):
       #return self.color.brighter()
-        return Color(max(int(self.getRed() / 0.7), 255), max(int(self.getGreen() / 0.7), 255), max(int(self.getBlue() / 0.7), 255))
+        return Color(min(int(self.getRed() / 0.7), 255), min(int(self.getGreen() / 0.7), 255), min(int(self.getBlue() / 0.7), 255))
     
     def getRGB(self):
         return (self.getRed(), self.getGreen(), self.getBlue())
