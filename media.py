@@ -649,7 +649,11 @@ def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
     if (numSamples/samplingRate) > 600:
         #print("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
         #raise ValueError
-        repValError("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds")   
+        repValError("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds") 
+    if not isinstance(numSamples, int):
+        repValError("makeEmptySound(numSamples[, samplingRate]): numSamples must be an integer")  
+    if not isinstance(samplingRate, int):
+        repValError("makeEmptySound(numSamples[, samplingRate]): samplingRate must be an integer")  
     return Sound(numSamples, samplingRate)
 
 #    if size > 600:
@@ -2071,7 +2075,7 @@ def getPixel(picture,x,y):
     # if ( y < Picture._PictureIndexOffset ) or ( y > getHeight(picture) - 1 + Picture._PictureIndexOffset ):
     #     print "getPixel(picture,x,y): y (= %s) is less than %s or bigger than the height (= %s)" % (y,Picture._PictureIndexOffset,getHeight(picture) - 1 + Picture._PictureIndexOffset)
     #     raise ValueError
-    if ( x < 0 ) or ( x > getWidth(picture) ):
+    if ( x < 0 ) or ( x > getWidth(picture) - 1 ):
         repValError("getPixel(picture,x,y): x (= %s) is less than %s or bigger than the width (= %s)" % (x, 0, getWidth(picture) - 1))
         #raise ValueError
     if ( y < 0 ) or ( y > getHeight(picture) - 1 ):
