@@ -957,19 +957,29 @@ def saveSound(sound):
         repValError("Error: Must specify .wav extension")
     writeSoundTo(sound, fil)
 
-# ##
-# # Globals for styled text
-# ##
-# def makeStyle(fontName,emph,size):
-#     #return awt.Font(fontName,emph,size)
-#     pass #TODO
-# 
-# sansSerif = "SansSerif"
-# serif = "Serif"
-# mono = "Monospaced"
-# #italic = awt.Font.ITALIC TODO
-# #bold = awt.Font.BOLD TODO
-# #plain = awt.Font.PLAIN TODO
+##
+# Globals for styled text
+##
+#Done
+def makeStyle(fontName,emph,size):
+    ret = QFont()
+    #ret.setStyleName(fontName)
+    ret.setPointSize(size)
+    #if emph == sansSerif or emph == serif or emph == mono:
+    #    ret.setStyleHint(emph)
+    ret.setStyleHint(fontName)
+    if emph == italic:
+        ret.setStyle(emph)
+    elif emph == bold or emph == plain:
+        ret.setWeight(emph)
+    return ret
+
+sansSerif = QFont.SansSerif
+serif = QFont.Serif
+mono = QFont.Monospace
+italic = QFont.StyleItalic
+bold = QFont.Bold
+plain = QFont.Normal
 
 ##
 ## Global color functions
@@ -1593,9 +1603,11 @@ class Picture:
         painter.end()
     
     #Draw text on the picture
-    def addText(self, col, x, y, string):
+    def addText(self, col, x, y, string, font = None):
         painter = QPainter()
         painter.begin(self.image)
+        if font is not None:
+            painter.setFont(font)
         painter.setPen(QColor(*col.getRGB()))
         painter.drawText(x, y, string)
         painter.end()
@@ -1922,18 +1934,15 @@ def addText(picture, x, y, string, acolor=black):
     picture.addText(acolor,x,y,string)
 
 # PamC: Added this function to allow different font styles
+#Done
 def addTextWithStyle(picture, x, y, string, style, acolor=black):
-    #if not isinstance(picture, Picture):
-    #    print "addTextWithStyle(picture, x, y, string, style[, color]): First input is not a picture"
-    #    raise ValueError
-    #if not isinstance(style, awt.Font):
-    #    print "addTextWithStyle(picture, x, y, string, style[, color]): Input is not a style (see makeStyle)"
-    #    raise ValueError
-    #if not isinstance(acolor, Color):
-    #    print "addTextWithStyle(picture, x, y, string, style[, color]): Last input is not a color"
-    #    raise ValueError
-    #picture.addTextWithStyle(acolor,x,y,string,style)
-    pass #TODO
+    if not isinstance(picture, Picture):
+        repValError("addTextWithStyle(picture, x, y, string, style[, color]): First input is not a picture")
+    if not isinstance(style, QFont):
+        repValError("addTextWithStyle(picture, x, y, string, style[, color]): Input is not a style (see makeStyle)")
+    if not isinstance(acolor, Color):
+        repValError("addTextWithStyle(picture, x, y, string, style[, color]): Last input is not a color")
+    picture.addText(acolor,x,y,string,style)
 
 #Done
 def addRect(picture, x,y,w,h, acolor=black):
