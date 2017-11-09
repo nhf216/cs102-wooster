@@ -363,7 +363,7 @@ class Sound:
             ret = ret + " file: " + fileName
 
         #add the length in frames
-        ret = ret + " number of samples: " + self.getLengthInFrames()
+        ret = ret + " number of samples: " + str(self.getLengthInFrames())
 
         return ret
     
@@ -427,28 +427,29 @@ class Sound:
         #self.audioOutput.start(self.file)
         #self.audioOutput.start(self.buffs[-1][0])
         self.buffs[-1][-1].start(self.buffs[-1][0])
+        QApplication.processEvents()
             #self.isPlaying = True
         #return audioOutput
     
-    # #Plays a sound, and blocks until done
-    # def blockingPlay(self):
-    #     #thrd = threading.Thread(target = self.play())
-    #     #thrd.start()
-    #     #self.blockingEvent = threading.Event()
-    #     self.play()
-    #     # cv = threading.Condition()
-    #     # cv.acquire()
-    #     # while len(self.buffs) > 0:
-    #     #     cv.wait(0.01)
-    #     # #cv.wait_for(lambda: len(self.buffs) == 0)
-    #     # cv.release()
-    #     #while len(self.buffs) > 0:
-    #     #    #Hang around here
-    #     #    pass
-    #     #self.blockingEvent.wait()
-    #     #self.blockingEvent = None
-    #     #thrd.join()
-    #     #time.sleep(2)
+    #Plays a sound, and blocks until done
+    def blockingPlay(self, start=0, stop=0):
+        #thrd = threading.Thread(target = self.play())
+        #thrd.start()
+        #self.blockingEvent = threading.Event()
+        self.play(start, stop)
+        # cv = threading.Condition()
+        # cv.acquire()
+        # while len(self.buffs) > 0:
+        #     cv.wait(0.01)
+        # #cv.wait_for(lambda: len(self.buffs) == 0)
+        # cv.release()
+        while len(self.buffs) > 0:
+            #Hang around here
+            QApplication.processEvents() #YES!!!!!
+        #self.blockingEvent.wait()
+        #self.blockingEvent = None
+        #thrd.join()
+        #time.sleep(2)
     
     #Stop the sound from playing (however many times it's currently playing)
     def stopPlaying(self):
@@ -483,6 +484,7 @@ class Sound:
             #     #Wake up the block!
             #     self.blockingEvent.set()
         finally:
+            QApplication.processEvents()
             #Release the lock
             self.cleanupLock.release()
     
@@ -700,16 +702,14 @@ def play(sound):
         repValError("play(sound): Input is not a sound")
     sound.play()
 
-#TODO there are weird issues with this one
-#It seems that blocking the main thread also blocks sound playback
-#This seems weird to me
+#DONE!!!!!!!!!
 #(Note: "blocking main thread" includes infinite loop)
-# def blockingPlay(sound):
-#     if not isinstance(sound,Sound):
-#         #print "blockingPlay(sound): Input is not a sound"
-#         #raise ValueError
-#         repValError("blockingPlay(sound): Input is not a sound")
-#     sound.blockingPlay()
+def blockingPlay(sound):
+    if not isinstance(sound,Sound):
+        #print "blockingPlay(sound): Input is not a sound"
+        #raise ValueError
+        repValError("blockingPlay(sound): Input is not a sound")
+    sound.blockingPlay()
 
 # Buck Scharfnorth (27 May 2008): Added method for stopping play of a sound
 #Done
@@ -739,21 +739,46 @@ def stopPlaying(sound):
 
 #20June03 new functionality in JavaSound (ellie)
 def playInRange(sound,start,stop):
-        if not isinstance(sound, Sound):
-                repValError("playInRange(sound,start,stop): First input is not a sound")
-        # sound.playInRange(start,stop)
-        #sound.playAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
-        sound.play(start, stop)
+    if not isinstance(sound, Sound):
+        repValError("playInRange(sound,start,stop): First input is not a sound")
+    elif not isinstance(start, int):
+        repValError("playInRange(sound,start,stop): Second input is not an integer")
+    elif start < 0:
+        repValError("playInRange(sound,start,stop): Second input cannot be negative")
+    elif start >= getNumSamples(sound):
+        repValError("playInRange(sound,start,stop): Second input cannot be greater than the length of the sound, which is " + getNumSamples(sound))
+    elif not isinstance(stop, int):
+        repValError("playInRange(sound,start,stop): Third input is not an integer")
+    elif stop < 0:
+        repValError("playInRange(sound,start,stop): Third input cannot be negative")
+    elif stop >= getNumSamples(sound):
+        repValError("playInRange(sound,start,stop): Third input cannot be greater than the length of the sound, which is " + getNumSamples(sound))
+    elif start > stop:
+        repValError("playInRange(sound,start,stop): Second input cannot exceed third input")
+    # sound.playInRange(start,stop)
+    #sound.playAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
+    sound.play(start, stop)
 
 # #20June03 new functionality in JavaSound (ellie)
-# def blockingPlayInRange(sound,start,stop):
-#         #if not isinstance(sound, Sound):
-#         #        #print "blockingPlayInRange(sound,start,stop): First input is not a sound"
-#         #        #raise ValueError
-#         #        repValError("blockingPlayInRange(sound,start,stop): First input is not a sound")
-#         ## sound.blockingPlayInRange(start,stop)
-#         #sound.blockingPlayAtRateInRange(1,start-Sound._SoundIndexOffset,stop-Sound._SoundIndexOffset)
-#         pass #TODO
+#Done
+def blockingPlayInRange(sound,start,stop):
+    if not isinstance(sound, Sound):
+        repValError("playInRange(sound,start,stop): First input is not a sound")
+    elif not isinstance(start, int):
+        repValError("playInRange(sound,start,stop): Second input is not an integer")
+    elif start < 0:
+        repValError("playInRange(sound,start,stop): Second input cannot be negative")
+    elif start >= getNumSamples(sound):
+        repValError("playInRange(sound,start,stop): Second input cannot be greater than the length of the sound, which is " + getNumSamples(sound))
+    elif not isinstance(stop, int):
+        repValError("playInRange(sound,start,stop): Third input is not an integer")
+    elif stop < 0:
+        repValError("playInRange(sound,start,stop): Third input cannot be negative")
+    elif stop >= getNumSamples(sound):
+        repValError("playInRange(sound,start,stop): Third input cannot be greater than the length of the sound, which is " + getNumSamples(sound))
+    elif start > stop:
+        repValError("playInRange(sound,start,stop): Second input cannot exceed third input")
+    sound.blockingPlay(start, stop)
 # 
 # #20June03 new functionality in JavaSound (ellie)
 # def playAtRateInRange(sound,rate,start,stop):
@@ -1522,6 +1547,7 @@ class Picture:
         self.window.activateWindow()
         self.window.raise_()
         self.window.activateWindow()
+        QApplication.processEvents()
         
         #second.geometry("%dx%d" % (self.width, self.height))
         #root.lift()
@@ -1549,6 +1575,7 @@ class Picture:
         pixmap = QPixmap.fromImage(self.image)
         self.picLabel.setPixmap(pixmap)
         self.window.update()
+        QApplication.processEvents()
     
     #Copy the picture other into this one at position (x,y) for upper left
     def copyInto(self, other, x, y):
@@ -2643,6 +2670,7 @@ class PictureExplorer(QWidget):
         self.activateWindow()
         self.raise_()
         self.activateWindow()
+        QApplication.processEvents()
     
     #Update color text and color block
     #based on self.coord_x and self.coord_y
@@ -2685,6 +2713,7 @@ class PictureExplorer(QWidget):
             self.updateCrosshair()
             #Repaint the window
             self.update()
+            QApplication.processEvents()
     
     #Clicked on image
     def imageClicked(self, pt):
@@ -2702,6 +2731,7 @@ class PictureExplorer(QWidget):
         self.updateCrosshair()
         #Repaint the window
         self.update()
+        QApplication.processEvents()
         #Manual updates are safe again
         self.block_edit = False
 
@@ -2823,6 +2853,7 @@ class SoundExplorer(QWidget):
         self.activateWindow()
         self.raise_()
         self.activateWindow()
+        QApplication.processEvents()
     
     #Update value position and show it
     def updateSelection(self):
@@ -2851,6 +2882,7 @@ class SoundExplorer(QWidget):
             self.updateSelection()
             #Repaint the window
             self.update()
+            QApplication.processEvents()
     
     #Clicked on image
     def imageClicked(self, pt):
@@ -2866,6 +2898,7 @@ class SoundExplorer(QWidget):
         self.updateSelection()
         #Repaint the window
         self.update()
+        QApplication.processEvents()
         #Manual updates are safe again
         self.block_edit = False
 
