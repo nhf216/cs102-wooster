@@ -451,6 +451,10 @@ class Sound:
         #thrd.join()
         #time.sleep(2)
     
+    #Is the sound currently playing?
+    def isPlaying(self):
+        return len(self.buffs) > 0
+    
     #Stop the sound from playing (however many times it's currently playing)
     def stopPlaying(self):
         #Acquire the cleanup lock
@@ -797,6 +801,15 @@ def blockingPlayInRange(sound,start,stop):
 #         #        repValError("blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound")
 #         #sound.blockingPlayAtRateInRange(rate, start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
 #         pass #TODO
+
+#New
+#Is the sound currently playing?
+def isPlaying(sound):
+    if not isinstance(sound, Sound):
+        #print "getSamplingRate(sound): Input is not a sound"
+        #raise ValueError
+        repValError("isPlaying(sound): Input is not a sound")
+    return sound.isPlaying()
 
 #Done
 def getSamplingRate(sound):
