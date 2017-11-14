@@ -78,6 +78,7 @@ import numbers
 import threading
 import collections
 import numbers
+import time
 #import traceback
 #import user
 
@@ -207,11 +208,6 @@ def setLibPath(directory=None):
     return directory
 
 #This is not actually a media function
-#Instead, it lets us print out range objects like in Python 2
-def printRange(rng):
-    print([x for x in rng])
-
-#This is not actually a media function
 #Instead, it prints lists better
 def betterPrint(val):
     print(recursive_str(val))
@@ -226,6 +222,12 @@ def recursive_str(val):
         return str(type(val)(map(str, val)))
     else:
         return str(val)
+
+#Like time.sleep, but continues to play sounds
+def sleep(secs):
+    cur_time = time.time()
+    while time.time() - cur_time < secs:
+        QApplication.processEvents()
 
 #Sample class
 #A Sample knows its value, its position, and the Sound it's from
