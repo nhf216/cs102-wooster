@@ -2328,6 +2328,25 @@ def copyInto(smallPicture, bigPicture, startX, startY):
 
     return bigPicture
 
+def copyIntoWithCutoff(smallPicture, bigPicture, startX, startY):
+    #like copyInto(butterfly, jungle, 20,20)
+    if not isinstance(smallPicture, Picture):
+        repValError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
+        #raise ValueError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
+    if not isinstance(bigPicture, Picture):
+        repValError("copyInto(smallPicture, bigPicture, startX, startY): bigPicture must be a picture")
+        #raise ValueError
+
+    xOffset = startX
+    yOffset = startY
+
+    #for x in range(0, getWidth(smallPicture)):
+    #    for y in range(0, getHeight(smallPicture)):
+    #        bigPicture.setBasicPixel(x + xOffset, y + yOffset, smallPicture.getBasicPixel(x,y))
+    bigPicture.copyInto(smallPicture, xOffset, yOffset)
+
+    return bigPicture
+
 # Alyce Brady's version of copyInto, with additional error-checking on the upper-left corner
 # Will copy as much of the original picture into the destination picture as will fit.
 #def copyInto(origPict, destPict, upperLeftX, upperLeftY):
