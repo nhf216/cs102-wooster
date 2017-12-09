@@ -164,6 +164,8 @@ def setMediaPath(file=None):
     return mediaFolder
 
 def getMediaPath( filename = "" ):
+    if filename == "":
+        return mediaFolder
     return mediaFolder + os.sep + filename
     #return FileChooser.getMediaPath( filename )
 
