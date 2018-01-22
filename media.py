@@ -383,6 +383,8 @@ class Sound:
     #Do nothing if it's already playing
     #Play from start to stop (default is the whole sound)
     def play(self, start=0, stop=0):
+        #(Hieu): Must update format before play (since sample size, sample rate could have been changed)
+        self.setUpFormat()
         #if not self.isPlaying:
         
         ##Clean up zombie processes, if somehow there are some
@@ -626,13 +628,19 @@ class Sound:
             val = value.to_bytes(2, 'little', signed=True)
             self.data[2*pos:2*pos+2]  = val
     
-    #What is the sample size, in bits?
+    #What is the sample size, in bits? 
+    #(Hieu Jan 21,2018) the maximum amplitude (sample value) to be stored (in bits) at each sample (max value for 16 bits is 32767)
     def getSampleSize(self):
         return self.sampleSize
     
     #What is the sampling rate?
+    #(Hieu Jan 21,2018) The rate at which samples are collected is the sample rate (# of samples/duration of sound) 
     def getSamplingRate(self):
         return self.sampleRate
+    
+    #(Hieu Jan 21,2018) set the sample rate
+    def setSamplingRate(self, rate):
+        self.sampleRate = int(self.sampleRate * rate)
     
 ##
 ## Global sound functions
@@ -727,6 +735,17 @@ def stopPlaying(sound):
         #raise ValueError
         repValError("stopPlaying(sound): Input is not a sound")
     sound.stopPlaying()
+
+#(Hieu) plays a sound at a given time (2.0 is twice as fast, 0.5 is half as fast) (only for rate = 0.5, 1.0 or 2.0) 
+# TODO: It will change the sample rate of original sound, so must duplicate be fore using
+# has not raise error for incorrect second input  
+def playAtRate(sound,rate):
+    if not isinstance(sound, Sound):
+        #print "playAtRate(sound,rate): First input is not a sound"
+        #raise ValueError
+        repValError("playAtRate(sound,rate): First input is not a sound")
+    sound.setSamplingRate(rate)
+    sound.blockingPlay()
 
 # def playAtRate(sound,rate):
 #     #if not isinstance(sound, Sound):
