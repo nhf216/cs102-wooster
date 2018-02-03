@@ -382,9 +382,8 @@ class Sound:
     #Play the sound
     #Do nothing if it's already playing
     #Play from start to stop (default is the whole sound)
+    #Hieu
     def play(self, start=0, stop=0):
-        #(Hieu): Must update format before play (since sample size, sample rate could have been changed)
-        self.setUpFormat()
         #if not self.isPlaying:
         
         ##Clean up zombie processes, if somehow there are some
@@ -533,21 +532,25 @@ class Sound:
                 return int((-height/65536)*sval + height/2)
         
         #Create an empty black picture
-        ret = makeEmptyPicture(width, height, black)
+        #ret = makeEmptyPicture(width, height, black)
+        #(Hieu1) using QPixmap instead of creating a Picture object !!!!!!
+        #ret = makeEmptyPicture2(width, height, black)
+        ret = QPixmap(width,height)
+        ret.fill(QColor(*black.getRGB()))
         
         #Add the waveform, adjusted for proper step size
         lastY = findY(getSampleValueAt(self, 0))
         stepSize = max(self.numSamples // width, 1)
         for i in range(stepSize, self.numSamples, stepSize):
             curY = findY(getSampleValueAt(self, i))
-            addLine(ret, i//stepSize-1, lastY, i//stepSize, curY, white)
+            addLine1(ret, i//stepSize-1, lastY, i//stepSize, curY, white)
             lastY = curY
-        
+            
         #Add the zero line
         if self.sampleSize == 8:
-            addLine(ret, 0, height-1, width-1, height-1, cyan)
+            addLine1(ret, 0, height-1, width-1, height-1, cyan)
         elif self.sampleSize == 16:
-            addLine(ret, 0, height//2, width-1, height//2, cyan)
+            addLine1(ret, 0, height//2, width-1, height//2, cyan)
         
         return ret
     
@@ -629,19 +632,35 @@ class Sound:
             self.data[2*pos:2*pos+2]  = val
     
     #What is the sample size, in bits? 
-    #(Hieu Jan 21,2018) the maximum amplitude (sample value) to be stored (in bits) at each sample (max value for 16 bits is 32767)
+    #the maximum amplitude (sample value) to be stored (in bits) at each sample (max value for 16 bits is 32767)
     def getSampleSize(self):
         return self.sampleSize
     
     #What is the sampling rate?
-    #(Hieu Jan 21,2018) The rate at which samples are collected is the sample rate (# of samples/duration of sound) 
+    #The rate at which samples are collected is the sample rate (# of samples/duration of sound) 
     def getSamplingRate(self):
         return self.sampleRate
     
     #(Hieu Jan 21,2018) set the sample rate
+    #DOES change the Sample objects
+    #TODO: raise error for incompatible rate - only support for rate =0.5, 2 now
     def setSamplingRate(self, rate):
         self.sampleRate = int(self.sampleRate * rate)
-    
+      
+    #(Hieu) Plays the specified segment of this sound at the given sample rat (only support for rate =2.0, 0.5).
+    #TODO: Still don't know why the sound still keep original setting (sample rate) when it finish
+    def playAtRateInRange(self, rate, start=0, stop=0, isBlocking=0):
+        self.setSamplingRate(rate)
+        self.setUpFormat()
+        if isBlocking:
+            self.blockingPlay(start, stop)
+        else: 
+            self.play(start, stop)
+        # while(not self.isPlaying()):
+        #     a = 1
+        # self.setSamplingRate(1.0/rate)
+        # self.setUpFormat()
+                  
 ##
 ## Global sound functions
 ##
@@ -737,15 +756,14 @@ def stopPlaying(sound):
     sound.stopPlaying()
 
 #(Hieu) plays a sound at a given time (2.0 is twice as fast, 0.5 is half as fast) (only for rate = 0.5, 1.0 or 2.0) 
-# TODO: It will change the sample rate of original sound, so must duplicate be fore using
-# has not raise error for incorrect second input  
+# TODO: has not raise error for incorrect second input  
 def playAtRate(sound,rate):
     if not isinstance(sound, Sound):
         #print "playAtRate(sound,rate): First input is not a sound"
         #raise ValueError
         repValError("playAtRate(sound,rate): First input is not a sound")
-    sound.setSamplingRate(rate)
-    sound.blockingPlay()
+    newSound = duplicateSound(sound)
+    newSound.playAtRateInRange(rate)
 
 # def playAtRate(sound,rate):
 #     #if not isinstance(sound, Sound):
@@ -807,23 +825,30 @@ def blockingPlayInRange(sound,start,stop):
         repValError("playInRange(sound,start,stop): Second input cannot exceed third input")
     sound.blockingPlay(start, stop)
 # 
-# #20June03 new functionality in JavaSound (ellie)
-# def playAtRateInRange(sound,rate,start,stop):
-#         #if not isinstance(sound,Sound):
-#         #        #print "playAtRateInRAnge(sound,rate,start,stop): First input is not a sound"
-#         #        #raise ValueError
-#         #        repValError("playAtRateInRAnge(sound,rate,start,stop): First input is not a sound")
-#         #sound.playAtRateInRange(rate,start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
-#         pass #TODO
-# 
+#20June03 new functionality in JavaSound (ellie)
+#(Hieu 23Jan18): 
+def playAtRateInRange(sound,rate,start,stop):
+        if not isinstance(sound,Sound):
+                #print "playAtRateInRAnge(sound,rate,start,stop): First input is not a sound"
+                #raise ValueError
+            repValError("playAtRateInRAnge(sound,rate,start,stop): First input is not a sound")
+        newSound = duplicateSound(sound)
+        newSound.setSamplingRate(rate)
+        newSound.play(start,stop)
+        #sound.playAtRateInRange(rate,start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
+        #pass #TODO
+
 # #20June03 new functionality in JavaSound (ellie)
 # def blockingPlayAtRateInRange(sound,rate,start,stop):
-#         #if not isinstance(sound, Sound):
-#         #        #print "blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound"
-#         #        #raise ValueError
-#         #        repValError("blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound")
-#         #sound.blockingPlayAtRateInRange(rate, start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
-#         pass #TODO
+        if not isinstance(sound, Sound):
+                #print "blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound"
+                #raise ValueError
+            repValError("blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound")
+        newSound = duplicateSound(sound)
+        newSound.setSamplingRate(rate)
+        newSound.blockingPlay(start,stop)
+        #sound.blockingPlayAtRateInRange(rate, start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
+        #pass #TODO
 
 #New
 #Is the sound currently playing?
@@ -1630,7 +1655,7 @@ class Picture:
         painter.drawImage(x, y, other.image)
         painter.end()
     
-    #Draw a line on the picture
+    #Draw a line on the picture 
     def addLine(self, col, x1, y1, x2, y2):
         painter = QPainter()
         painter.begin(self.image)
@@ -2573,16 +2598,37 @@ def quit():
 # # TODO modify viewer.changeToBaseOne
 # 
 COL_BLOCK_SIZE = 20
+
+
 #Need this mini-class for registering mouse clicks on picture in explorer
 class ClickableLabel(QLabel):
     #Need to include the explorer so we can talk to it
     def __init__(self, parent, pexplore):
         super().__init__(parent)
         self.pexplore = pexplore
+        self.rubberBand = QRubberBand(QRubberBand.Rectangle, self)
+        self.origin = QPoint()
     
     #Here's where the mouse click is registered
     def mousePressEvent(self, QMouseEvent):
-        self.pexplore.imageClicked(QMouseEvent.pos())
+        if QMouseEvent.button() == Qt.LeftButton:
+            self.dragStartPosition = QMouseEvent.pos()
+            self.clickPosition = QMouseEvent.pos()
+            self.origin = QPoint(QMouseEvent.pos())
+    
+    # (Hieu8 Jan28,2018) 
+    def mouseMoveEvent(self, QMouseEvent):
+        if not self.origin.isNull():
+            self.pexplore.mouseDraged(self.dragStartPosition,QMouseEvent.pos())
+            self.mouseMovePos = QMouseEvent.pos()
+        
+    def mouseReleaseEvent(self, QMouseEvent):
+        if QMouseEvent.button() == Qt.LeftButton:
+            # Single-clicked
+            if ((QMouseEvent.pos() - self.dragStartPosition).manhattanLength() < QApplication.instance().startDragDistance()):
+                self.pexplore.imageClicked(self.clickPosition)
+    
+    
 
 #Crosshair on the image explorer
 class Crosshair:
@@ -2648,8 +2694,8 @@ class Crosshair:
 #Emulate the JES Picture Explorer
 class PictureExplorer(QWidget):
     #TODO make look nice
-    #TODO box around color block
-    #TODO box around picture
+    #TODO box around color block #Done
+    #TODO box around picture    #Done
     
     #Constructor
     #Should create window, populate with (0,0)
@@ -2659,13 +2705,46 @@ class PictureExplorer(QWidget):
         super().__init__()
         self.setWindowTitle("Image Explorer: " + pic.title)
         self.pic = duplicatePicture(pic)
-        self.drawingPic = pic
+        self.fixedPixmap = QPixmap.fromImage(self.pic.image)
+        self.imageSize = self.fixedPixmap.size()
+
+        self.drawingPic = duplicatePicture(pic)
         layout = QVBoxLayout()
         self.setLayout(layout)
         #self.window.setLayout(QGridLayout())
         #Starting coords
         self.coord_x = 0
         self.coord_y = 0
+        
+        #Tyn
+        #Set up Zoom on menu bar
+        mainMenu = QMenuBar(self)
+        fileMenu = mainMenu.addMenu('&Zoom')
+        #Create button
+        extractAction25 = QAction("25%", self)
+        extractAction50 = QAction("50%", self)
+        extractAction75 = QAction("75%", self)
+        extractAction100 = QAction("100%", self)
+        extractAction150 = QAction("150%", self)
+        extractAction200 = QAction("200%", self)
+        extractAction500 = QAction("500%", self)
+        #Connect button
+        extractAction25.triggered.connect(self.zoom25)
+        extractAction50.triggered.connect(self.zoom50)
+        extractAction75.triggered.connect(self.zoom75)
+        extractAction100.triggered.connect(self.zoom100)
+        extractAction150.triggered.connect(self.zoom150)
+        extractAction200.triggered.connect(self.zoom200)
+        extractAction500.triggered.connect(self.zoom500)
+        #Add button to file menu
+        fileMenu.addAction(extractAction25)
+        fileMenu.addAction(extractAction50)
+        fileMenu.addAction(extractAction75)
+        fileMenu.addAction(extractAction100)
+        fileMenu.addAction(extractAction150)
+        fileMenu.addAction(extractAction200)
+        fileMenu.addAction(extractAction500)
+        
         #Frame for X and Y
         self.XYFrame = QFrame(self)
         layoutXY = QHBoxLayout()
@@ -2675,13 +2754,10 @@ class PictureExplorer(QWidget):
         xlabel = QLabel(self.XYFrame)
         xlabel.setText("X:")
         layoutXY.addWidget(xlabel)
-        #xwidget = QSpinBox(self.XYFrame)
         self.xwidget = QSpinBox(self.XYFrame)
         self.xwidget.setRange(0, pic.getWidth()-1)
         self.xwidget.setValue(self.coord_x)
-        #Testing connections
-        #QObject.connect(xwidget, SIGNAL('valueChanged(int)'), self, SLOT('test(int)'))
-        QObject.connect(self.xwidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
+        self.xwidget.valueChanged.connect(self.updatedPos)
         layoutXY.addWidget(self.xwidget)
         #Y
         ylabel = QLabel(self.XYFrame)
@@ -2690,9 +2766,10 @@ class PictureExplorer(QWidget):
         self.ywidget = QSpinBox(self.XYFrame)
         self.ywidget.setRange(0, pic.getHeight()-1)
         self.ywidget.setValue(self.coord_y)
-        QObject.connect(self.ywidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
+        self.ywidget.valueChanged.connect(self.updatedPos)
         layoutXY.addWidget(self.ywidget)
         layout.addWidget(self.XYFrame)
+        
         #Frame for color stuff
         self.colFrame = QFrame(self)
         layoutCol = QHBoxLayout()
@@ -2709,22 +2786,45 @@ class PictureExplorer(QWidget):
         #Color block
         # colimg = QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QImage.Format_RGB32)
         # colimg.fill(QColor(*col)) #TODO
+        widgetColBlock = QScrollArea()
+        widgetColBlock.setFixedHeight(COL_BLOCK_SIZE + 2)
+        widgetColBlock.setFixedWidth(COL_BLOCK_SIZE + 2)
         self.colLabel = QLabel(self.colFrame)
         #self.setColorBlock(*col)
         self.updateColorStuff()
         # pixmap1 = QPixmap.fromImage(colimg)
         # self.colLabel.setPixmap(pixmap1)
-        layoutCol.addWidget(self.colLabel)
+        widgetColBlock.setWidget(self.colLabel)
+        layoutCol.addWidget(widgetColBlock)
+        #layoutCol.addWidget(self.colLabel)
         layout.addWidget(self.colFrame)
+        
         #Crosshair
         self.crosshair = Crosshair(self.drawingPic)
         self.crosshair.setPosition(0, 0)
+        
+        #Tyn3
         #Picture window
-        #self.picLabel = QLabel(self)
+        self.imgFrame = QFrame(self)
+        layoutImg = QHBoxLayout()
+        self.imgFrame.setLayout(layoutImg)
         self.picLabel = ClickableLabel(self, self)
         pixmap2 = QPixmap.fromImage(self.drawingPic.image)
+        # pixmap2 = self.fixedPixmap
+        self.picLabel.setFixedWidth(self.drawingPic.width + 1)
+        self.picLabel.setFixedHeight(self.drawingPic.height + 1)
         self.picLabel.setPixmap(pixmap2)
-        layout.addWidget(self.picLabel)
+        #Set Up Scroll Area
+        self.scroll = QScrollArea()
+        self.scroll.setWidget(self.picLabel)
+        #self.scroll.setWidgetResizable(True)
+        self.scroll.setFixedHeight(self.pic.getHeight() + 3)
+        self.scroll.setFixedWidth(max(self.pic.getWidth() + 2, 250))
+        self.scroll.alignment()
+        #End scroll area
+        layoutImg.addWidget(self.scroll)
+        layout.addWidget(self.imgFrame)
+        
         #Resize the window
         self.resize(pic.getWidth(), pic.getHeight() + COL_BLOCK_SIZE)
         #Remember the window
@@ -2740,7 +2840,7 @@ class PictureExplorer(QWidget):
     #based on self.coord_x and self.coord_y
     def updateColorStuff(self):
         #Get the color
-        col = getColor(getPixel(self.pic,self.coord_x,self.coord_y)).getRGB()
+        col = getColor(getPixel(self.drawingPic,self.coord_x,self.coord_y)).getRGB()
         #Color text
         self.rgblabel.setText("R: " + str(col[0]) + " G: " + str(col[1]) + \
             " B: " + str(col[2]))
@@ -2798,6 +2898,37 @@ class PictureExplorer(QWidget):
         QApplication.processEvents()
         #Manual updates are safe again
         self.block_edit = False
+    
+    #Zoom function Hieu
+    def updateZoom(self, zoomRate):
+        self.drawingPic.width = int(self.imageSize.width()*zoomRate)
+        self.drawingPic.height = int(self.imageSize.height()*zoomRate)
+        self.drawingPic.image = QImage(self.fixedPixmap.scaled(self.drawingPic.width, self.drawingPic.height, Qt.KeepAspectRatioByExpanding))
+        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
+        self.picLabel.setFixedWidth(self.drawingPic.width + 1)
+        self.picLabel.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.picLabel.setFixedHeight(self.drawingPic.height + 1)
+        self.picLabel.setPixmap(pixmap2)
+    def zoom25(self):
+        self.updateZoom(0.25)
+    def zoom50(self):
+        self.updateZoom(0.5)
+    def zoom75(self):
+        self.updateZoom(0.75)
+    def zoom100(self):
+        self.updateZoom(1)
+    def zoom150(self):
+        self.updateZoom(1.5)
+    def zoom200(self):
+        self.updateZoom(2)
+    def zoom500(self):
+        self.updateZoom(5)
+   
+    #Hieu8  (Jan28,2018) 
+    # This function is created to be compatible with ClickableLabel class
+    # Drag mouse on image
+    def mouseDraged(self, startP, stopP):
+        self.imageClicked(startP)
 
 ##START OF SOUND
 
@@ -2827,6 +2958,8 @@ class SoundExplorer(QWidget):
         self.setWindowTitle("Sound Explorer: " + title)
         layout = QVBoxLayout()
         self.setLayout(layout)
+        self.setFixedWidth(self.PIC_WIDTH + 62)
+        #print(int(self.contentsMargins()))
         
         #What's selected?
         self.index = 0
@@ -2848,6 +2981,9 @@ class SoundExplorer(QWidget):
         self.playAfterButton.clicked.connect(lpa)
         self.stopButton = QPushButton("Stop Playing", self.playFrame)
         self.stopButton.clicked.connect(sound.stopPlaying)
+        self.playBeforeButton.setDisabled(True)
+        self.playAfterButton.setDisabled(True)
+        #self.stopButton.setDisabled(True)
         layoutPlay.addWidget(self.playButton)
         layoutPlay.addWidget(self.playBeforeButton)
         layoutPlay.addWidget(self.playAfterButton)
@@ -2856,17 +2992,63 @@ class SoundExplorer(QWidget):
         
         #Second row of buttons
         #TODO selections
+        self.selectFrame = QFrame(self)
+        layoutSelect = QHBoxLayout()
+        self.selectFrame.setLayout(layoutSelect)
+        self.startIndex = 0
+        self.stopIndex = 0
+        self.playSelectionButton = QPushButton("Play Selection", self.selectFrame)
+        self.playSelectionButton.setDisabled(True)
+        def playSelect():
+            sound.play(self.startIndex, self.stopIndex)
+        self.playSelectionButton.clicked.connect(playSelect)    
+        layoutSelect.addWidget(self.playSelectionButton)
+        self.clearSelectionButton = QPushButton("Clear Selection", self.selectFrame)
+        self.clearSelectionButton.setDisabled(True)
+        def clearSelect():
+            self.picLabel.rubberBand.hide()
+            self.StartIndexwidget.setText("N/A")
+            self.StopIndexwidget.setText("N/A")
+            self.clearSelectionButton.setDisabled(True)
+            self.playSelectionButton.setDisabled(True)
+        self.clearSelectionButton.clicked.connect(clearSelect)       
+        layoutSelect.addWidget(self.clearSelectionButton)
+        self.StartIndexlabel = QLabel(self.selectFrame)
+        self.StartIndexlabel.setText("Start Index:")
+        layoutSelect.addWidget(self.StartIndexlabel)
+        self.StartIndexwidget = QLabel(self.selectFrame)
+        self.StartIndexwidget.setText("N/A")
+        layoutSelect.addWidget(self.StartIndexwidget)
+        self.StopIndexlabel = QLabel(self.selectFrame)
+        self.StopIndexlabel.setText("Stop Index:")
+        layoutSelect.addWidget(self.StopIndexlabel)
+        self.StopIndexwidget = QLabel(self.selectFrame)
+        self.StopIndexwidget.setText("N/A")
+        layoutSelect.addWidget(self.StopIndexwidget)
+        layout.addWidget(self.selectFrame)
         
+        #(Hieu1 25Jan2018): Add scrollArea
         #Sound image
         self.imgFrame = QFrame(self)
-        imgLayout = QHBoxLayout()
-        self.imgFrame.setLayout(imgLayout)
+        layoutImg = QHBoxLayout()
+        self.imgFrame.setLayout(layoutImg)
         self.picLabel = ClickableLabel(self, self)
         self.pic = sound.getImageRep(SoundExplorer.PIC_WIDTH, SoundExplorer.PIC_HEIGHT)
-        self.drawingPic = duplicatePicture(self.pic)
-        pixmap = QPixmap.fromImage(self.drawingPic.image)
-        self.picLabel.setPixmap(pixmap)
-        imgLayout.addWidget(self.picLabel)
+        #(HIEU) create a variable currentPicWidth that hold the current width of sound image
+        self.currentPicWidth = SoundExplorer.PIC_WIDTH
+        # self.drawingPic = duplicatePicture(self.pic)
+        self.drawingPic = self.pic
+        # pixmap = QPixmap.fromImage(self.drawingPic.image)
+        self.picLabel.setPixmap(self.drawingPic)
+        self.picLabel.setFixedWidth(self.currentPicWidth)
+        #Set Up Scroll Area
+        self.scroll = QScrollArea()
+        self.scroll.setWidget(self.picLabel)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFixedHeight(SoundExplorer.PIC_HEIGHT + 2)
+        self.scroll.setFixedWidth(SoundExplorer.PIC_WIDTH + 2)
+        #End scroll area
+        layoutImg.addWidget(self.scroll)
         layout.addWidget(self.imgFrame)
         
         #Index/value row
@@ -2877,6 +3059,7 @@ class SoundExplorer(QWidget):
         self.ilabel.setText("Current Index:")
         layoutIV.addWidget(self.ilabel)
         self.iwidget = QSpinBox(self.indexValueFrame)
+        #self.iwidget.setButtonSymbols(QAbstractSpinBox.lineNoButtons) #Hide arrow
         self.iwidget.setRange(0, getLength(sound))
         self.iwidget.setValue(self.index)
         #QObject.connect(self.ywidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
@@ -2900,16 +3083,31 @@ class SoundExplorer(QWidget):
         self.sblabel.setText("The number of samples between pixels:")
         layoutSB.addWidget(self.sblabel)
         #TODO make variable
-        self.sbwidget = QLabel(self.sbetweenFrame)
-        self.sbwidget.setText(str(getLength(sound) // SoundExplorer.PIC_WIDTH))
+        self.sbwidget = QLineEdit(self.sbetweenFrame)
+        self.sbwidget.insert(str(getLength(sound) // self.currentPicWidth))
+        self.sbwidget.setFixedWidth(120)
+        self.sbwidget.returnPressed.connect(self.updatedSBW)
+        # self.sbwidget = QLabel(self.sbetweenFrame)
+        # self.sbwidget.setText(str(getLength(sound) // SoundExplorer.PIC_WIDTH))
         layoutSB.addWidget(self.sbwidget)
         layout.addWidget(self.sbetweenFrame)
         
         #Zoom row
         #TODO zoom
+        #(Hieu)
+        self.zoomFrame = QFrame(self)
+        layoutZoom = QHBoxLayout()
+        self.zoomFrame.setLayout(layoutZoom)
+        self.isZoomIn = 0;
+        self.zoomButton = QPushButton("Zoom In", self.zoomFrame)
+        self.zoomButton.clicked.connect(self.zoomClick)
+        layoutZoom.addWidget(self.zoomButton)
+        layout.addWidget(self.zoomFrame)
         
         #Resize the window
-        self.resize(self.drawingPic.getWidth(), self.drawingPic.getHeight() + SoundExplorer.EXTRA_HEIGHT)
+        SoundExplorer.PIC_WIDTH
+        self.resize(SoundExplorer.PIC_WIDTH, SoundExplorer.PIC_HEIGHT + SoundExplorer.EXTRA_HEIGHT)
+        #self.resize(self.drawingPic.getWidth(), self.drawingPic.getHeight() + SoundExplorer.EXTRA_HEIGHT)
         #Remember the window
         keepAround.append(self)
         #Show the window
@@ -2919,14 +3117,63 @@ class SoundExplorer(QWidget):
         self.activateWindow()
         QApplication.processEvents()
     
+    #(Hieu)Zoom-in-out click button
+    def zoomClick(self):
+        if self.isZoomIn:
+            self.zoomButton.setText("Zoom In")
+            self.isZoomIn = 0
+            self.currentPicWidth = SoundExplorer.PIC_WIDTH
+            self.sbwidget.setText(str(getLength(self.sound) // self.currentPicWidth))
+            self.updateSoundImage()
+        else:
+            self.zoomButton.setText("Zoom Out")
+            self.isZoomIn = 1
+            self.currentPicWidth = getLength(self.sound)
+            self.sbwidget.setText("1")
+            self.updateSoundImage()
+    
+    # #(Hieu9)Scale-Image function:
+    # # sampix = # of samples between pitxel
+    # def scaleImg(self,sampix):
+    #     sound.getImageRep(SoundExplorer.PIC_WIDTH, SoundExplorer.PIC_HEIGHT)
+    
+    #Update Sound Image
+    def updateSoundImage(self):
+        self.pic = self.sound.getImageRep(self.currentPicWidth, SoundExplorer.PIC_HEIGHT)
+        self.drawingPic = self.pic
+        self.picLabel.setPixmap(self.drawingPic)
+        self.picLabel.setFixedWidth(self.currentPicWidth)
+    
+    #(Hieu7)
+    #Sample between Pixel was updated via sbw box
+    #Update things
+    def updatedSBW(self):
+        #Only do this if we manually changed the numbers
+        if not self.block_edit:
+            #New sample between Pixel value
+            self.sampleBP = int(self.sbwidget.text())
+            self.currentPicWidth = getLength(self.sound) // self.sampleBP
+            #Update
+            self.updateSoundImage()
+            #Repaint the window
+            self.update()
+            QApplication.processEvents()
+    
+    
     #Update value position and show it
+    # def updateSelection(self):
+    #     self.drawingPic = duplicatePicture(self.pic)
+    #     #Draw the selection line
+    #     x_coord = int(self.index * (SoundExplorer.PIC_WIDTH / getLength(self.sound)))
+    #     addLine(self.drawingPic, x_coord, 0, x_coord, SoundExplorer.PIC_HEIGHT-1, cyan)
+    #     pixmap = QPixmap.fromImage(self.drawingPic.image)
+    #     self.picLabel.setPixmap(pixmap)
     def updateSelection(self):
-        self.drawingPic = duplicatePicture(self.pic)
+        self.drawingPic = QPixmap(self.pic)
         #Draw the selection line
-        x_coord = int(self.index * (SoundExplorer.PIC_WIDTH / getLength(self.sound)))
-        addLine(self.drawingPic, x_coord, 0, x_coord, SoundExplorer.PIC_HEIGHT-1, cyan)
-        pixmap = QPixmap.fromImage(self.drawingPic.image)
-        self.picLabel.setPixmap(pixmap)
+        x_coord = int(self.index * (self.currentPicWidth / getLength(self.sound)))
+        addLine1(self.drawingPic, x_coord, 0, x_coord, SoundExplorer.PIC_HEIGHT-1, cyan)
+        self.picLabel.setPixmap(self.drawingPic)
     
     # @pyqtSlot(int)
     # def test(self, x):
@@ -2953,13 +3200,42 @@ class SoundExplorer(QWidget):
         #Make sure we don't issue duplicate updates
         self.block_edit = True
         #Update the index
-        self.index = int(pt.x() * (getLength(self.sound) / SoundExplorer.PIC_WIDTH))
+        self.index = int(pt.x() * (getLength(self.sound) / self.currentPicWidth))
         self.value = getSampleValueAt(self.sound, self.index)
         #Change the widgets to the new coords
         self.iwidget.setValue(self.index)
         self.vwidget.setText(str(self.value))
+        #Enable Buttons
+        self.playBeforeButton.setDisabled(False)
+        self.playAfterButton.setDisabled(False)
         #Update the stuff that can change
         self.updateSelection()
+        #Repaint the window
+        self.update()
+        QApplication.processEvents()
+        #Manual updates are safe again
+        self.block_edit = False
+     
+    #Hieu8  (Jan28,2018) 
+    # Drag mouse on image
+    def mouseDraged(self, startP, stopP):
+        #Make sure we don't issue duplicate updates
+        self.block_edit = True
+        # Update Start & Stop Index
+        self.startIndex = int(startP.x() * (getLength(self.sound) / self.currentPicWidth))
+        self.stopIndex = int(stopP.x() * (getLength(self.sound) / self.currentPicWidth))
+        if self.startIndex > self.stopIndex:
+            self.startIndex, self.stopIndex = self.stopIndex, self.startIndex
+        self.StartIndexwidget.setText(str(self.startIndex))
+        self.StopIndexwidget.setText(str(self.stopIndex))
+        # Enable Buttons
+        self.playSelectionButton.setDisabled(False)
+        self.clearSelectionButton.setDisabled(False)
+        #Start select region on image
+        self.picLabel.rubberBand.show()
+        Qtop = QPoint(int(startP.x()),0)
+        Qbot = QPoint(int(stopP.x()),200)
+        self.picLabel.rubberBand.setGeometry(QRect(Qtop, Qbot).normalized())
         #Repaint the window
         self.update()
         QApplication.processEvents()
@@ -3361,3 +3637,20 @@ def printNow(text):
 # #        print "playMovie(movie): movie is not a Movie object."
 # #        raise ValueError
 # #    movie.play()
+
+# Using for getImageRep
+# Draw a line on the pixmap.
+def addLine1(pixmap,x1,y1,x2,y2,col):
+    if not isinstance(pixmap, QPixmap):
+        repValError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
+        #raise ValueError
+    if not isinstance(col, Color):
+        repValError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
+        #raise ValueError
+    painter = QPainter()
+    painter.begin(pixmap)
+    painter.setPen(QColor(*col.getRGB()))
+    painter.drawLine(x1, y1, x2, y2)
+    painter.end()
+
+#Tyn
