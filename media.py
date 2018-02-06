@@ -2705,8 +2705,10 @@ class PictureExplorer(QWidget):
         super().__init__()
         self.setWindowTitle("Image Explorer: " + pic.title)
         self.pic = duplicatePicture(pic)
-        self.fixedPixmap = QPixmap.fromImage(self.pic.image)
+        self.fixedPixmap = QPixmap.fromImage(pic.image)
         self.imageSize = self.fixedPixmap.size()
+        # Keeptrack of zoom rate
+        self.currentZoomRate = 1
 
         self.drawingPic = duplicatePicture(pic)
         layout = QVBoxLayout()
@@ -2755,7 +2757,7 @@ class PictureExplorer(QWidget):
         xlabel.setText("X:")
         layoutXY.addWidget(xlabel)
         self.xwidget = QSpinBox(self.XYFrame)
-        self.xwidget.setRange(0, pic.getWidth()-1)
+        self.xwidget.setRange(0, self.drawingPic.getWidth()-1)
         self.xwidget.setValue(self.coord_x)
         self.xwidget.valueChanged.connect(self.updatedPos)
         layoutXY.addWidget(self.xwidget)
@@ -2764,7 +2766,7 @@ class PictureExplorer(QWidget):
         ylabel.setText("Y:")
         layoutXY.addWidget(ylabel)
         self.ywidget = QSpinBox(self.XYFrame)
-        self.ywidget.setRange(0, pic.getHeight()-1)
+        self.ywidget.setRange(0, self.drawingPic.getHeight()-1)
         self.ywidget.setValue(self.coord_y)
         self.ywidget.valueChanged.connect(self.updatedPos)
         layoutXY.addWidget(self.ywidget)
@@ -2799,9 +2801,9 @@ class PictureExplorer(QWidget):
         #layoutCol.addWidget(self.colLabel)
         layout.addWidget(self.colFrame)
         
-        #Crosshair
-        self.crosshair = Crosshair(self.drawingPic)
-        self.crosshair.setPosition(0, 0)
+        # #Crosshair
+        # self.crosshair = Crosshair(self.drawingPic)
+        # self.crosshair.setPosition(0, 0)
         
         #Tyn3
         #Picture window
@@ -2811,15 +2813,15 @@ class PictureExplorer(QWidget):
         self.picLabel = ClickableLabel(self, self)
         pixmap2 = QPixmap.fromImage(self.drawingPic.image)
         # pixmap2 = self.fixedPixmap
-        self.picLabel.setFixedWidth(self.drawingPic.width + 1)
-        self.picLabel.setFixedHeight(self.drawingPic.height + 1)
+        self.picLabel.setFixedWidth(self.drawingPic.width)
+        self.picLabel.setFixedHeight(self.drawingPic.height)
         self.picLabel.setPixmap(pixmap2)
         #Set Up Scroll Area
         self.scroll = QScrollArea()
         self.scroll.setWidget(self.picLabel)
-        #self.scroll.setWidgetResizable(True)
-        self.scroll.setFixedHeight(self.pic.getHeight() + 3)
-        self.scroll.setFixedWidth(max(self.pic.getWidth() + 2, 250))
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFixedHeight(pic.getHeight() + 2)
+        self.scroll.setFixedWidth(max(pic.getWidth() + 2, 250))
         self.scroll.alignment()
         #End scroll area
         layoutImg.addWidget(self.scroll)
@@ -2850,6 +2852,14 @@ class PictureExplorer(QWidget):
         pixmap1 = QPixmap.fromImage(colimg)
         self.colLabel.setPixmap(pixmap1)
     
+    def updateCrosshair2(self):
+        drawingPixmap = QPixmap.fromImage(self.drawingPic.image)
+        #self.drawingPic = QPixmap(self.pic)
+        #Draw the crosshair
+        addLine1(drawingPixmap, self.coord_x, self.coord_y - 3, self.coord_x, self.coord_y + 3, cyan)
+        addLine1(drawingPixmap, self.coord_x - 3, self.coord_y, self.coord_x + 3, self.coord_y, cyan)
+        self.picLabel.setPixmap(drawingPixmap)
+    
     #Update crosshair position and show it
     def updateCrosshair(self):
         #Move the crosshair
@@ -2871,10 +2881,12 @@ class PictureExplorer(QWidget):
             #Update the current coords
             self.coord_x = self.xwidget.value()
             self.coord_y = self.ywidget.value()
+            #Adjust the current coords
+            self.adjustCoordinate()
             #Update the stuff that can change
             self.updateColorStuff()
             #Update the crosshair
-            self.updateCrosshair()
+            self.updateCrosshair2()
             #Repaint the window
             self.update()
             QApplication.processEvents()
@@ -2886,29 +2898,52 @@ class PictureExplorer(QWidget):
         #Update the current coords
         self.coord_x = pt.x()
         self.coord_y = pt.y()
+        #Adjust the current coords
+        self.adjustCoordinate()
         #Change the spinboxes to the new coords
         self.xwidget.setValue(self.coord_x)
         self.ywidget.setValue(self.coord_y)
         #Update the stuff that can change
         self.updateColorStuff()
         #Update the crosshair
-        self.updateCrosshair()
+        self.updateCrosshair2()
         #Repaint the window
         self.update()
         QApplication.processEvents()
         #Manual updates are safe again
         self.block_edit = False
     
+    # (Hieu) function adjust the coordinate of the picture to be constraint in
+    # Picture size
+    def adjustCoordinate(self):
+        if self.coord_x < 0:
+            self.coord_x = 0
+        if self.coord_y < 0:
+            self.coord_y = 0
+        if self.coord_x >= self.drawingPic.getWidth():
+            self.coord_x = self.drawingPic.getWidth() - 1
+        if self.coord_y >= self.drawingPic.getHeight():
+            self.coord_y = self.drawingPic.getHeight() - 1
+    
     #Zoom function Hieu
     def updateZoom(self, zoomRate):
         self.drawingPic.width = int(self.imageSize.width()*zoomRate)
         self.drawingPic.height = int(self.imageSize.height()*zoomRate)
         self.drawingPic.image = QImage(self.fixedPixmap.scaled(self.drawingPic.width, self.drawingPic.height, Qt.KeepAspectRatioByExpanding))
-        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
-        self.picLabel.setFixedWidth(self.drawingPic.width + 1)
+        self.pic = self.drawingPic
+        self.xwidget.setRange(0, self.drawingPic.getWidth()-1)
+        self.ywidget.setRange(0, self.drawingPic.getHeight()-1)
+        self.picLabel.setFixedWidth(self.drawingPic.width)
+        self.picLabel.setFixedHeight(self.drawingPic.height)
         self.picLabel.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        self.picLabel.setFixedHeight(self.drawingPic.height + 1)
-        self.picLabel.setPixmap(pixmap2)
+        # Update coords
+        self.coord_x = int(self.coord_x * 1.0 * zoomRate / self.currentZoomRate)
+        self.coord_y = int(self.coord_y * 1.0 * zoomRate / self.currentZoomRate)
+        self.currentZoomRate = zoomRate
+        # Repaint the 
+        self.updateColorStuff()
+        self.updateCrosshair2()
+
     def zoom25(self):
         self.updateZoom(0.25)
     def zoom50(self):
@@ -2916,11 +2951,11 @@ class PictureExplorer(QWidget):
     def zoom75(self):
         self.updateZoom(0.75)
     def zoom100(self):
-        self.updateZoom(1)
+        self.updateZoom(1.0)
     def zoom150(self):
         self.updateZoom(1.5)
     def zoom200(self):
-        self.updateZoom(2)
+        self.updateZoom(2.0)
     def zoom500(self):
         self.updateZoom(5)
    
@@ -2928,7 +2963,7 @@ class PictureExplorer(QWidget):
     # This function is created to be compatible with ClickableLabel class
     # Drag mouse on image
     def mouseDraged(self, startP, stopP):
-        self.imageClicked(startP)
+        self.imageClicked(stopP)
 
 ##START OF SOUND
 
@@ -3650,7 +3685,13 @@ def addLine1(pixmap,x1,y1,x2,y2,col):
     painter = QPainter()
     painter.begin(pixmap)
     painter.setPen(QColor(*col.getRGB()))
+    if (x1 < 0):
+        x1 = 0
+    if (y1 < 0):
+        y1 = 0
+    if (x2 > pixmap.width()):
+        x2 = pixmap.width()
+    if (y2 > pixmap.height()):
+        y2 = pixmap.height()      
     painter.drawLine(x1, y1, x2, y2)
     painter.end()
-
-#Tyn
