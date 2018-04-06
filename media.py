@@ -4258,9 +4258,8 @@ def addFrameToMovie(a, b):
 #         directory = user.home
 # 
 #     movie.writeFramesToDirectory(directory)
-
-
-
+        
+        
 class MoviePlayer(QWidget):
     PIC_WIDTH = 1000
     PIC_HEIGHT = 470
@@ -4481,3 +4480,81 @@ class MoviePlayer(QWidget):
         layoutPlay.addWidget(self.QuicktimeButton)
         layoutPlay.addWidget(self.AVIButton)
         self.layout.addWidget(self.playFrame)
+        
+
+class FrameSequencer(QWidget):
+    WIDTH = 650
+    HEIGHT = 400
+    
+    def __init__(self):
+        super().__init__()
+        
+        self.moviePlayer = None
+        self.block_edit = False
+        self.frameList = ['/Users/htran20/Downloads//Users/htran20/Downloads//Users/htran20/Downloads', 'hihi', 'hoho']
+        
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+        self.setFixedWidth(self.WIDTH)
+        self.setFixedHeight(self.HEIGHT)
+        
+        #Remember the window
+        keepAround.append(self)
+        #Show the window
+        self.show()
+        self.activateWindow()
+        self.raise_()
+        self.activateWindow()
+        QApplication.processEvents()
+        
+        self.createFileWindow()
+        self.createButtons()
+    
+    def setmydata(self):
+        self.fileTable.setSortingEnabled(False)
+        for m, item in enumerate(self.frameList):
+            newitem = QTableWidgetItem(item)
+            self.fileTable.setItem(m, 0, newitem)
+    
+    # Method to create File window    
+    def createFileWindow(self):
+        self.FileFrame = QFrame(self)
+        layoutFile = QVBoxLayout()
+        self.FileFrame.setLayout(layoutFile)
+        self.fileTable = QTableWidget(5,2)
+        self.setmydata()
+        self.fileTable.setRowCount(30)
+        self.fileTable.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.fileTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.fileTable.setShowGrid(False)
+        self.fileTable.resizeColumnsToContents()
+        self.fileTable.setColumnWidth(1, 0);
+        self.fileTable.resizeRowsToContents()
+        self.fileTable.horizontalHeader().setVisible(False)
+        layoutFile.addWidget(self.fileTable)
+        self.layout.addWidget(self.FileFrame)
+        
+    # Method to create Buttons in MoviePlayer
+    def createButtons(self):
+        self.buttonFrame = QFrame(self)
+        layoutButton = QVBoxLayout()
+        self.buttonFrame.setLayout(layoutButton)
+        self.clearButton = QPushButton("Clear image list", self.buttonFrame)
+        # self.clearButton.clicked.connect(self.showPrevious)
+        self.deleteButton = QPushButton("Delete selected image from list", self.buttonFrame)
+        self.addDirButton = QPushButton("Add images in directory to list", self.buttonFrame)
+        self.addImgButton = QPushButton("Add image to list", self.buttonFrame)
+        self.playButton = QPushButton("Play movie", self.buttonFrame)
+        self.moveUpButton = QPushButton("Movie image up", self.buttonFrame)
+        self.moveDownButton = QPushButton("Movie image down", self.buttonFrame)
+        self.ChangeFrameButton = QPushButton("Change Frames Per Second", self.buttonFrame)
+        #Add button in layout
+        layoutButton.addWidget(self.clearButton)
+        layoutButton.addWidget(self.deleteButton)
+        layoutButton.addWidget(self.addDirButton)
+        layoutButton.addWidget(self.addImgButton)
+        layoutButton.addWidget(self.playButton)
+        layoutButton.addWidget(self.moveUpButton)
+        layoutButton.addWidget(self.moveDownButton)
+        layoutButton.addWidget(self.ChangeFrameButton)
+        self.layout.addWidget(self.buttonFrame)
