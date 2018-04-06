@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #ORIGINAL COMMENT from JES media.py BELOW
 #
 # Media Wrappers for "Introduction to Media Computation"
@@ -154,24 +155,49 @@ def repValError(msg):
     reportErrorToUser(ValueError, msg)
 
 #Done
-def setMediaPath(file=None):
+def setMediaPath(directory=None):
+    """
+        Takes a directory as input. JES then will look for files in that
+        directory unless given a full path, i.e. one that starts with "c:\".
+        You can leave out the directory. If you do, JES will open up a file
+        chooser to let you select a directory.
+
+        :param directory: The directory you want to set as the media folder (optional)
+    """
     global mediaFolder
-    if(file == None):
+    if(directory == None):
         mediaFolder = pickAFolder()
     else:	
-        mediaFolder = file
+        mediaFolder = directory
     #mediaFolder = getMediaPath()
     return mediaFolder
 
 def getMediaPath( filename = "" ):
+    """
+        This function builds the whole path to the file you specify, as long as
+        you've already used setMediaFolder() or setMediaPath() to pick out the
+        place where you keep your media. If no filename is given, only the
+        MediaPath will be returned. (Same as getMediaFolder)
+
+        :param filename: the name of the file you want (optional)
+        :return: the complete path to the file specified
+    """
     if filename == "":
         return mediaFolder
     return mediaFolder + os.sep + filename
     #return FileChooser.getMediaPath( filename )
 
 #Done
-def setMediaFolder(file=None):
-    return setMediaPath(file)
+def setMediaFolder(directory=None):
+    """
+        Takes a directory as input. JES then will look for files in that
+        directory unless given a full path, i.e. one that starts with "c:\".
+        You can leave out the directory. If you do, JES will open up a file
+        chooser to let you select a directory.
+
+        :param directory: The directory you want to set as the media folder. (optional)
+    """
+    return setMediaPath(directory)
 
 #Done
 def setTestMediaFolder():
@@ -180,6 +206,15 @@ def setTestMediaFolder():
 
 #Done
 def getMediaFolder( filename = "" ):
+    """
+        This function builds the whole path to the file you specify, as long as
+        you've already used setMediaFolder() or setMediaPath() to pick out the
+        place where you keep your media. If no filename is given, only the
+        MediaFolder will be returned.
+
+        :param filename: the name of the file you want (optional)
+        :return: the complete path to the file specified
+    """
     return getMediaPath(filename)
 
 #Done
@@ -188,8 +223,14 @@ def showMediaFolder():
     print("The media path is currently: ",mediaFolder)
 
 #Done
-def getShortPath(filename):
-    dirs = filename.split(os.sep)
+def getShortPath(path):
+    """
+        Takes a file path as input and returns the short version of that path.
+
+        :param path: a path to a file, as a string
+        :return: a shorter, non-absolute version of that path
+    """
+    dirs = path.split(os.sep)
     if len(dirs) < 1:
         return "."
     elif len(dirs) == 1:
@@ -199,6 +240,12 @@ def getShortPath(filename):
 
 #Done
 def setLibPath(directory=None):
+    """
+        Allows you to add a directory where JES can look for modules that you
+        want to be able to import.
+
+        :param directory: a string path to a directory. (optional)
+    """
     if(directory == None):
         directory = pickAFolder()
     if(os.path.isdir(directory)):
@@ -666,6 +713,13 @@ class Sound:
 ##
 #Done
 def makeSound(filename):
+    """
+        Takes a filename as input, reads the file, and creates a sound from it.
+        Returns the sound.
+
+        :param filename: a string path of a wav file
+        :return: the sound created from the file at the given path
+    """
     global mediaFolder
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
@@ -679,6 +733,18 @@ def makeSound(filename):
 # Brian O (29 Apr 2008): changed first argument to be number of samples, added optional 2nd argument of sampling rate
 #Done
 def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
+    """
+        Takes one or two integers as input. Returns an empty Sound object with
+        the given number of samples and (optionally) the given sampling rate.
+        Default rate is 22050 bits/second. The resulting sound must not be longer
+        than 600 seconds. Prints an error statement if numSamples or
+        samplingRate are less than 0, or if (numSamples/samplingRate) > 600.
+
+        :param numSamples: the number of samples in the sound
+        :param samplingRate: the integer value representing the number of samples
+                                per second (optional)
+        :return: an empty sound with the given number of samples and sampling rate
+    """
     if numSamples <= 0 or samplingRate <= 0:
         #print("makeEmptySound(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
         #raise ValueError
@@ -702,6 +768,19 @@ def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
 # Brian O (5 May 2008): Added method for creating sound by duration
 #Done
 def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
+    """
+        Takes a floating point number and optionally an integer as input. Returns
+        an empty Sound object of the given duration and (optionally) the given
+        sampling rate. Default rate is 22050 bits/second. If the given arguments
+        do not multiply to an integer, the number of samples is rounded up.
+        Prints an error statement if duration or samplingRate are less than 0,
+        or if duration > 600
+
+        :param seconds: the time in seconds for the duration of the sound
+        :param samplingRate: the integer value representing the number of samples
+                                per second of sound (optional)
+        :return: an empty sound
+    """
     if seconds <= 0 or samplingRate <= 0:
         #print("makeEmptySoundBySeconds(numSamples[, samplingRate]): numSamples and samplingRate must each be greater than 0")
         #raise ValueError
@@ -715,6 +794,13 @@ def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
 # PamC: Added this function to duplicate a sound
 #Done
 def duplicateSound(sound):
+    """
+        Takes a sound as input and returns a new Sound object with the same
+        Sample values as the original.
+
+        :param sound: the sound you want to duplicate
+        :return: a new Sound object with the same Sample values as the original
+    """
     if not isinstance(sound, Sound):
         #print("duplicateSound(sound): Input is not a sound")
         #raise ValueError
@@ -723,6 +809,12 @@ def duplicateSound(sound):
 
 #Done
 def getSamples(sound):
+    """
+        Takes a sound as input and returns the Samples in that sound.
+
+        :param sound: A Sound, the sound you want to extract the samples from
+        :return: A collection of all the samples in the sound
+    """
     if not isinstance(sound, Sound):
         #print("getSamples(sound): Input is not a sound")
         #raise ValueError
@@ -731,6 +823,11 @@ def getSamples(sound):
 
 #Done
 def play(sound):
+    """
+        Plays a sound provided as input.
+
+        :param sound: the sound you want to be played
+    """
     if not isinstance(sound,Sound):
         #print "play(sound): Input is not a sound"
         #raise ValueError
@@ -740,6 +837,12 @@ def play(sound):
 #DONE!!!!!!!!!
 #(Note: "blocking main thread" includes infinite loop)
 def blockingPlay(sound):
+    """
+        Plays the sound provided as input, and makes sure that no other sound
+        plays at the exact same time. (Try two play's right after each other.)
+
+        :param sound: the sound that you want to play
+    """
     if not isinstance(sound,Sound):
         #print "blockingPlay(sound): Input is not a sound"
         #raise ValueError
@@ -749,6 +852,11 @@ def blockingPlay(sound):
 # Buck Scharfnorth (27 May 2008): Added method for stopping play of a sound
 #Done
 def stopPlaying(sound):
+    """
+        Stops a sound that is currently playing.
+        
+        :param sound: the sound that you want to stop playing
+    """
     if not isinstance(sound,Sound):
         #print "stopPlaying(sound): Input is not a sound"
         #raise ValueError
@@ -861,6 +969,13 @@ def isPlaying(sound):
 
 #Done
 def getSamplingRate(sound):
+    """
+        Takes a sound as input and returns the number representing the number of
+        samples in each second for the sound.
+
+        :param sound: the sound you want to get the sampling rate from
+        :return: the integer value representing the number of samples per second
+    """
     if not isinstance(sound, Sound):
         #print "getSamplingRate(sound): Input is not a sound"
         #raise ValueError
@@ -869,6 +984,15 @@ def getSamplingRate(sound):
 
 #Done
 def setSampleValueAt(sound,index,value):
+    """
+        Takes a sound, an index, and a value (should be between -32768 and 32767),
+        and sets the value of the sample at the given index in the given sound
+        to the given value.
+
+        :param sound: the sound you want to change a sample in
+        :param index: the index of the sample you want to set
+        :param value: the value you want to set the sample to
+    """
     if not isinstance(sound, Sound):
         repValError("setSampleValueAt(sound,index,value): First input is not a sound")
     if index < 0:
@@ -879,6 +1003,14 @@ def setSampleValueAt(sound,index,value):
 
 #Done
 def getSampleValueAt(sound,index):
+    """
+        Takes a sound and an index (an integer value), and returns the value of
+        the sample (between -32768 and 32767) for that object.
+
+        :param sound: the sound you want to get the sample from
+        :param index: the index of the sample you want to get the value of
+        :return: the value of sample object at that index
+    """
     if not isinstance(sound,Sound):
         repValError("getSampleValueAt(sound,index): First input is not a sound")
     if index < 0:
@@ -889,6 +1021,14 @@ def getSampleValueAt(sound,index):
 
 #Done
 def getSampleObjectAt(sound,index):
+    """
+        Takes a sound and an index (an integer value), and returns the Sample
+        object at that index.
+
+        :param sound: the sound you want to get the sample from
+        :param index: the index of the sample you want to get
+        :return: the sample object at that index
+    """
     if not isinstance(sound, Sound):
         repValError("getSampleObjectAt(sound,index): First input is not a sound")
     if index < 0:
@@ -927,7 +1067,14 @@ def setSample(sample, value):
 # PamC: Added this function to be a better name than setSample
 #Done
 def setSampleValue(sample, value):
-  setSample(sample, value)
+    """
+        Takes a Sample object and a value (should be between -32768 and 32767),
+        and sets the sample to that value.
+
+        :param sample: the sound sample you want to change the value of
+        :param value: the value you want to set the sample to
+    """
+    setSample(sample, value)
 
 #Done
 def getSample(sample):
@@ -938,6 +1085,13 @@ def getSample(sample):
 # PamC: Added this to be a better name for getSample
 #Done
 def getSampleValue(sample):
+    """
+        Takes a Sample object and returns its value (between -32768 and 32767). 
+        (Formerly getSample)
+
+        :param sample: a sample of a sound
+        :return: the integer value of that sample
+    """
     return getSample(sample)
 
 #New
@@ -948,12 +1102,25 @@ def getSampleIndex(sample):
 
 #Done
 def getSound(sample):
+    """
+        Takes a Sample object and returns the Sound that it belongs to.
+
+        :param sample: a sample belonging to a sound
+        :return: the sound the sample belongs to
+    """
     if not isinstance(sample,Sample):
         repValError("getSound(sample): Input is not a Sample")
     return sample.getSound()
 
 #Done
 def getLength(sound):
+    """
+        Takes a sound as input and returns the number of samples in that sound.
+
+        :param sound: the sound you want to find the length of (how many
+                        samples it has)
+        :return: the number of samples in sound
+    """
     if not isinstance(sound, Sound):
         repValError("getLength(sound): Input is not a Sound")
     return sound.getLengthInFrames()
@@ -961,12 +1128,25 @@ def getLength(sound):
 # PamC: Added this function as a more meaningful name for getLength
 #Done
 def getNumSamples(sound):
+    """
+        Takes a sound as input and returns the number of samples in that sound.
+
+        :param sound: the sound you want to find the length of (how many
+                        samples it has)
+        :return: the number of samples in sound
+    """
     return getLength(sound)
 
 # PamC: Added this function to return the number of seconds
 # in a sound
 #Done
 def getDuration(sound):
+    """
+        Takes a sound as input and returns the number of seconds that sound lasts.
+
+        :param sound: the sound you want to find the length of (in seconds)
+        :return: the number of seconds the sound lasts
+    """
     if not isinstance(sound, Sound):
         repValError("getDuration(sound): Input is not a Sound")
     return getLength(sound) / getSamplingRate(sound)
@@ -998,6 +1178,14 @@ def pureTone(freq, amp, dur):
 
 #Done
 def writeSoundTo(sound,filename):
+    """
+        Takes a sound and a filename (a string) and writes the sound to that
+        file as a WAV file. (Make sure that the filename ends in '.wav' if you
+        want the operating system to treat it right.)
+        
+        :param sound: the sound you want to write out to a file
+        :param filename: the path to the file you want the picture written to
+    """
     global mediaFolder
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
@@ -1023,6 +1211,17 @@ def saveSound(sound):
 ##
 #Done
 def makeStyle(fontName,emph,size):
+    """
+        Makes a new "empty" picture and returns it to you. The width and height 
+        must be between 0 and 10000. Default color is white.
+        
+        :param fontName: the name of the font you want in the style
+                            (sansSerif, serif, mono)
+        :param emph: the type of emphasis you want in the style 
+                            (italic, bold, italic + bold, plain)
+        :param size: the size of the font you want in the style
+        :return: the style made from the inputs
+    """
     ret = QFont()
     #ret.setStyleName(fontName)
     ret.setPointSize(size)
@@ -1254,6 +1453,12 @@ class Color:
 
 #Done
 def pickAColor():
+    """
+        Opens a color chooser to let the user pick a color and returns it. Takes
+        no input.
+
+        :return: the color chosen in the dialog box
+    """
     ## Dorn 5/8/2009:  Edited to be thread safe since this code is executed from an
     ## interpreter JESThread and will result in an update to the main JES GUI due to 
     ## it being a modal dialog.
@@ -1744,6 +1949,13 @@ class Picture:
 ##
 #Done
 def makePicture(filename):
+    """
+        Takes a filename as input, reads the file, and creates a picture from it. 
+        Returns the picture.
+        
+        :param filename: the name of the file you want to open as a picture
+        :return: a picture object made from the file
+    """
     '''
     Student documentation:
 
@@ -1775,6 +1987,15 @@ def makePicture(filename):
 # with different background colors.
 #Done
 def makeEmptyPicture(width, height, acolor = white):
+    """
+        Makes a new "empty" picture and returns it to you. The width and height 
+        must be between 0 and 10000. Default color is white.
+        
+        :param width: the width of the empty picture
+        :param height: height of the empty picture
+        :param color: background color of the empty picture (optional)
+        :return: a new picture object with all the pixels set to the specified color
+    """
     '''
     Student documentation:
 
@@ -1810,6 +2031,13 @@ def makeEmptyPicture(width, height, acolor = white):
     #return PIL.Image.new('RGB', (width, height), col)
 
 def getPixels(picture):
+    """
+        Takes a picture as input and returns the sequence of Pixel objects in 
+        the picture.
+        
+        :param picture: the picture you want to get the pixels from
+        :return: a list of all the pixels in the picture
+    """
     '''
     Student documentation:
 
@@ -1838,6 +2066,13 @@ def getAllPixels(picture):
 
 #Done
 def getWidth(picture):
+    """
+        Takes a picture as input and returns its length in the number of pixels 
+        left-to-right in the picture.
+        
+        :param picture: the picture you want to get the width of
+        :return: the width of the picture
+    """
     '''
     Student documentation:
 
@@ -1861,6 +2096,13 @@ def getWidth(picture):
 
 #Done
 def getHeight(picture):
+    """
+        Takes a picture as input and returns its length in the number of pixels 
+        top-to-bottom in the picture.
+        
+        :param picture: the picture you want to get the height of
+        :return: the height of the picture
+    """
     '''
     Student documentation:
 
@@ -1883,6 +2125,12 @@ def getHeight(picture):
 
 #Done
 def show(picture, title=None):
+    """
+        Shows the picture provided as input.
+        
+        :param picture: the picture you want to see
+        :param title: the title for window (optional)       
+    """
     '''
     Student documentation:
 
@@ -1926,6 +2174,12 @@ def printPicture(picture):
     return picture.printPicture()
 
 def repaint(picture):
+    """
+        Repaints the picture if it has been opened in a window from 
+        show(picture), otherwise a new window will be opened.
+        
+        :param picture: the picture you want to repaint    
+    """
     #if not (isinstance(picture, World) or isinstance(picture,Picture)):
     #    print "repaint(picture): Input is not a picture or a world"
     #    raise ValueError
@@ -1938,6 +2192,19 @@ def repaint(picture):
 ## adding graphics to your pictures! ##
 #Done
 def addLine(picture, x1, y1, x2, y2, acolor=black):
+    """
+        Takes a picture, a starting (x, y) position (two numbers), and an ending 
+        (x, y) position (two more numbers, four total), and (optionally) a color 
+        as input. Adds a line from the starting point to the ending point in the 
+        picture. Default color is black.
+
+        :param picture: the picture you want to draw the arc on
+        :param x1: the x position you want the line to start
+        :param y1: the y position you want the line to start
+        :param x2: the x position you want the line to end
+        :param y2: the y position you want the line to end
+        :param acolor: the color you want to draw in (optional)
+    """
     '''
     Student documentation:
 
@@ -1965,8 +2232,43 @@ def addLine(picture, x1, y1, x2, y2, acolor=black):
     ##g.drawLine(x1 - 1,y1 - 1,x2 - 1,y2 - 1)
     picture.addLine(acolor,x1,y1,x2,y2)
 
+# Using for getImageRep
+# Draw a line on the pixmap.
+def addLine1(pixmap,x1,y1,x2,y2,col=black):
+    if not isinstance(pixmap, QPixmap):
+        repValError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
+        #raise ValueError
+    if not isinstance(col, Color):
+        repValError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
+        #raise ValueError
+    painter = QPainter()
+    painter.begin(pixmap)
+    painter.setPen(QColor(*col.getRGB()))
+    if (x1 < 0):
+        x1 = 0
+    if (y1 < 0):
+        y1 = 0
+    if (x2 > pixmap.width()):
+        x2 = pixmap.width()
+    if (y2 > pixmap.height()):
+        y2 = pixmap.height()      
+    painter.drawLine(x1, y1, x2, y2)
+    painter.end()
+
+
 #Done
 def addText(picture, x, y, string, acolor=black):
+    """
+        Takes a picture, an x position and a y position (two numbers), and some 
+        text as a string, which will get drawn into the picture, in the 
+        specified color. Default color is black.
+        
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate where you want to start writing the text
+        :param y: he y-coordinate where you want to start writing the text
+        :param string: a string containing the text you want written
+        :param acolor: the color you want to draw in (optional)
+    """
     '''
     Student documentation:
 
@@ -1997,6 +2299,18 @@ def addText(picture, x, y, string, acolor=black):
 # PamC: Added this function to allow different font styles
 #Done
 def addTextWithStyle(picture, x, y, string, style, acolor=black):
+    """
+        Takes a picture, an x position and a y position (two numbers), and some 
+        text as a string, which will get drawn into the picture, in the given 
+        font style and specified color. Default color is black.
+        
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate where you want to start writing the text
+        :param y: he y-coordinate where you want to start writing the text
+        :param string: a string containing the text you want written
+        :param style: a font created using makeStyle()
+        :param acolor: the color you want to draw in (optional)
+    """
     if not isinstance(picture, Picture):
         repValError("addTextWithStyle(picture, x, y, string, style[, color]): First input is not a picture")
     if not isinstance(style, QFont):
@@ -2007,6 +2321,19 @@ def addTextWithStyle(picture, x, y, string, style, acolor=black):
 
 #Done
 def addRect(picture, x,y,w,h, acolor=black):
+    """
+        Takes a picture, a starting (x, y) position (two numbers), a width and 
+        height (two more numbers, four total), and (optionally) a color as input. 
+        Adds a rectangular outline of the specified dimensions using the (x,y) 
+        as the upper left corner. Default color is black.
+
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate of the upper left-hand corner of the rectangle
+        :param y: the y-coordinate of the upper left-hand corner of the rectangle
+        :param w: the width of the rectangle
+        :param h: the height of the rectangle
+        :param acolor: the color you want to draw in (optional)
+    """
     '''
     Student documentation:
 
@@ -2036,6 +2363,19 @@ def addRect(picture, x,y,w,h, acolor=black):
 
 #Done
 def addRectFilled(picture,x,y,w,h, acolor=black):
+    """
+        Takes a picture, a starting (x, y) position (two numbers), a width and 
+        height (two more numbers, four total), and (optionally) a color as input. 
+        Adds a filled rectangle of the specified dimensions using the (x,y) as 
+        the upper left corner. Default color is black.
+
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate of the upper left-hand corner of the rectangle
+        :param y: the y-coordinate of the upper left-hand corner of the rectangle
+        :param w: the width of the rectangle
+        :param h: the height of the rectangle
+        :param acolor: the color you want to draw in (optional)
+    """
     '''
     Student documentation:
 
@@ -2066,6 +2406,21 @@ def addRectFilled(picture,x,y,w,h, acolor=black):
 # PamC: Added the following addOval, addOvalFilled, addArc, and addArcFilled
 # functions to add more graphics to pictures.
 def addOval(picture, x,y,w,h, acolor=black):
+    """
+        Takes a picture, a starting (x, y) position (two numbers), a width and 
+        height (two more numbers, four total), and (optionally) a color as input. 
+        Adds an oval outline of the given dimensions using the (x,y) as the upper 
+        left corner of the bounding rectangle. Default color is black.
+
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate of the upper left-hand corner of the bounding
+                    rectangle of the oval
+        :param y: the y-coordinate of the upper left-hand corner of the bounding
+                    rectangle of the oval
+        :param w: the width of the oval
+        :param h: the height of the oval
+        :param acolor: the color you want to draw in (optional)
+    """
     '''
     Student documentation:
 
@@ -2095,6 +2450,21 @@ def addOval(picture, x,y,w,h, acolor=black):
 
 #Done
 def addOvalFilled(picture,x,y,w,h,acolor=black):
+    """
+        Takes a picture, a starting (x, y) position (two numbers), a width and 
+        height (two more numbers, four total), and (optionally) a color as input. 
+        Adds a filled oval of the given dimensions using the (x,y) as the upper 
+        left corner of the bounding rectangle. Default color is black.
+
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate of the upper left-hand corner of the bounding
+                    rectangle of the oval
+        :param y: the y-coordinate of the upper left-hand corner of the bounding
+                    rectangle of the oval
+        :param w: the width of the oval
+        :param h: the height of the oval
+        :param acolor: the color you want to draw in (optional)
+    """
     '''
     Student documentation:
 
@@ -2122,6 +2492,22 @@ def addOvalFilled(picture,x,y,w,h,acolor=black):
 #Done
 #Note: Uses degrees
 def addArc(picture,x,y,w,h,start,angle,acolor=black):
+    """
+        Takes a picture, (x,y) coordinates, width, height, two integer angles, 
+        and (optionally) a color as input. Adds an outline of an arc starting at 
+        (x,y) at an initial angle of "start" with the given width and height. 
+        The angle of the arc itself is "angle", which is relative to "start." 
+        Default color is black.
+
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate of the center of the arc
+        :param y: the y-coordinate of the center of the arc
+        :param w: the width of the arc
+        :param h: the height of the arc
+        :param start: the start angle of the arc in degrees
+        :param angle: the angle of the arc relative to start in degrees
+        :param color: the color you want to draw in (optional)a
+    """
     if not isinstance(picture,Picture):
         repValError("addArc(picture, x, y, w, h, start, angle[, color]): First input is not a picture")
         #raise ValueError
@@ -2132,6 +2518,22 @@ def addArc(picture,x,y,w,h,start,angle,acolor=black):
 
 #Note: Uses degrees
 def addArcFilled(picture,x,y,w,h,start,angle,acolor=black):
+    """
+        Takes a picture, (x,y) coordinates, width, height, two integer angles, 
+        and (optionally) a color as input. Adds a filled arc starting at (x,y) 
+        at an initial angle of "start" with the given width and height. The 
+        angle of the arc itself is "angle", which is relative to "start." 
+        Default color is black.
+
+        :param picture: the picture you want to draw the arc on
+        :param x: the x-coordinate of the center of the arc
+        :param y: the y-coordinate of the center of the arc
+        :param w: the width of the arc
+        :param h: the height of the arc
+        :param start: the start angle of the arc in degrees
+        :param angle: the angle of the arc relative to start in degrees
+        :param color: the color you want to draw in (optional)
+    """
     if not isinstance(picture,Picture):
         repValError("addArcFilled(picture, x, y, w, h[, color]): First First input is not a picture")
         #raise ValueError
@@ -2147,6 +2549,15 @@ def addArcFilled(picture,x,y,w,h,start,angle,acolor=black):
 ## note: Nathan Fox got rid of this offset thing
 #Done
 def getPixel(picture,x,y):
+    """
+        Takes a picture, an x position and a y position (two numbers), and 
+        returns the Pixel object at that point in the picture. (Same as getPixelAt)
+        
+        :param picture: the picture you want to get the pixel from
+        :param x: the x-coordinate of the pixel you want
+        :param y: the y-coordinate of the pixel you want
+        :return: the Pixel object
+    """
     '''
     Student documentation:
 
@@ -2185,6 +2596,15 @@ def getPixel(picture,x,y):
 #Added as a better name for getPixel
 #Done
 def getPixelAt(picture,x,y):
+    """
+        Takes a picture, an x position and a y position (two numbers), and 
+        returns the Pixel object at that point in the picture.
+        
+        :param picture: the picture you want to get the pixel from
+        :param x: the x-coordinate of the pixel you want
+        :param y: the y-coordinate of the pixel you want
+        :return: the Pixel object
+    """
     return getPixel(picture,x,y)
 
 #Done
@@ -2261,6 +2681,17 @@ def getY(pixel):
 
 #Done
 def distance(c1,c2):
+    """
+        Takes two Color objects and returns a single number representing the 
+        distance between the colors. The red, green, and blue values of the 
+        colors are taken as a point in (x, y, z) space, and the Cartesian 
+        distance is computed.
+
+        :param c1: the first color you want compared
+        :param c2: the second color you want compared
+        :return: a floating point number representing the Cartesian 
+                distance between the colors
+    """
     if not isinstance(c1, Color):
         repValError("distance(c1,c2): First input is not a color")
         #raise ValueError
@@ -2271,6 +2702,15 @@ def distance(c1,c2):
 
 #Done
 def writePictureTo(picture,filename):
+    """
+        Takes a picture and a file name (string) as input, then writes the 
+        picture to the file as a JPEG, PNG, or BMP. (Be sure to end the 
+        filename in ".jpg" or ".png" or ".bmp" for the operating system to 
+        understand it well.)
+        
+        :param picture: the picture you want to be written out to a file
+        :param filename: the path to the file you want the picture written to
+    """
     global mediaFolder
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
@@ -2306,6 +2746,13 @@ def _setColorTo(color, other):
 
 #Done
 def makeDarker(color):
+    """
+        Takes a color and returns a slightly darker version of the original
+        color.
+
+        :param color: the color you want to darken
+        :return: the new, darker color
+    """
     if not isinstance(color,Color):
         repValError("makeDarker(color): Input is not a color")
         #raise ValueError("makeDarker(color): Input is not a color")
@@ -2317,13 +2764,27 @@ def makeDarker(color):
 
 #Done
 def makeLighter(color):
+    """
+        Takes a color and returns a slightly lighter version of the original 
+        color. This does the same thing as makeBrighter(color).
+
+        :param color: the color you want to lighten
+        :return: the new, lighter color
+    """
     if not isinstance(color,Color):
         repValError("makeLighter(color): Input is not a color")
         #raise ValueError("makeLighter(color): Input is not a color")
     return Color( color.makeLighter() )
 
 #Done
-def makeBrighter(color): #This is the same as makeLighter(color)
+def makeBrighter(color):
+    """
+        Takes a color and returns a slightly brighter version of the original 
+        color. This does the same thing as makeLighter(color).
+
+        :param color: the color you want to briighten
+        :return: the new, brighter color
+    """
     if not isinstance(color,Color):
         repValError("makeBrighter(color): Input is not a color")
         #raise ValueError("makeBrighter(color): Input is not a color")
@@ -2331,11 +2792,29 @@ def makeBrighter(color): #This is the same as makeLighter(color)
 
 #Done
 def makeColor(red,green=None,blue=None):
+    """
+        Takes three integer inputs for the red, green, and blue components (in
+        order) and returns a color object. If green and blue are omitted, the
+        red value is used as the intensity of a gray color. Also it works with
+        only a color as input and returns a new color object with the same RGB
+        values as the original.
+
+        :param red: the amount of red you want in the color (or a Color object
+                    you want to duplicate)
+        :param green: the amount of green you want in the color (optional)
+        :param blue: the amount of blue you want in the picture (optional)
+        :return: the color made from the inputs
+    """
     return Color( red, green, blue)
 
 #Done
 def setAllPixelsToAColor(picture,color):
-    #"""This function sets the picture to one color"""
+    """
+        Modifies the whole image so that every pixel in that image is the given color.
+        
+        :param picture: the picture to change the pixels of
+        :param color: the color to set each pixel to
+    """
     if not isinstance(picture, Picture):
         repValError("setAllPixelsToAColor(picture,color): First input is not a picture")
         #raise ValueError("setAllPixelsToAColor(picture,color): First input is not a picture")
@@ -2346,6 +2825,18 @@ def setAllPixelsToAColor(picture,color):
 
 
 def copyInto(smallPicture, bigPicture, startX, startY):
+    """
+        Takes two pictures, a x position and a y position as input, and modifies 
+        bigPicture by copying into it as much of smallPicture as will fit, 
+        starting at the x,y position in the destination picture.
+        
+        :param smallPicture: the picture to paste into the big picture
+        :param bigPicture: the picture to be modified
+        :param startX: the X coordinate of where to place the small picture on
+                        the big one
+        :param startY: the Y coordinate of where to place the small picture on
+                        the big one
+    """
     #like copyInto(butterfly, jungle, 20,20)
     if not isinstance(smallPicture, Picture):
         repValError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
@@ -2411,7 +2902,13 @@ def copyIntoWithCutoff(smallPicture, bigPicture, startX, startY):
 #  return origPict.copyInto(destPict, upperLeftX-1, upperLeftY-1)
 #Done
 def duplicatePicture(picture):
-    """returns a copy of the picture"""
+    """
+        Takes a picture as input and returns a new picture object with the same 
+        image as the original.
+        
+        :param picture: the picture that you want to duplicate
+        :return: a new picture object with the same image as the original
+    """
     if not isinstance(picture, Picture):
         repValError("duplicatePicture(picture): Input is not a picture")
         #raise ValueError
@@ -2443,6 +2940,13 @@ def duplicatePicture(picture):
 
 #Done
 def requestNumber(message, minn=-2147483647, maxx=2147483647, dec=15):
+    """
+        This will allow the user to input a number with a decimal. The dialog
+        will keep appearing until a valid number is entered.
+
+        :param message: the message to display to the user in the dialog
+        :return: the number as a double
+    """
     #return SimpleInput.getNumber(message)
     tpl = QInputDialog.getDouble(None, "Please enter a number", message,\
         decimals=dec, min=minn, max=maxx)
@@ -2453,6 +2957,13 @@ def requestNumber(message, minn=-2147483647, maxx=2147483647, dec=15):
 
 #Done
 def requestInteger(message, minn=-2147483647, maxx=2147483647, stp=1):
+    """
+        This will allow the user to input an integer. The dialog will keep
+        appearing until a valid integer is entered.
+
+        :param message: the message to display to the user in the dialog
+        :return: the number as an integer
+    """
     #return SimpleInput.getIntNumber(message)
     tpl = QInputDialog.getInt(None, "Please enter an integer", message,\
         step=stp, min=minn, max=maxx)
@@ -2463,6 +2974,16 @@ def requestInteger(message, minn=-2147483647, maxx=2147483647, stp=1):
 
 #Done
 def requestIntegerInRange(message, min, max):
+    """
+        Opens a message dialog to the user asking for an integer between a
+        minimum and maximum (inclusive). The dialog will keep appearing until
+        a valid integer is entered.
+
+        :param message: the message to display to the user in the dialog
+        :param min: the smallest integer allowed
+        :param max: the largest integer allowed
+        :return: the number as an integer
+    """
     if min >= max:
         repValError("requestIntegerInRange(message, min, max): min >= max not allowed")
         #raise ValueError
@@ -2472,6 +2993,12 @@ def requestIntegerInRange(message, min, max):
 
 #Done
 def requestString(message):
+    """
+        This will allow the user to input any string.
+
+        :param message: the message to display to the user in the dialog
+        :return: the input string
+    """
     tpl = QInputDialog.getText(None, "Please enter some text", message)
     if tpl[1]:
         return tpl[0]
@@ -2490,14 +3017,29 @@ def requestString(message):
     
 #Done
 def showWarning(message):
+    """
+        Opens a message dialog to the user showing a warning.
+
+        :param message: the message to show to the user
+    """
     QMessageBox.warning(None, "Warning!", message)
 
 #Done
 def showInformation(message):
+    """
+        Opens a message dialog to the user showing information.
+        
+        :param message: the message to show to the user
+    """
     QMessageBox.information(None, "Info", message)
 
 #Done
 def showError(message):
+    """
+        Opens a message dialog to the user showing an error.
+        
+        :param message: the message to show to the user
+    """
     QMessageBox.critical(None, "Error!!", message)
 
 # 
@@ -2515,6 +3057,13 @@ def showError(message):
 
 #Done
 def pickAFile(sdir = None):
+    """
+        Opens a file chooser to let the user pick a file and returns the 
+        complete path name as a string.
+
+        :param sdir: the directory that holds the file (optional)
+        :return: the string path to the file chosen in the dialog box
+    """
     global mediaFolder
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
@@ -2566,6 +3115,13 @@ def pickASaveFile(sdir = None):
 
 #Done
 def pickAFolder(sdir = None):
+    """
+        Opens a file chooser to let the user pick a folder and returns the
+        complete path name as a string.
+
+        :param sdir: the directory that holds the folder (optional)
+        :return: the string path to the folder chosen in the dialog box
+    """
     global mediaFolder
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
@@ -2711,121 +3267,17 @@ class PictureExplorer(QWidget):
         self.currentZoomRate = 1
 
         self.drawingPic = duplicatePicture(pic)
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
         #self.window.setLayout(QGridLayout())
         #Starting coords
         self.coord_x = 0
         self.coord_y = 0
         
         #Tyn
-        #Set up Zoom on menu bar
-        mainMenu = QMenuBar(self)
-        fileMenu = mainMenu.addMenu('&Zoom')
-        #Create button
-        extractAction25 = QAction("25%", self)
-        extractAction50 = QAction("50%", self)
-        extractAction75 = QAction("75%", self)
-        extractAction100 = QAction("100%", self)
-        extractAction150 = QAction("150%", self)
-        extractAction200 = QAction("200%", self)
-        extractAction500 = QAction("500%", self)
-        #Connect button
-        extractAction25.triggered.connect(self.zoom25)
-        extractAction50.triggered.connect(self.zoom50)
-        extractAction75.triggered.connect(self.zoom75)
-        extractAction100.triggered.connect(self.zoom100)
-        extractAction150.triggered.connect(self.zoom150)
-        extractAction200.triggered.connect(self.zoom200)
-        extractAction500.triggered.connect(self.zoom500)
-        #Add button to file menu
-        fileMenu.addAction(extractAction25)
-        fileMenu.addAction(extractAction50)
-        fileMenu.addAction(extractAction75)
-        fileMenu.addAction(extractAction100)
-        fileMenu.addAction(extractAction150)
-        fileMenu.addAction(extractAction200)
-        fileMenu.addAction(extractAction500)
-        
-        #Frame for X and Y
-        self.XYFrame = QFrame(self)
-        layoutXY = QHBoxLayout()
-        self.XYFrame.setLayout(layoutXY)
-        self.block_edit = False
-        #X
-        xlabel = QLabel(self.XYFrame)
-        xlabel.setText("X:")
-        layoutXY.addWidget(xlabel)
-        self.xwidget = QSpinBox(self.XYFrame)
-        self.xwidget.setRange(0, self.drawingPic.getWidth()-1)
-        self.xwidget.setValue(self.coord_x)
-        self.xwidget.valueChanged.connect(self.updatedPos)
-        layoutXY.addWidget(self.xwidget)
-        #Y
-        ylabel = QLabel(self.XYFrame)
-        ylabel.setText("Y:")
-        layoutXY.addWidget(ylabel)
-        self.ywidget = QSpinBox(self.XYFrame)
-        self.ywidget.setRange(0, self.drawingPic.getHeight()-1)
-        self.ywidget.setValue(self.coord_y)
-        self.ywidget.valueChanged.connect(self.updatedPos)
-        layoutXY.addWidget(self.ywidget)
-        layout.addWidget(self.XYFrame)
-        
-        #Frame for color stuff
-        self.colFrame = QFrame(self)
-        layoutCol = QHBoxLayout()
-        self.colFrame.setLayout(layoutCol)
-        #RGB text
-        self.rgblabel = QLabel(self.colFrame)
-        #col = getColor(getPixel(pic,self.coord_x,self.coord_y)).getRGB()
-        #self.rgblabel.setText("R: " + str(col[0]) + " G: " + str(col[1]) + \
-        #    " B: " + str(col[2]))
-        layoutCol.addWidget(self.rgblabel)
-        colloclabel = QLabel(self.colFrame)
-        colloclabel.setText("Color at location:")
-        layoutCol.addWidget(colloclabel)
-        #Color block
-        # colimg = QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QImage.Format_RGB32)
-        # colimg.fill(QColor(*col)) #TODO
-        widgetColBlock = QScrollArea()
-        widgetColBlock.setFixedHeight(COL_BLOCK_SIZE + 2)
-        widgetColBlock.setFixedWidth(COL_BLOCK_SIZE + 2)
-        self.colLabel = QLabel(self.colFrame)
-        #self.setColorBlock(*col)
-        self.updateColorStuff()
-        # pixmap1 = QPixmap.fromImage(colimg)
-        # self.colLabel.setPixmap(pixmap1)
-        widgetColBlock.setWidget(self.colLabel)
-        layoutCol.addWidget(widgetColBlock)
-        #layoutCol.addWidget(self.colLabel)
-        layout.addWidget(self.colFrame)
-        
-        # #Crosshair
-        # self.crosshair = Crosshair(self.drawingPic)
-        # self.crosshair.setPosition(0, 0)
-        
-        #Tyn3
-        #Picture window
-        self.imgFrame = QFrame(self)
-        layoutImg = QHBoxLayout()
-        self.imgFrame.setLayout(layoutImg)
-        self.picLabel = ClickableLabel(self, self)
-        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
-        # pixmap2 = self.fixedPixmap
-        self.picLabel.setFixedWidth(self.drawingPic.width)
-        self.picLabel.setFixedHeight(self.drawingPic.height)
-        self.picLabel.setPixmap(pixmap2)
-        #Set Up Scroll Area
-        self.scroll = QScrollArea()
-        self.scroll.setWidget(self.picLabel)
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setFixedHeight(pic.getHeight() + 2)
-        self.scroll.setFixedWidth(max(pic.getWidth() + 2, 250))
-        self.scroll.alignment()
-        #End scroll area
-        layoutImg.addWidget(self.scroll)
-        layout.addWidget(self.imgFrame)
+        self.createMenuButtons()
+        self.createFrames()
+        self.createImgWindow()
         
         #Resize the window
         self.resize(pic.getWidth(), pic.getHeight() + COL_BLOCK_SIZE)
@@ -2852,12 +3304,23 @@ class PictureExplorer(QWidget):
         pixmap1 = QPixmap.fromImage(colimg)
         self.colLabel.setPixmap(pixmap1)
     
+    #Update crosshair position and show it (using addLine1 method)
     def updateCrosshair2(self):
         drawingPixmap = QPixmap.fromImage(self.drawingPic.image)
-        #self.drawingPic = QPixmap(self.pic)
+        #What color is the pixel?
+        pcolor = getColor(getPixel(self.drawingPic, self.coord_x, self.coord_y)).getRGB()
+        #Is it dark or light?
+        pcolorval = pcolor[0]+pcolor[1]+pcolor[2]
+        if pcolorval <= 382:
+            #It's dark, so use a white crosshair
+            color = white
+        else:
+            #It's light, so use a dark crosshair
+            color = black
         #Draw the crosshair
-        addLine1(drawingPixmap, self.coord_x, self.coord_y - 3, self.coord_x, self.coord_y + 3, cyan)
-        addLine1(drawingPixmap, self.coord_x - 3, self.coord_y, self.coord_x + 3, self.coord_y, cyan)
+        # color = cyan
+        addLine1(drawingPixmap, self.coord_x, self.coord_y - 3, self.coord_x, self.coord_y + 3, color)
+        addLine1(drawingPixmap, self.coord_x - 3, self.coord_y, self.coord_x + 3, self.coord_y, color)
         self.picLabel.setPixmap(drawingPixmap)
     
     #Update crosshair position and show it
@@ -2943,7 +3406,113 @@ class PictureExplorer(QWidget):
         # Repaint the 
         self.updateColorStuff()
         self.updateCrosshair2()
-
+    
+    def createImgWindow(self):
+        #Picture window
+        self.imgFrame = QFrame(self)
+        layoutImg = QHBoxLayout()
+        self.imgFrame.setLayout(layoutImg)
+        self.picLabel = ClickableLabel(self, self)
+        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
+        # pixmap2 = self.fixedPixmap
+        self.picLabel.setFixedWidth(self.drawingPic.width)
+        self.picLabel.setFixedHeight(self.drawingPic.height)
+        self.picLabel.setPixmap(pixmap2)
+        #Set Up Scroll Area
+        self.scroll = QScrollArea()
+        self.scroll.setWidget(self.picLabel)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFixedHeight(self.pic.getHeight() + 2)
+        self.scroll.setFixedWidth(max(self.pic.getWidth() + 2, 250))
+        self.scroll.alignment()
+        #End scroll area
+        layoutImg.addWidget(self.scroll)
+        self.layout.addWidget(self.imgFrame)
+    
+    def createFrames(self):
+        #Frame for X and Y
+        self.XYFrame = QFrame(self)
+        layoutXY = QHBoxLayout()
+        self.XYFrame.setLayout(layoutXY)
+        self.block_edit = False
+        #X
+        xlabel = QLabel(self.XYFrame)
+        xlabel.setText("X:")
+        layoutXY.addWidget(xlabel)
+        self.xwidget = QSpinBox(self.XYFrame)
+        self.xwidget.setRange(0, self.drawingPic.getWidth()-1)
+        self.xwidget.setValue(self.coord_x)
+        self.xwidget.valueChanged.connect(self.updatedPos)
+        layoutXY.addWidget(self.xwidget)
+        #Y
+        ylabel = QLabel(self.XYFrame)
+        ylabel.setText("Y:")
+        layoutXY.addWidget(ylabel)
+        self.ywidget = QSpinBox(self.XYFrame)
+        self.ywidget.setRange(0, self.drawingPic.getHeight()-1)
+        self.ywidget.setValue(self.coord_y)
+        self.ywidget.valueChanged.connect(self.updatedPos)
+        layoutXY.addWidget(self.ywidget)
+        self.layout.addWidget(self.XYFrame)
+        
+        #Frame for color stuff
+        self.colFrame = QFrame(self)
+        layoutCol = QHBoxLayout()
+        self.colFrame.setLayout(layoutCol)
+        #RGB text
+        self.rgblabel = QLabel(self.colFrame)
+        #col = getColor(getPixel(pic,self.coord_x,self.coord_y)).getRGB()
+        #self.rgblabel.setText("R: " + str(col[0]) + " G: " + str(col[1]) + \
+        #    " B: " + str(col[2]))
+        layoutCol.addWidget(self.rgblabel)
+        colloclabel = QLabel(self.colFrame)
+        colloclabel.setText("Color at location:")
+        layoutCol.addWidget(colloclabel)
+        #Color block
+        # colimg = QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QImage.Format_RGB32)
+        # colimg.fill(QColor(*col)) #TODO
+        widgetColBlock = QScrollArea()
+        widgetColBlock.setFixedHeight(COL_BLOCK_SIZE + 2)
+        widgetColBlock.setFixedWidth(COL_BLOCK_SIZE + 2)
+        self.colLabel = QLabel(self.colFrame)
+        #self.setColorBlock(*col)
+        self.updateColorStuff()
+        # pixmap1 = QPixmap.fromImage(colimg)
+        # self.colLabel.setPixmap(pixmap1)
+        widgetColBlock.setWidget(self.colLabel)
+        layoutCol.addWidget(widgetColBlock)
+        #layoutCol.addWidget(self.colLabel)
+        self.layout.addWidget(self.colFrame)
+    
+    def createMenuButtons(self): 
+        #Set up Zoom on menu bar
+        mainMenu = QMenuBar(self)
+        fileMenu = mainMenu.addMenu('&Zoom')
+        #Create button
+        extractAction25 = QAction("25%", self)
+        extractAction50 = QAction("50%", self)
+        extractAction75 = QAction("75%", self)
+        extractAction100 = QAction("100%", self)
+        extractAction150 = QAction("150%", self)
+        extractAction200 = QAction("200%", self)
+        extractAction500 = QAction("500%", self)
+        #Connect button
+        extractAction25.triggered.connect(self.zoom25)
+        extractAction50.triggered.connect(self.zoom50)
+        extractAction75.triggered.connect(self.zoom75)
+        extractAction100.triggered.connect(self.zoom100)
+        extractAction150.triggered.connect(self.zoom150)
+        extractAction200.triggered.connect(self.zoom200)
+        extractAction500.triggered.connect(self.zoom500)
+        #Add button to file menu
+        fileMenu.addAction(extractAction25)
+        fileMenu.addAction(extractAction50)
+        fileMenu.addAction(extractAction75)
+        fileMenu.addAction(extractAction100)
+        fileMenu.addAction(extractAction150)
+        fileMenu.addAction(extractAction200)
+        fileMenu.addAction(extractAction500)   
+    
     def zoom25(self):
         self.updateZoom(0.25)
     def zoom50(self):
@@ -2970,9 +3539,9 @@ class PictureExplorer(QWidget):
 #Emulate the JES Sound Explorer
 class SoundExplorer(QWidget):
     #TODO make look nice
-    #TODO selections
+    #TODO selections #Done
     
-    #TODO make these variable/scrollable
+    #TODO make these variable/scrollable #Done
     PIC_WIDTH = 600
     PIC_HEIGHT = 200
     EXTRA_HEIGHT = 300
@@ -3026,7 +3595,7 @@ class SoundExplorer(QWidget):
         layout.addWidget(self.playFrame)
         
         #Second row of buttons
-        #TODO selections
+        #TODO selections #Done
         self.selectFrame = QFrame(self)
         layoutSelect = QHBoxLayout()
         self.selectFrame.setLayout(layoutSelect)
@@ -3117,7 +3686,7 @@ class SoundExplorer(QWidget):
         self.sblabel = QLabel(self.sbetweenFrame)
         self.sblabel.setText("The number of samples between pixels:")
         layoutSB.addWidget(self.sblabel)
-        #TODO make variable
+        #TODO make variable #Done
         self.sbwidget = QLineEdit(self.sbetweenFrame)
         self.sbwidget.insert(str(getLength(sound) // self.currentPicWidth))
         self.sbwidget.setFixedWidth(120)
@@ -3128,7 +3697,7 @@ class SoundExplorer(QWidget):
         layout.addWidget(self.sbetweenFrame)
         
         #Zoom row
-        #TODO zoom
+        #TODO zoom 
         #(Hieu)
         self.zoomFrame = QFrame(self)
         layoutZoom = QHBoxLayout()
@@ -3280,12 +3849,19 @@ class SoundExplorer(QWidget):
 #END OF SOUND
 
 #Open explorer tool for media (currently only pictures and sound)
-#Sound
+#TODO: Movie
 def explore(media):
+    """
+        Opens the explorer, which lets you examine the media.
+        
+        :param media: A Picture, Sound, or Movie that you want to view using Media Tools.
+    """
     if isinstance(media, Picture):
         openPictureTool(media)
     elif isinstance(media, Sound):
         openSoundTool(media)
+    # elif isinstance(media, Movie):
+    #      openFrameSequencerTool(media)
     else:
         repValError("Exploration of this media is not supported")
         #raise ValueError
@@ -3293,6 +3869,12 @@ def explore(media):
 #Try to mimic functionality of JES picture explorer
 #Done
 def openPictureTool(picture):
+    """
+        Opens the Picture Tool explorer, which lets you examine the pixels of 
+        an image.
+        
+        :param picture: the picture that you want to examine
+    """
     #import PictureExplorer
     thecopy = duplicatePicture(picture)
     #Constructor has side effect of showing it
@@ -3308,6 +3890,11 @@ def openPictureTool(picture):
 
 #Try to mimic functionality of JES sound explorer
 def openSoundTool(sound):
+    """
+        Opens the Sound Tool explorer, which lets you examine the waveform of a sound.
+        
+        :param sound : the sound that you want to examine
+    """
     #import SoundExplorer
     thecopy = duplicateSound(sound)
     #Constructor has side effect of showing it
@@ -3471,127 +4058,132 @@ def openSoundTool(sound):
 # used in the book
 #Done
 #This is dumb
-def printNow(text):
-    print(text)
-# 
-# class Movie:
-#     #TODO probably needs major overhaul
-#     def __init__(self): # frames are filenames
-#         self.frames = []
-#         self.dir = None
-# 
-#     def addFrame(self, frame):
-#         self.frames.append(frame)
-#         self.dir = None
-# 
-#     def __len__(self):
-#         return len(self.frames)
-# 
-#     def __str__(self):
-#         return "Movie, frames: "+str(len(self))
-# 
-#     def __repr__(self):
-#         return "Movie, frames: "+str(len(self))
-# 
-#     def __getitem__(self,item):
-#         return self.frames[item]
-# 
-#     def writeFramesToDirectory(self, directory):
-#         import FrameSequencer
-#         fs = FrameSequencer(directory)
-#         #for frameindex in range(0, self.listModel.size()):
-#             #fs.addFrame(Picture(self.listModel.get(frameindex)))
-#             #fs.play(self.fps)
-#         for frameindex in range(0, len(self.frames)):
-#             fs.addFrame(Picture(self.frames[frameindex]))
-#         self.dir = directory
-# 
-#     def play(self):
-#         import java.util.ArrayList as ArrayList
-#         list = ArrayList()
-#         for f in self.frames:
-#             list.add( makePicture(f) )
-#         MoviePlayer(list).playMovie()
-# 
-#     def writeQuicktime(self, destPath, framesPerSec = 16):
-#         global mediaFolder
-#         if not os.path.isabs(destPath):
-#             destPath = mediaFolder + destPath
-#         destPath = "file://"+destPath
-#         if framesPerSec <= 0:
-#             print("writeQuicktime(path[, framesPerSec]): Frame Rate must be a positive number")
-#             raise ValueError
-#         if self.frames == []: #Is movie empty?
-#             print("writeQuicktime(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie")
-#             raise ValueError
-#         elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
-#             frame = self.frames[0]
-#             self.dir = frame[:(frame.rfind(os.sep))]
-#         elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
-#             sameDir = 1
-#             frame = self.frames[0]
-#             frame = frame.replace('/', os.sep)
-#             framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
-#             thisDir = framesDir
-#             frameNum = 1
-#             while(sameDir and frameNum < len(self.frames)):
-#                 frame = self.frames[frameNum]
-#                 frame = frame.replace('/', os.sep) #Eliminate possibility of / vs. \ causing problems
-#                 thisDir = frame[:(frame.rfind(os.sep))]
-#                 frameNum = frameNum+1
-#                 if(framesDir != thisDir):
-#                     sameDir = 0
-#             if(sameDir): #Loop ended because we ran out of frames
-#                 self.dir = framesDir
-#             else: #Loop ended because sameDir became false
-#                 print("writeQuicktime(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again.")
-#                 raise ValueError
-#         writer = MovieWriter(self.dir, framesPerSec, destPath)
-#         writer.writeQuicktime()
-#         
-#     def writeAVI(self, destPath, framesPerSec = 16):
-#         global mediaFolder
-#         if not os.path.isabs(destPath):
-#             destPath = mediaFolder + destPath
-#         destPath = "file://"+destPath
-#         if framesPerSec <= 0:
-#             print("writeAVI(path[, framesPerSec]): Frame Rate must be a positive number")
-#             raise ValueError
-#         if self.frames == []: #Is movie empty?
-#             print("writeAVI(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie")
-#             raise ValueError
-#         elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
-#             frame = self.frames[0]
-#             self.dir = frame[:(frame.rfind(os.sep))]
-#         elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
-#             sameDir = 1
-#             frame = self.frames[0]
-#             frame = frame.replace('/', os.sep)
-#             framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
-#             thisDir = framesDir
-#             frameNum = 1
-#             while(sameDir and frameNum < len(self.frames)):
-#                 frame = self.frames[frameNum]
-#                 frame = frame.replace('/', os.sep)
-#                 thisDir = frame[:(frame.rfind(os.sep))]
-#                 frameNum = frameNum+1
-#                 if(framesDir != thisDir):
-#                     sameDir = 0
-#             if(sameDir): #Loop ended because we ran out of frames
-#                 self.dir = framesDir
-#             else: #Loop ended because sameDir became false
-#                 print("writeAVI(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again.")
-#                 raise ValueError
-#         writer = MovieWriter(self.dir, framesPerSec, destPath)
-#         writer.writeAVI()
-# #Done
-# def playMovie( movie ):
-#     if isinstance( movie, Movie ):
-#         movie.play()
-#     else:
-#         print("playMovie( movie ): Input is not a Movie")
-#         raise ValueError
-# 
+def printNow(output):
+    """
+        Prints the specified output to the JES command area right now, without
+        waiting for buffering. Helpful for debugging, if your program is
+        throwing an exception!
+
+        :param output: What we want to print
+    """
+    print(output)
+
+class Movie(QMovie):
+    #TODO make the constructor accept different type of input.
+    #TODO writeFramesToDirectory
+    def __init__(self, frames = [], directory = None): # frames are filenames
+        super().__init__()
+        self.frames = frames
+        self.dir = directory
+
+    def addFrame(self, frame):
+        self.frames.append(frame)
+        self.dir = None
+
+    def __len__(self):
+        return len(self.frames)
+
+    def __str__(self):
+        return "Movie, frames: "+str(len(self))
+
+    def __repr__(self):
+        return "Movie, frames: "+str(len(self))
+
+    def __getitem__(self,item):
+        return self.frames[item]
+
+    # def writeFramesToDirectory(self, directory):
+    #     import FrameSequencer
+    #     fs = FrameSequencer(directory)
+    #     #for frameindex in range(0, self.listModel.size()):
+    #         #fs.addFrame(Picture(self.listModel.get(frameindex)))
+    #         #fs.play(self.fps)
+    #     for frameindex in range(0, len(self.frames)):
+    #         fs.addFrame(Picture(self.frames[frameindex]))
+    #     self.dir = directory
+
+    def play(self):
+        MoviePlayer(self).playMovie()
+
+    # def writeQuicktime(self, destPath, framesPerSec = 16):
+    #     global mediaFolder
+    #     if not os.path.isabs(destPath):
+    #         destPath = mediaFolder + destPath
+    #     destPath = "file://"+destPath
+    #     if framesPerSec <= 0:
+    #         print("writeQuicktime(path[, framesPerSec]): Frame Rate must be a positive number")
+    #         raise ValueError
+    #     if self.frames == []: #Is movie empty?
+    #         print("writeQuicktime(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie")
+    #         raise ValueError
+    #     elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
+    #         frame = self.frames[0]
+    #         self.dir = frame[:(frame.rfind(os.sep))]
+    #     elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
+    #         sameDir = 1
+    #         frame = self.frames[0]
+    #         frame = frame.replace('/', os.sep)
+    #         framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
+    #         thisDir = framesDir
+    #         frameNum = 1
+    #         while(sameDir and frameNum < len(self.frames)):
+    #             frame = self.frames[frameNum]
+    #             frame = frame.replace('/', os.sep) #Eliminate possibility of / vs. \ causing problems
+    #             thisDir = frame[:(frame.rfind(os.sep))]
+    #             frameNum = frameNum+1
+    #             if(framesDir != thisDir):
+    #                 sameDir = 0
+    #         if(sameDir): #Loop ended because we ran out of frames
+    #             self.dir = framesDir
+    #         else: #Loop ended because sameDir became false
+    #             print("writeQuicktime(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again.")
+    #             raise ValueError
+    #     writer = MovieWriter(self.dir, framesPerSec, destPath)
+    #     writer.writeQuicktime()
+        
+    # def writeAVI(self, destPath, framesPerSec = 16):
+    #     global mediaFolder
+    #     if not os.path.isabs(destPath):
+    #         destPath = mediaFolder + destPath
+    #     destPath = "file://"+destPath
+    #     if framesPerSec <= 0:
+    #         print("writeAVI(path[, framesPerSec]): Frame Rate must be a positive number")
+    #         raise ValueError
+    #     if self.frames == []: #Is movie empty?
+    #         print("writeAVI(path[, framesPerSec]): Movie has no frames. Cannot write empty Movie")
+    #         raise ValueError
+    #     elif self.dir == None and len(self.frames) == 1: #Is movie only 1 frame but never written out
+    #         frame = self.frames[0]
+    #         self.dir = frame[:(frame.rfind(os.sep))]
+    #     elif self.dir == None and len(self.frames) > 1: #Are movie frames all in the same directory? 
+    #         sameDir = 1
+    #         frame = self.frames[0]
+    #         frame = frame.replace('/', os.sep)
+    #         framesDir = frame[:(frame.rfind(os.sep))] #Parse directory of first frame
+    #         thisDir = framesDir
+    #         frameNum = 1
+    #         while(sameDir and frameNum < len(self.frames)):
+    #             frame = self.frames[frameNum]
+    #             frame = frame.replace('/', os.sep)
+    #             thisDir = frame[:(frame.rfind(os.sep))]
+    #             frameNum = frameNum+1
+    #             if(framesDir != thisDir):
+    #                 sameDir = 0
+    #         if(sameDir): #Loop ended because we ran out of frames
+    #             self.dir = framesDir
+    #         else: #Loop ended because sameDir became false
+    #             print("writeAVI(path[, framesPerSec]): Your frames are in different directories. Call writeFramesToDirectory() first, then try again.")
+    #             raise ValueError
+    #     writer = MovieWriter(self.dir, framesPerSec, destPath)
+    #     writer.writeAVI()
+
+#Done
+def playMovie(movie):
+    if not isinstance(movie, Movie):
+        repValError("playMovie(movie): movie is not a Movie object.")
+    movie.play()
+    
+
 # #Done
 # def writeQuicktime(movie, destPath, framesPerSec = 16):
 #     if not (isinstance(movie, Movie)):
@@ -3612,50 +4204,50 @@ def printNow(text):
 #         raise ValueError
 #     movie.writeAVI(destPath, framesPerSec)
 # 
-# #Done
-# def makeMovie():
-#     return Movie()
-# 
-# #Done
-# def makeMovieFromInitialFile(filename):
-#     import re
-#     movie = Movie()
-# 
-#     #filename = filename.replace(os.altsep, os.sep)
-#     filename = filename.replace('/',os.sep) #Hack fix because os.altsep is not defined for Windows as of Python 2.2
-#     sep_location = filename.rfind(os.sep)
-#     if(-1 == sep_location):
-#         filename = mediaFolder + filename
-# 
-#     movie.directory = filename[:(filename.rfind(os.sep))]
-#     movie.init_file = filename[(filename.rfind(os.sep))+1:]
-#     regex = re.compile('[0-9]+')
-#     file_regex = regex.sub('.*', movie.init_file)
-# 
-#     for item in os.listdir(movie.directory):
-#         if re.match(file_regex, item):
-#             movie.addFrame(movie.directory + os.sep + item)
-# 
-#     return movie
-# 
-# #Done
-# def addFrameToMovie(a, b):
-#     frame = None
-#     movie = None
-#     if a.__class__ == Movie:
-#         movie = a
-#         frame = b
-#     else:
-#         movie = b
-#         frame = a
-# 
-#     if not (isinstance(movie,Movie) and isinstance(frame,String)):
-#    # if movie.__class__ != Movie or frame.__class__ != String:
-#         print("addFrameToMovie(frame, movie): frame is not a string or movie is not a Movie object")
-#         raise ValueError
-# 
-#     movie.addFrame(frame)
-# 
+#Done
+def makeMovie():
+    return Movie()
+
+#Done
+def makeMovieFromInitialFile(filename):
+    import re
+    movie = Movie()
+
+    #filename = filename.replace(os.altsep, os.sep)
+    filename = filename.replace('/',os.sep) #Hack fix because os.altsep is not defined for Windows as of Python 2.2
+    sep_location = filename.rfind(os.sep)
+    if(-1 == sep_location):
+        filename = mediaFolder + filename
+
+    movie.directory = filename[:(filename.rfind(os.sep))]
+    movie.init_file = filename[(filename.rfind(os.sep))+1:]
+    regex = re.compile('[0-9]+')
+    file_regex = regex.sub('.*', movie.init_file)
+
+    for item in os.listdir(movie.directory):
+        if re.match(file_regex, item):
+            movie.addFrame(movie.directory + os.sep + item)
+
+    return movie
+
+
+#Done
+def addFrameToMovie(a, b):
+    frame = None
+    movie = None
+    if a.__class__ == Movie:
+        movie = a
+        frame = b
+    else:
+        movie = b
+        frame = a
+
+    if not (isinstance(movie,Movie) and isinstance(frame,String)):
+    # if movie.__class__ != Movie or frame.__class__ != String:
+        repValError("addFrameToMovie(frame, movie): frame is not a string or movie is not a Movie objectd")
+
+    movie.addFrame(frame)
+ 
 # #Done
 # def writeFramesToDirectory(movie, directory=None):
 #     if not isinstance(movie, Movie):
@@ -3666,32 +4258,226 @@ def printNow(text):
 #         directory = user.home
 # 
 #     movie.writeFramesToDirectory(directory)
-# 
-# #def playMovie(movie):
-# #    if not isinstance(movie, Movie):
-# #        print "playMovie(movie): movie is not a Movie object."
-# #        raise ValueError
-# #    movie.play()
 
-# Using for getImageRep
-# Draw a line on the pixmap.
-def addLine1(pixmap,x1,y1,x2,y2,col):
-    if not isinstance(pixmap, QPixmap):
-        repValError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
-        #raise ValueError
-    if not isinstance(col, Color):
-        repValError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
-        #raise ValueError
-    painter = QPainter()
-    painter.begin(pixmap)
-    painter.setPen(QColor(*col.getRGB()))
-    if (x1 < 0):
-        x1 = 0
-    if (y1 < 0):
-        y1 = 0
-    if (x2 > pixmap.width()):
-        x2 = pixmap.width()
-    if (y2 > pixmap.height()):
-        y2 = pixmap.height()      
-    painter.drawLine(x1, y1, x2, y2)
-    painter.end()
+
+
+class MoviePlayer(QWidget):
+    PIC_WIDTH = 1000
+    PIC_HEIGHT = 470
+    EXTRA_HEIGHT = 520
+    
+    #Constructor
+    #Should create window, populate with default values
+    #remember it globally (to avoid garbage collection issues)
+    #and show it
+    def __init__(self, movie = Movie(), dictionary = None):
+        super().__init__()
+               
+        self.dictionary = dictionary
+        self.movie = movie
+        self.movieList = movie.frames
+        self.movie.setCacheMode(QMovie.CacheAll)
+        
+        self.updateBuffer()
+            
+        self.framesPerSec = 16
+        self.numberFrame = len(self.movieList)
+        self.curentFrameNumber = self.movie.currentFrameNumber() - 1
+        self.block_edit = False
+               
+        self.setWindowTitle("Movie Player" )
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.setFixedWidth(self.PIC_WIDTH + 62)
+        self.setFixedHeight(self.EXTRA_HEIGHT)
+        
+        self.createFrameLabel()
+        self.createMovieWindow()
+        self.createButtons()
+        
+        #Remember the window
+        keepAround.append(self)
+        #Show the window
+        self.show()
+        self.activateWindow()
+        self.raise_()
+        self.activateWindow()
+        QApplication.processEvents()
+    
+    # Maybe not efficient TODO
+    def updateBuffer(self): 
+        self.buf = QBuffer() #Device holding frame in format
+        self.buf.open(QIODevice.WriteOnly)    
+        for i in range(len(self.movieList)):
+            frame = self.movieList[i]
+            image = QImage(frame)
+            image.save(self.buf, 'JPG')
+        self.buf.close()
+        self.movie.setDevice(self.buf)
+    
+    def updateStuff(self):
+        self.curentFrameNumber = self.movie.currentFrameNumber()
+        self.numberFrame = len(self.movieList)
+        if (self.numberFrame != 0):
+            self.numLabel.setText("Frame Number " + str(self.curentFrameNumber))
+        else:
+            self.numLabel.setText("Frame Number ")
+            self.movieLabel.setText("No Movie Loaded")
+         
+   # Method to scale the content of image
+    def fitToWindow(self):
+        self.movieLabel.setScaledContents(True)
+    
+    # Method to jump to frame number frameNumber.
+    def goToFrame(self, frameNumber):
+        self.movie.jumpToFrame(frameNumber)
+    
+    # Method to show the next image
+    def showNext(self):
+        if (self.numberFrame != 0):
+            self.goToFrame((self.curentFrameNumber+1)%self.numberFrame)
+            self.updateStuff()
+    
+     # Method to show the previous image
+    def showPrevious(self):
+        if (self.numberFrame != 0):
+            self.goToFrame((self.curentFrameNumber-1)%self.numberFrame)
+            self.updateStuff()
+        
+    # Method to play the movie from the beginning
+    # TODO param: framesPerSecond the number of frames to show per second
+    def playMovie(self):
+        #self.framesPerSec = framesPerSecond
+        self.showAll()
+        self.updateStuff()
+    
+    # Method to show all the image
+    def showAll(self, frameRate = None):
+        if frameRate != None:
+            self.framesPerSec = frameRate
+        startTime = 0;
+        endTime = 0;
+        timeToSleep = 1.0 / self.framesPerSec
+        for i in range(0,self.numberFrame,1):
+            startTime = time.time()
+            self.goToFrame(i)
+            endTime = time.time()
+            sleep(timeToSleep - (endTime - startTime))
+        self.updateStuff()
+                
+     # Method to set the frames per second to show the movie
+     # param: rate the number of frames to show per second
+    def updateFrameRate(self):
+        if not self.block_edit:
+            self.framesPerSec = self.rwidget.value()
+        
+    # Method to delete all the frames before the current one
+    def delAllBefore(self):
+        currentIndex = self.curentFrameNumber
+        for i in range(0,currentIndex+1):
+            # os.remove(self.movieList[0])
+            del self.movieList[0]
+        self.updateBuffer()
+        self.updateStuff()
+        # self.update()
+
+    # Method to delete all the frames after the current one
+    def delAllAfter(self):
+        currentIndex = self.curentFrameNumber
+        for i in range(currentIndex,self.numberFrame):
+            # os.remove(self.movieList[currentIndex])
+            del self.movieList[currentIndex]
+        self.updateBuffer()
+        self.updateStuff()
+        # self.update()
+        
+    #  Method to write out the movie frames as a Quicktime movie
+    def writeQuicktime(self):
+        # MovieWriter writer = new MovieWriter(animationPanel.getFramesPerSec(),
+        #                                      dir);
+        # writer.writeQuicktime();
+        pass #TODO
+
+    # Method to write out the movie frames as a Quicktime movie
+    def writeAVI(self):
+        # MovieWriter writer = new MovieWriter(animationPanel.getFramesPerSec(),
+        #                                      dir);
+        # writer.writeAVI();
+        pass #TODO
+    
+    # Method to add a picture to the movie
+    # param: picture the picture to add
+    def addPicture(self, picture):
+        self.movie.addFrame(picture)
+        self.buf.open(QIODevice.Append)
+        image = QImage(picture)
+        image.save(self.buf, 'JPG')
+        self.buf.close()
+        self.update()
+    
+    # Method to create # of Frame frame
+    def createFrameLabel(self):
+        self.numFrame = QFrame(self)
+        layoutNum = QHBoxLayout()
+        self.numFrame.setLayout(layoutNum)
+        self.block_edit = False
+        self.numLabel = QLabel(self.numFrame)
+        self.numLabel.setText("Frame Number ")
+        self.numLabel.setAlignment(Qt.AlignTop | Qt.AlignCenter)
+        layoutNum.addWidget(self.numLabel)
+        self.layout.addWidget(self.numFrame)
+    
+    # Method to create Movie window    
+    def createMovieWindow(self):
+        self.movieFrame = QFrame(self)
+        layoutMovie = QHBoxLayout()
+        self.movieFrame.setLayout(layoutMovie)
+        self.movieLabel = QLabel("No movie loaded")
+        self.movieLabel.setMovie(self.movie)
+        self.updateBuffer()
+        self.updateStuff()
+        #self.playMovie()      
+        # self.fitToWindow()
+        self.movieLabel.setFixedHeight(self.PIC_HEIGHT + 1)
+        self.movieLabel.setAlignment(Qt.AlignLeft)
+        layoutMovie.addWidget(self.movieLabel)
+        self.layout.addWidget(self.movieFrame)
+    
+    # Method to create Buttons in MoviePlayer
+    def createButtons(self):
+        #Bottom row of button
+        self.playFrame = QFrame(self)
+        layoutPlay = QHBoxLayout()
+        self.playFrame.setLayout(layoutPlay)
+        self.prevButton = QPushButton("Prev", self.playFrame)
+        self.prevButton.clicked.connect(self.showPrevious)
+        self.nextButton = QPushButton("Next", self.playFrame)
+        self.nextButton.clicked.connect(self.showNext)
+        framePerSeclabel = QLabel(self.playFrame)
+        framePerSeclabel.setText("Frame per Second: ")
+        self.rwidget = QSpinBox()
+        self.rwidget.setRange(16, 30)
+        self.rwidget.setSingleStep(8)
+        self.rwidget.setValue(self.framesPerSec)
+        self.rwidget.valueChanged.connect(self.updateFrameRate)
+        self.playButton = QPushButton("Play Movie", self.playFrame)
+        self.playButton.clicked.connect(self.playMovie)
+        self.deletePreButton = QPushButton("Delete All Previous", self.playFrame)
+        self.deletePreButton.clicked.connect(self.delAllBefore)
+        self.deleteAfterButton = QPushButton("Delete All After", self.playFrame)
+        self.deleteAfterButton.clicked.connect(self.delAllAfter)
+        self.QuicktimeButton = QPushButton("Write QuickTime", self.playFrame)
+        self.QuicktimeButton.clicked.connect(self.writeQuicktime)
+        self.AVIButton = QPushButton("Write AVI", self.playFrame)
+        self.AVIButton.clicked.connect(self.writeAVI)
+        #Add button in layout
+        layoutPlay.addWidget(self.prevButton)
+        layoutPlay.addWidget(self.nextButton)
+        layoutPlay.addWidget(framePerSeclabel)
+        layoutPlay.addWidget(self.rwidget)
+        layoutPlay.addWidget(self.playButton)
+        layoutPlay.addWidget(self.deletePreButton)
+        layoutPlay.addWidget(self.deleteAfterButton)
+        layoutPlay.addWidget(self.QuicktimeButton)
+        layoutPlay.addWidget(self.AVIButton)
+        self.layout.addWidget(self.playFrame)
