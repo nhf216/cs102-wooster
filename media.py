@@ -117,10 +117,12 @@ if root is None:
 #mediaFolder = JESConfig.getMediaPath()
 #if ( mediaFolder == "" ):
 mediaFolder = os.getcwd() + os.sep
-    
+#Before the user sets a folder, it should default to the current working directory
+mediaFolderSet = False
 # Store last pickAFile() opening
-
-_lastFilePath = ""
+lastFilePath = None
+#Use the last file path when picking a file/folder?
+useLastFilePath = True
 
 true = 1
 false = 0
@@ -156,11 +158,13 @@ def repValError(msg):
 #Done
 def setMediaPath(file=None):
     global mediaFolder
+    global mediaFolderSet
     if(file == None):
         mediaFolder = pickAFolder()
     else:	
         mediaFolder = file
     #mediaFolder = getMediaPath()
+    mediaFolderSet = True
     return mediaFolder
 
 def getMediaPath( filename = "" ):
@@ -172,6 +176,19 @@ def getMediaPath( filename = "" ):
 #Done
 def setMediaFolder(file=None):
     return setMediaPath(file)
+
+#New
+#If you've set a media folder in the past and you want to instead
+#start using your working directory again, you can "un-set" it here
+def unsetMediaFolder():
+    global mediaFolderSet
+    mediaFolderSet = False
+
+#New
+#Should we use the last file's path for the next file choice?
+def rememberLastFilePath(toggle=True):
+    global useLastFilePath
+    useLastFilePath = toggle
 
 #Done
 def setTestMediaFolder():
@@ -185,7 +202,11 @@ def getMediaFolder( filename = "" ):
 #Done
 def showMediaFolder():
     global mediaFolder
-    print("The media path is currently: ",mediaFolder)
+    global mediaFolderSet
+    if mediaFolderSet:
+        print("The media path is currently: ",mediaFolder)
+    else:
+        print("The media path is not currently set; your working directory is: ",os.getcwd())
 
 #Done
 def getShortPath(filename):
@@ -2516,6 +2537,8 @@ def showError(message):
 #Done
 def pickAFile(sdir = None):
     global mediaFolder
+    global mediaFolderSet
+    global lastFilePath
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #return FileChooser.pickAFile()
@@ -2532,16 +2555,27 @@ def pickAFile(sdir = None):
     #ret = tkinter.filedialog.askopenfilename()
     #root.update()
     #root.destroy()
-    if sdir is None:
-        ret = QFileDialog.getOpenFileName(directory = mediaFolder)
+    if sdir is not None:
+        our_dir = sdir
+    elif useLastFilePath and (lastFilePath is not None):
+        our_dir = lastFilePath
+    elif mediaFolderSet:
+        our_dir = mediaFolder
     else:
-        ret = QFileDialog.getOpenFileName(directory = sdir)
+        our_dir = os.getcwd()
+    ret = QFileDialog.getOpenFileName(directory = our_dir)
+    if ret == '':
+        ret = None
+    if ret is not None:
+        lastFilePath = ret[:ret.rfind(os.sep)+1]
     return ret
 
 #New
 #Done
 def pickASaveFile(sdir = None):
     global mediaFolder
+    global mediaFolderSet
+    global lastFilePath
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #return FileChooser.pickAFile()
@@ -2558,15 +2592,26 @@ def pickASaveFile(sdir = None):
     #ret = tkinter.filedialog.askopenfilename()
     #root.update()
     #root.destroy()
-    if sdir is None:
-        ret = QFileDialog.getSaveFileName(directory = mediaFolder)
+    if sdir is not None:
+        our_dir = sdir
+    elif useLastFilePath and (lastFilePath is not None):
+        our_dir = lastFilePath
+    elif mediaFolderSet:
+        our_dir = mediaFolder
     else:
-        ret = QFileDialog.getSaveFileName(directory = sdir)
+        our_dir = os.getcwd()
+    ret = QFileDialog.getSaveFileName(directory = our_dir)
+    if ret == '':
+        ret = None
+    if ret is not None:
+        lastFilePath = ret[:ret.rfind(os.sep)+1]
     return ret
 
 #Done
 def pickAFolder(sdir = None):
     global mediaFolder
+    global mediaFolderSet
+    global lastFilePath
     ## Note: this needs to be done in a threadsafe manner, see FileChooser
     ## for details how this is accomplished.
     #dir = FileChooser.pickADirectory() TODO
@@ -2581,11 +2626,19 @@ def pickAFolder(sdir = None):
     #dirc = tkinter.filedialog.askdirectory()
     #root.update()
     #root.destroy()
-    if sdir is None:
-        dirc = QFileDialog.getExistingDirectory(directory = mediaFolder)
+    if sdir is not None:
+        our_dir = sdir
+    elif useLastFilePath and (lastFilePath is not None):
+        our_dir = lastFilePath
+    elif mediaFolderSet:
+        our_dir = mediaFolder
     else:
-        dirc = QFileDialog.getExistingDirectory(directory = sdir)
-    if ( dirc != None ):
+        our_dir = os.getcwd()
+    dirc = QFileDialog.getExistingDirectory(directory = our_dir)
+    if dirc == '':
+        dirc = None
+    if dirc is not None:
+        lastFilePath = dirc
         return dirc + os.sep
     return None
 
