@@ -3854,14 +3854,15 @@ def explore(media):
     """
         Opens the explorer, which lets you examine the media.
         
-        :param media: A Picture, Sound, or Movie that you want to view using Media Tools.
+        :param media: A Picture, Sound, or Movie that you want to view using
+                    Media Tools.
     """
     if isinstance(media, Picture):
         openPictureTool(media)
     elif isinstance(media, Sound):
         openSoundTool(media)
-    # elif isinstance(media, Movie):
-    #      openFrameSequencerTool(media)
+    elif isinstance(media, Movie):
+        openFrameSequencerTool(media)
     else:
         repValError("Exploration of this media is not supported")
         #raise ValueError
@@ -3884,9 +3885,18 @@ def openPictureTool(picture):
 #     #viewer.setTitle(getShortPath(picture.getFileName() ))
 #     pass #TODO
 # 
-# def openFrameSequencerTool(movie):
-#     #FrameSequencerTool.FrameSequencerTool(movie)
-#     pass #TODO
+
+
+#Done
+def openFrameSequencerTool(movie):
+    """
+        Opens the Frame Sequencer Tool explorer, which lets you examine and
+        manipulate the frames of a movie
+        
+        :param movie: the movie that you want to examine
+    """
+    FrameSequencer(movie)
+
 
 #Try to mimic functionality of JES sound explorer
 def openSoundTool(sound):
@@ -4177,8 +4187,14 @@ class Movie(QMovie):
     #     writer = MovieWriter(self.dir, framesPerSec, destPath)
     #     writer.writeAVI()
 
+
 #Done
 def playMovie(movie):
+    """
+        Takes a Movie object as input and plays it.
+
+        :param movie: the movie object to be playe
+    """
     if not isinstance(movie, Movie):
         repValError("playMovie(movie): movie is not a Movie object.")
     movie.play()
@@ -4206,10 +4222,22 @@ def playMovie(movie):
 # 
 #Done
 def makeMovie():
+    """
+        :return: an empty Movie object
+    """
     return Movie()
+
 
 #Done
 def makeMovieFromInitialFile(filename):
+    """
+        Takes a filename as input. Returns a Movie object using the given file
+        as the first frame and using sequentially named files for subsequent
+        frames (i.e. frame001, frame002, etc.)
+
+        :param filename: string path to the first frame of the movie
+        :return: a Movie object using the given file as the first frame
+    """
     import re
     movie = Movie()
 
@@ -4232,22 +4260,30 @@ def makeMovieFromInitialFile(filename):
 
 
 #Done
-def addFrameToMovie(a, b):
-    frame = None
-    movie = None
-    if a.__class__ == Movie:
-        movie = a
-        frame = b
-    else:
-        movie = b
-        frame = a
+def addFrameToMovie(frame, movie):
+    """
+        Takes a filename and a Movie object as input. Adds the file as a frame
+        to the end of the movie. addFrameToMovie(movie, frame) is also
+        acceptable.
+        
+        :param frame: the filename of the frame to be added to the movie
+        :param movie: the movie object for the frame to be added to
+    """
+    # frame = None
+    # movie = None
+    # if a.__class__ == Movie:
+    #     movie = a
+    #     frame = b
+    # else:
+    #     movie = b
+    #     frame = a
 
     if not (isinstance(movie,Movie) and isinstance(frame,String)):
     # if movie.__class__ != Movie or frame.__class__ != String:
         repValError("addFrameToMovie(frame, movie): frame is not a string or movie is not a Movie objectd")
 
     movie.addFrame(frame)
- 
+
 # #Done
 # def writeFramesToDirectory(movie, directory=None):
 #     if not isinstance(movie, Movie):
@@ -4461,9 +4497,9 @@ class MoviePlayer(QWidget):
         self.rwidget.valueChanged.connect(self.updateFrameRate)
         self.playButton = QPushButton("Play Movie", self.playFrame)
         self.playButton.clicked.connect(self.playMovie)
-        self.deletePreButton = QPushButton("Delete All Previous", self.playFrame)
+        self.deletePreButton = QPushButton("Remove All Previous", self.playFrame)
         self.deletePreButton.clicked.connect(self.delAllBefore)
-        self.deleteAfterButton = QPushButton("Delete All After", self.playFrame)
+        self.deleteAfterButton = QPushButton("Remove All After", self.playFrame)
         self.deleteAfterButton.clicked.connect(self.delAllAfter)
         self.QuicktimeButton = QPushButton("Write QuickTime", self.playFrame)
         self.QuicktimeButton.clicked.connect(self.writeQuicktime)
@@ -4486,12 +4522,12 @@ class FrameSequencer(QWidget):
     WIDTH = 650
     HEIGHT = 400
     
-    def __init__(self):
+    def __init__(self, movie = Movie()):
         super().__init__()
         
-        self.moviePlayer = None
+        self.movie = Movie()
         self.block_edit = False
-        self.frameList = ['/Users/htran20/Downloads//Users/htran20/Downloads//Users/htran20/Downloads', 'hihi', 'hoho']
+        self.frameList = Movie().frames
         
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
@@ -4510,9 +4546,71 @@ class FrameSequencer(QWidget):
         self.createFileWindow()
         self.createButtons()
     
+    def AddImgDir(self):
+        path = pickAFolder()
+        for afile in os.listdir(path):
+            if afile.endswith(".jpg"):
+                self.frameList.append(path + afile)
+                if self.fileTable.rowCount() < len(self.frameList):
+                    self.fileTable.setRowCount(2*self.fileTable.rowCount())
+                newitem = QTableWidgetItem(path + afile)
+                self.fileTable.setItem(len(self.frameList) - 1, 0, newitem) 
+    
+    def AddImgFile(self):
+        path = pickAFile()
+        if path.endswith(".jpg"):
+            self.frameList.append(path)
+            if self.fileTable.rowCount() < len(self.frameList):
+                    self.fileTable.setRowCount(2*self.fileTable.rowCount())
+            newitem = QTableWidgetItem(path)
+            self.fileTable.setItem(len(self.frameList) - 1, 0, newitem)  
+            
+    def deleteSelectedItem(self):
+        row = self.fileTable.currentRow()
+        if row != -1 and row < len(self.frameList):
+            self.fileTable.removeRow(row)
+            del self.frameList[row]
+
+    def clearItem(self):
+        for item in self.frameList:
+            self.fileTable.removeRow(0)
+        del self.frameList[:]
+        
+    def play(self):
+        self.movie.frames = self.frameList
+        playMovie(self.movie)
+        # self.clearItem()
+        # self.frameList = self.movie.frames
+        # self.setmydata()
+    
+    def moveUp(self):
+        row = self.fileTable.currentRow()
+        if row > 0:
+            self.frameList[row], self.frameList[row - 1] = self.frameList[row - 1], self.frameList[row]
+            item1 = QTableWidgetItem(self.frameList[row])
+            item2 = QTableWidgetItem(self.frameList[row - 1] )
+            self.fileTable.setItem(row, 0, item1)
+            self.fileTable.setItem(row - 1, 0, item2)
+            self.fileTable.selectRow(row - 1)
+    
+    def moveDown(self):
+        row = self.fileTable.currentRow()
+        if row < len(self.frameList) - 1:
+            self.frameList[row], self.frameList[row + 1] = self.frameList[row + 1], self.frameList[row]
+            item1 = QTableWidgetItem(self.frameList[row])
+            item2 = QTableWidgetItem(self.frameList[row + 1] )
+            self.fileTable.setItem(row, 0, item1)
+            self.fileTable.setItem(row + 1, 0, item2)
+            self.fileTable.selectRow(row + 1)
+    
+    # def updateData(self):
+    #     for item in self.frameList:
+    #         self.fileTable.removeRow(0)
+        
     def setmydata(self):
-        self.fileTable.setSortingEnabled(False)
-        for m, item in enumerate(self.frameList):
+        if self.fileTable.rowCount() < len(self.frameList):
+            self.fileTable.setRowCount(len(self.frameList))
+        for m, item in enumerate(self.frameList): 
             newitem = QTableWidgetItem(item)
             self.fileTable.setItem(m, 0, newitem)
     
@@ -4521,9 +4619,10 @@ class FrameSequencer(QWidget):
         self.FileFrame = QFrame(self)
         layoutFile = QVBoxLayout()
         self.FileFrame.setLayout(layoutFile)
-        self.fileTable = QTableWidget(5,2)
+        self.fileTable = QTableWidget(30,2)
+        self.fileTable.setSortingEnabled(False)
         self.setmydata()
-        self.fileTable.setRowCount(30)
+        self.fileTable.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.fileTable.setSelectionMode(QAbstractItemView.SingleSelection)
         self.fileTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.fileTable.setShowGrid(False)
@@ -4540,13 +4639,19 @@ class FrameSequencer(QWidget):
         layoutButton = QVBoxLayout()
         self.buttonFrame.setLayout(layoutButton)
         self.clearButton = QPushButton("Clear image list", self.buttonFrame)
-        # self.clearButton.clicked.connect(self.showPrevious)
+        self.clearButton.clicked.connect(self.clearItem)
         self.deleteButton = QPushButton("Delete selected image from list", self.buttonFrame)
+        self.deleteButton.clicked.connect(self.deleteSelectedItem)
         self.addDirButton = QPushButton("Add images in directory to list", self.buttonFrame)
+        self.addDirButton.clicked.connect(self.AddImgDir)
         self.addImgButton = QPushButton("Add image to list", self.buttonFrame)
+        self.addImgButton.clicked.connect(self.AddImgFile)
         self.playButton = QPushButton("Play movie", self.buttonFrame)
+        self.playButton.clicked.connect(self.play)
         self.moveUpButton = QPushButton("Movie image up", self.buttonFrame)
+        self.moveUpButton.clicked.connect(self.moveUp)
         self.moveDownButton = QPushButton("Movie image down", self.buttonFrame)
+        self.moveDownButton.clicked.connect(self.moveDown)
         self.ChangeFrameButton = QPushButton("Change Frames Per Second", self.buttonFrame)
         #Add button in layout
         layoutButton.addWidget(self.clearButton)
