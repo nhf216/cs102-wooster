@@ -450,7 +450,6 @@ class Sound:
     #Play the sound
     #Do nothing if it's already playing
     #Play from start to stop (default is the whole sound)
-    #Hieu
     def play(self, start=0, stop=0):
         #if not self.isPlaying:
         
@@ -601,7 +600,7 @@ class Sound:
         
         #Create an empty black picture
         #ret = makeEmptyPicture(width, height, black)
-        #(Hieu1) using QPixmap instead of creating a Picture object !!!!!!
+        #(Hieu) using QPixmap instead of creating a Picture object !!!!!!
         #ret = makeEmptyPicture2(width, height, black)
         ret = QPixmap(width,height)
         ret.fill(QColor(*black.getRGB()))
@@ -703,13 +702,12 @@ class Sound:
     #the maximum amplitude (sample value) to be stored (in bits) at each sample (max value for 16 bits is 32767)
     def getSampleSize(self):
         return self.sampleSize
-    
+        
     #What is the sampling rate?
     #The rate at which samples are collected is the sample rate (# of samples/duration of sound) 
     def getSamplingRate(self):
         return self.sampleRate
     
-    #(Hieu Jan 21,2018) set the sample rate
     #DOES change the Sample objects
     #TODO: raise error for incompatible rate - only support for rate =0.5, 2 now
     def setSamplingRate(self, rate):
@@ -728,7 +726,8 @@ class Sound:
         #     a = 1
         # self.setSamplingRate(1.0/rate)
         # self.setUpFormat()
-                  
+ 
+                                   
 ##
 ## Global sound functions
 ##
@@ -749,6 +748,7 @@ def makeSound(filename):
         #raise ValueError
         repValError("There is no file at "+filename)
     return Sound(filename)
+
 
 # MMO (1 Dec 2005): capped size of sound to 600
 # Brian O (29 Apr 2008): changed first argument to be number of samples, added optional 2nd argument of sampling rate
@@ -779,12 +779,12 @@ def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
     if not isinstance(samplingRate, int):
         repValError("makeEmptySound(numSamples[, samplingRate]): samplingRate must be an integer")  
     return Sound(numSamples, samplingRate)
-
 #    if size > 600:
 #        #print "makeEmptySound(size): size must be 600 seconds or less"
 #        #raise ValueError
 #        repValError("makeEmptySound(size): size must be 600 seconds or less")
 #    return Sound(size * Sound.SAMPLE_RATE)
+
 
 # Brian O (5 May 2008): Added method for creating sound by duration
 #Done
@@ -812,6 +812,7 @@ def makeEmptySoundBySeconds(seconds, samplingRate = Sound.SAMPLE_RATE):
         repValError("makeEmptySoundBySeconds(numSamples[, samplingRate]): Created sound must be less than 600 seconds")
     return Sound(int(seconds * samplingRate), samplingRate)
 
+
 # PamC: Added this function to duplicate a sound
 #Done
 def duplicateSound(sound):
@@ -828,6 +829,7 @@ def duplicateSound(sound):
         repValError("duplicateSound(sound): Input is not a sound")
     return Sound(sound)
 
+
 #Done
 def getSamples(sound):
     """
@@ -842,6 +844,7 @@ def getSamples(sound):
         repValError("getSamples(sound): Input is not a sound")
     return sound.getSamples()
 
+
 #Done
 def play(sound):
     """
@@ -854,6 +857,7 @@ def play(sound):
         #raise ValueError
         repValError("play(sound): Input is not a sound")
     sound.play()
+
 
 #DONE!!!!!!!!!
 #(Note: "blocking main thread" includes infinite loop)
@@ -870,6 +874,7 @@ def blockingPlay(sound):
         repValError("blockingPlay(sound): Input is not a sound")
     sound.blockingPlay()
 
+
 # Buck Scharfnorth (27 May 2008): Added method for stopping play of a sound
 #Done
 def stopPlaying(sound):
@@ -883,6 +888,7 @@ def stopPlaying(sound):
         #raise ValueError
         repValError("stopPlaying(sound): Input is not a sound")
     sound.stopPlaying()
+
 
 #(Hieu) plays a sound at a given time (2.0 is twice as fast, 0.5 is half as fast) (only for rate = 0.5, 1.0 or 2.0) 
 # TODO: has not raise error for incorrect second input  
@@ -969,13 +975,13 @@ def playAtRateInRange(sound,rate,start,stop):
 
 # #20June03 new functionality in JavaSound (ellie)
 # def blockingPlayAtRateInRange(sound,rate,start,stop):
-        if not isinstance(sound, Sound):
-                #print "blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound"
-                #raise ValueError
-            repValError("blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound")
-        newSound = duplicateSound(sound)
-        newSound.setSamplingRate(rate)
-        newSound.blockingPlay(start,stop)
+        # if not isinstance(sound, Sound):
+        #         #print "blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound"
+        #         #raise ValueError
+        #     repValError("blockingPlayAtRateInRange(sound,rate,start,stop): First input is not a sound")
+        # newSound = duplicateSound(sound)
+        # newSound.setSamplingRate(rate)
+        # newSound.blockingPlay(start,stop)
         #sound.blockingPlayAtRateInRange(rate, start - Sound._SoundIndexOffset,stop - Sound._SoundIndexOffset)
         #pass #TODO
 
@@ -3225,7 +3231,6 @@ class ClickableLabel(QLabel):
             self.clickPosition = QMouseEvent.pos()
             self.origin = QPoint(QMouseEvent.pos())
     
-    # (Hieu8 Jan28,2018) 
     def mouseMoveEvent(self, QMouseEvent):
         if not self.origin.isNull():
             self.pexplore.mouseDraged(self.dragStartPosition,QMouseEvent.pos())
@@ -3429,7 +3434,7 @@ class PictureExplorer(QWidget):
         #Manual updates are safe again
         self.block_edit = False
     
-    # (Hieu) function adjust the coordinate of the picture to be constraint in
+    # method adjust the coordinate of the picture to be constraint in
     # Picture size
     def adjustCoordinate(self):
         if self.coord_x < 0:
@@ -3441,7 +3446,7 @@ class PictureExplorer(QWidget):
         if self.coord_y >= self.drawingPic.getHeight():
             self.coord_y = self.drawingPic.getHeight() - 1
     
-    #Zoom function Hieu
+    #Zoom method
     def updateZoom(self, zoomRate):
         self.drawingPic.width = int(self.imageSize.width()*zoomRate)
         self.drawingPic.height = int(self.imageSize.height()*zoomRate)
@@ -3581,8 +3586,7 @@ class PictureExplorer(QWidget):
     def zoom500(self):
         self.updateZoom(5)
    
-    #Hieu8  (Jan28,2018) 
-    # This function is created to be compatible with ClickableLabel class
+    # (Hieu) This function is created to be compatible with ClickableLabel class
     # Drag mouse on image
     def mouseDraged(self, startP, stopP):
         self.imageClicked(stopP)
@@ -3684,14 +3688,14 @@ class SoundExplorer(QWidget):
         layoutSelect.addWidget(self.StopIndexwidget)
         layout.addWidget(self.selectFrame)
         
-        #(Hieu1 25Jan2018): Add scrollArea
+        #(Hieu): Add scrollArea
         #Sound image
         self.imgFrame = QFrame(self)
         layoutImg = QHBoxLayout()
         self.imgFrame.setLayout(layoutImg)
         self.picLabel = ClickableLabel(self, self)
         self.pic = sound.getImageRep(SoundExplorer.PIC_WIDTH, SoundExplorer.PIC_HEIGHT)
-        #(HIEU) create a variable currentPicWidth that hold the current width of sound image
+        # Create a variable currentPicWidth that hold the current width of sound image
         self.currentPicWidth = SoundExplorer.PIC_WIDTH
         # self.drawingPic = duplicatePicture(self.pic)
         self.drawingPic = self.pic
@@ -3750,8 +3754,6 @@ class SoundExplorer(QWidget):
         layout.addWidget(self.sbetweenFrame)
         
         #Zoom row
-        #TODO zoom 
-        #(Hieu)
         self.zoomFrame = QFrame(self)
         layoutZoom = QHBoxLayout()
         self.zoomFrame.setLayout(layoutZoom)
@@ -3774,7 +3776,7 @@ class SoundExplorer(QWidget):
         self.activateWindow()
         QApplication.processEvents()
     
-    #(Hieu)Zoom-in-out click button
+    #Zoom-in-out click button
     def zoomClick(self):
         if self.isZoomIn:
             self.zoomButton.setText("Zoom In")
@@ -3789,7 +3791,7 @@ class SoundExplorer(QWidget):
             self.sbwidget.setText("1")
             self.updateSoundImage()
     
-    # #(Hieu9)Scale-Image function:
+    # #(Hieu)Scale-Image function:
     # # sampix = # of samples between pitxel
     # def scaleImg(self,sampix):
     #     sound.getImageRep(SoundExplorer.PIC_WIDTH, SoundExplorer.PIC_HEIGHT)
@@ -3801,7 +3803,6 @@ class SoundExplorer(QWidget):
         self.picLabel.setPixmap(self.drawingPic)
         self.picLabel.setFixedWidth(self.currentPicWidth)
     
-    #(Hieu7)
     #Sample between Pixel was updated via sbw box
     #Update things
     def updatedSBW(self):
@@ -3816,7 +3817,6 @@ class SoundExplorer(QWidget):
             self.update()
             QApplication.processEvents()
     
-    
     #Update value position and show it
     # def updateSelection(self):
     #     self.drawingPic = duplicatePicture(self.pic)
@@ -3825,6 +3825,7 @@ class SoundExplorer(QWidget):
     #     addLine(self.drawingPic, x_coord, 0, x_coord, SoundExplorer.PIC_HEIGHT-1, cyan)
     #     pixmap = QPixmap.fromImage(self.drawingPic.image)
     #     self.picLabel.setPixmap(pixmap)
+    
     def updateSelection(self):
         self.drawingPic = QPixmap(self.pic)
         #Draw the selection line
@@ -3873,7 +3874,6 @@ class SoundExplorer(QWidget):
         #Manual updates are safe again
         self.block_edit = False
      
-    #Hieu8  (Jan28,2018) 
     # Drag mouse on image
     def mouseDraged(self, startP, stopP):
         #Make sure we don't issue duplicate updates
