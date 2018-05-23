@@ -156,6 +156,10 @@ def reportErrorToUser(errType, msg):
 def repValError(msg):
     reportErrorToUser(ValueError, msg)
 
+#Shortcut for TypeError reporting
+def repTypeError(msg):
+    reportErrorToUser(TypeError, msg)
+
 #Done
 def setMediaPath(file=None):
     """
@@ -775,9 +779,9 @@ def makeEmptySound(numSamples, samplingRate = Sound.SAMPLE_RATE):
         #raise ValueError
         repValError("makeEmptySound(numSamples[, samplingRate]): Created sound must be less than 600 seconds") 
     if not isinstance(numSamples, int):
-        repValError("makeEmptySound(numSamples[, samplingRate]): numSamples must be an integer")  
+        repTypeError("makeEmptySound(numSamples[, samplingRate]): numSamples must be an integer")  
     if not isinstance(samplingRate, int):
-        repValError("makeEmptySound(numSamples[, samplingRate]): samplingRate must be an integer")  
+        repTypeError("makeEmptySound(numSamples[, samplingRate]): samplingRate must be an integer")  
     return Sound(numSamples, samplingRate)
 #    if size > 600:
 #        #print "makeEmptySound(size): size must be 600 seconds or less"
@@ -826,7 +830,7 @@ def duplicateSound(sound):
     if not isinstance(sound, Sound):
         #print("duplicateSound(sound): Input is not a sound")
         #raise ValueError
-        repValError("duplicateSound(sound): Input is not a sound")
+        repTypeError("duplicateSound(sound): Input is not a sound")
     return Sound(sound)
 
 
@@ -841,7 +845,7 @@ def getSamples(sound):
     if not isinstance(sound, Sound):
         #print("getSamples(sound): Input is not a sound")
         #raise ValueError
-        repValError("getSamples(sound): Input is not a sound")
+        repTypeError("getSamples(sound): Input is not a sound")
     return sound.getSamples()
 
 
@@ -855,7 +859,7 @@ def play(sound):
     if not isinstance(sound,Sound):
         #print "play(sound): Input is not a sound"
         #raise ValueError
-        repValError("play(sound): Input is not a sound")
+        repTypeError("play(sound): Input is not a sound")
     sound.play()
 
 
@@ -871,7 +875,7 @@ def blockingPlay(sound):
     if not isinstance(sound,Sound):
         #print "blockingPlay(sound): Input is not a sound"
         #raise ValueError
-        repValError("blockingPlay(sound): Input is not a sound")
+        repTypeError("blockingPlay(sound): Input is not a sound")
     sound.blockingPlay()
 
 
@@ -886,7 +890,7 @@ def stopPlaying(sound):
     if not isinstance(sound,Sound):
         #print "stopPlaying(sound): Input is not a sound"
         #raise ValueError
-        repValError("stopPlaying(sound): Input is not a sound")
+        repTypeError("stopPlaying(sound): Input is not a sound")
     sound.stopPlaying()
 
 
@@ -896,7 +900,7 @@ def playAtRate(sound,rate):
     if not isinstance(sound, Sound):
         #print "playAtRate(sound,rate): First input is not a sound"
         #raise ValueError
-        repValError("playAtRate(sound,rate): First input is not a sound")
+        repTypeError("playAtRate(sound,rate): First input is not a sound")
     newSound = duplicateSound(sound)
     newSound.playAtRateInRange(rate)
 
@@ -904,7 +908,7 @@ def playAtRate(sound,rate):
 #     #if not isinstance(sound, Sound):
 #     #    #print "playAtRate(sound,rate): First input is not a sound"
 #     #    #raise ValueError
-#     #    repValError("playAtRate(sound,rate): First input is not a sound")
+#     #    repTypeError("playAtRate(sound,rate): First input is not a sound")
 #     ## sound.playAtRate(rate)
 #     #sound.playAtRateDur(rate,sound.getLength())
 #     pass #TODO
@@ -913,22 +917,22 @@ def playAtRate(sound,rate):
 #     #if not isinstance(sound,Sound):
 #     #    #print "playAtRateDur(sound,rate,dur): First input is not a sound"
 #     #    #raise ValueError
-#     #    repValError("playAtRateDur(sound,rate,dur): First input is not a sound")
+#     #    repTypeError("playAtRateDur(sound,rate,dur): First input is not a sound")
 #     #sound.playAtRateDur(rate,dur)
 #     pass #TODO
 
 #20June03 new functionality in JavaSound (ellie)
 def playInRange(sound,start,stop):
     if not isinstance(sound, Sound):
-        repValError("playInRange(sound,start,stop): First input is not a sound")
+        repTypeError("playInRange(sound,start,stop): First input is not a sound")
     elif not isinstance(start, int):
-        repValError("playInRange(sound,start,stop): Second input is not an integer")
+        repTypeError("playInRange(sound,start,stop): Second input is not an integer")
     elif start < 0:
         repValError("playInRange(sound,start,stop): Second input cannot be negative")
     elif start >= getNumSamples(sound):
         repValError("playInRange(sound,start,stop): Second input cannot be greater than the length of the sound, which is " + getNumSamples(sound))
     elif not isinstance(stop, int):
-        repValError("playInRange(sound,start,stop): Third input is not an integer")
+        repTypeError("playInRange(sound,start,stop): Third input is not an integer")
     elif stop < 0:
         repValError("playInRange(sound,start,stop): Third input cannot be negative")
     elif stop >= getNumSamples(sound):
@@ -943,15 +947,15 @@ def playInRange(sound,start,stop):
 #Done
 def blockingPlayInRange(sound,start,stop):
     if not isinstance(sound, Sound):
-        repValError("playInRange(sound,start,stop): First input is not a sound")
+        repTypeError("playInRange(sound,start,stop): First input is not a sound")
     elif not isinstance(start, int):
-        repValError("playInRange(sound,start,stop): Second input is not an integer")
+        repTypeError("playInRange(sound,start,stop): Second input is not an integer")
     elif start < 0:
         repValError("playInRange(sound,start,stop): Second input cannot be negative")
     elif start >= getNumSamples(sound):
         repValError("playInRange(sound,start,stop): Second input cannot be greater than the length of the sound, which is " + getNumSamples(sound))
     elif not isinstance(stop, int):
-        repValError("playInRange(sound,start,stop): Third input is not an integer")
+        repTypeError("playInRange(sound,start,stop): Third input is not an integer")
     elif stop < 0:
         repValError("playInRange(sound,start,stop): Third input cannot be negative")
     elif stop >= getNumSamples(sound):
@@ -966,7 +970,7 @@ def playAtRateInRange(sound,rate,start,stop):
         if not isinstance(sound,Sound):
                 #print "playAtRateInRAnge(sound,rate,start,stop): First input is not a sound"
                 #raise ValueError
-            repValError("playAtRateInRAnge(sound,rate,start,stop): First input is not a sound")
+            repTypeError("playAtRateInRAnge(sound,rate,start,stop): First input is not a sound")
         newSound = duplicateSound(sound)
         newSound.setSamplingRate(rate)
         newSound.play(start,stop)
@@ -991,7 +995,7 @@ def isPlaying(sound):
     if not isinstance(sound, Sound):
         #print "getSamplingRate(sound): Input is not a sound"
         #raise ValueError
-        repValError("isPlaying(sound): Input is not a sound")
+        repTypeError("isPlaying(sound): Input is not a sound")
     return sound.isPlaying()
 
 #Done
@@ -1006,7 +1010,7 @@ def getSamplingRate(sound):
     if not isinstance(sound, Sound):
         #print "getSamplingRate(sound): Input is not a sound"
         #raise ValueError
-        repValError("getSamplingRate(sound): Input is not a sound")
+        repTypeError("getSamplingRate(sound): Input is not a sound")
     return sound.getSamplingRate()
 
 #Done
@@ -1021,7 +1025,7 @@ def setSampleValueAt(sound,index,value):
         :param value: the value you want to set the sample to
     """
     if not isinstance(sound, Sound):
-        repValError("setSampleValueAt(sound,index,value): First input is not a sound")
+        repTypeError("setSampleValueAt(sound,index,value): First input is not a sound")
     if index < 0:
         repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(0) + ".  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1 ) + "].")
     if index > getLength(sound) - 1:
@@ -1039,7 +1043,7 @@ def getSampleValueAt(sound,index):
         :return: the value of sample object at that index
     """
     if not isinstance(sound,Sound):
-        repValError("getSampleValueAt(sound,index): First input is not a sound")
+        repTypeError("getSampleValueAt(sound,index): First input is not a sound")
     if index < 0:
         repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than 0.  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1) + "].")
     if index > getLength(sound) - 1:
@@ -1057,7 +1061,7 @@ def getSampleObjectAt(sound,index):
         :return: the sample object at that index
     """
     if not isinstance(sound, Sound):
-        repValError("getSampleObjectAt(sound,index): First input is not a sound")
+        repTypeError("getSampleObjectAt(sound,index): First input is not a sound")
     if index < 0:
         repValError("You asked for the sample at index: " + str( index ) + ".  This number is less than " + str(0) + ".  Please try" + " again using an index in the range [" + str(0) + "," + str ( getLength( sound ) - 1 ) + "].")
     if index > getLength(sound) - 1:
@@ -1069,13 +1073,13 @@ def getSampleObjectAt(sound,index):
 #Usually would be 16, but this code supports 8 as well
 def getSampleSize(sound):
     if not isinstance(sound, Sound):
-        repValError("getSampleSize(sound): Input is not a sound")
+        repTypeError("getSampleSize(sound): Input is not a sound")
     return sound.getSampleSize()
 
 #Done
 def setSample(sample, value):
     if not isinstance(sample,Sample):
-        repValError("setSample(sample,value): First input is not a Sample")
+        repTypeError("setSample(sample,value): First input is not a Sample")
     ss = getSampleSize(getSound(sample))
     if ss == 8:
         vmax = 255
@@ -1106,7 +1110,7 @@ def setSampleValue(sample, value):
 #Done
 def getSample(sample):
     if not isinstance(sample, Sample):
-        repValError("getSample(sample): Input is not a Sample")
+        repTypeError("getSample(sample): Input is not a Sample")
     return sample.getValue()
 
 # PamC: Added this to be a better name for getSample
@@ -1124,7 +1128,7 @@ def getSampleValue(sample):
 #New
 def getSampleIndex(sample):
     if not isinstance(sample, Sample):
-        repValError("getSampleIndex(sample): Input is not a Sample")
+        repTypeError("getSampleIndex(sample): Input is not a Sample")
     return sample.getIndex()
 
 #Done
@@ -1136,7 +1140,7 @@ def getSound(sample):
         :return: the sound the sample belongs to
     """
     if not isinstance(sample,Sample):
-        repValError("getSound(sample): Input is not a Sample")
+        repTypeError("getSound(sample): Input is not a Sample")
     return sample.getSound()
 
 #Done
@@ -1149,7 +1153,7 @@ def getLength(sound):
         :return: the number of samples in sound
     """
     if not isinstance(sound, Sound):
-        repValError("getLength(sound): Input is not a Sound")
+        repTypeError("getLength(sound): Input is not a Sound")
     return sound.getLengthInFrames()
 
 # PamC: Added this function as a more meaningful name for getLength
@@ -1175,7 +1179,7 @@ def getDuration(sound):
         :return: the number of seconds the sound lasts
     """
     if not isinstance(sound, Sound):
-        repValError("getDuration(sound): Input is not a Sound")
+        repTypeError("getDuration(sound): Input is not a Sound")
     return getLength(sound) / getSamplingRate(sound)
 
 #New
@@ -1184,15 +1188,15 @@ def getDuration(sound):
 #Dur: Length, in seconds
 def pureTone(freq, amp, dur):
     if not isinstance(freq, numbers.Number):
-        repValError("pureTone(freq, amp, dur): freq must be a number")
+        repTypeError("pureTone(freq, amp, dur): freq must be a number")
     elif freq < 0:
         repValError("pureTone(freq, amp, dur): freq must be nonnegative")
     if not isinstance(amp, numbers.Number):
-        repValError("pureTone(freq, amp, dur): amp must be a number")
+        repTypeError("pureTone(freq, amp, dur): amp must be a number")
     elif amp < 0 or amp > 32767:
         repValError("pureTone(freq, amp, dur): amp must be between 0 and 32767 (inclusive)")
     if not isinstance(dur, numbers.Number):
-        repValError("pureTone(freq, amp, dur): dur must be a number")
+        repTypeError("pureTone(freq, amp, dur): dur must be a number")
     elif dur < 0:
         repValError("pureTone(freq, amp, dur): dur must be nonnegative")
     def getVal(i):
@@ -1217,7 +1221,7 @@ def writeSoundTo(sound,filename):
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
     if not isinstance(sound, Sound):
-        repValError("writeSoundTo(sound,filename): First input is not a Sound")
+        repTypeError("writeSoundTo(sound,filename): First input is not a Sound")
     sound.writeToFile(filename)
 
 #New
@@ -1338,13 +1342,13 @@ class Color:
             # self.color = awt.Color(r,g,b)
             #self.color = awt.Color( _checkPixel(r), _checkPixel(g), _checkPixel(b) )
             if not isinstance(r, numbers.Number):
-                repValError("First color component (red) not a number")
+                repTypeError("First color component (red) not a number")
                 #raise ValueError
             if not isinstance(g, numbers.Number):
-                repValError("Second color component (green) not a number")
+                repTypeError("Second color component (green) not a number")
                 #raise ValueError
             if not isinstance(b, numbers.Number):
-                repValError("Third color component (blue) not a number")
+                repTypeError("Third color component (blue) not a number")
                 #raise ValueError
             self.r = r
             self.g = g
@@ -1426,13 +1430,13 @@ class Color:
     #    # self.color = awt.Color(r,g,b)
     #    self.color = awt.Color(_checkPixel(r), _checkPixel(g), _checkPixel(b))
         if not isinstance(r, numbers.Number):
-            repValError("First color component (red) not a number")
+            repTypeError("First color component (red) not a number")
             #raise ValueError
         if not isinstance(g, numbers.Number):
-            repValError("Second color component (green) not a number")
+            repTypeError("Second color component (green) not a number")
             #raise ValueError
         if not isinstance(b, numbers.Number):
-            repValError("Third color component (blue) not a number")
+            repTypeError("Third color component (blue) not a number")
             #raise ValueError
         self.r = r
         self.g = g
@@ -1785,7 +1789,7 @@ class Picture:
     #Set the (x,y) pixel to Color col
     def setPixel(self, x, y, col):
         if not isinstance(col, Color):
-            repValError("non-color passed to setPixel")
+            repTypeError("non-color passed to setPixel")
             #raise ValueError
         #self.image.putpixel((x,y), col.getRGB())
         #NOTE: There's a warning about this being a slow operation
@@ -2044,7 +2048,7 @@ def makeEmptyPicture(width, height, acolor = white):
         repValError("makeEmptyPicture(width, height[, acolor]): height and width must be greater than 0 each")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("makeEmptyPicture(width, height[, acolor]): acolor must be a color")
+        repTypeError("makeEmptyPicture(width, height[, acolor]): acolor must be a color")
         #raise ValueError
     #if isinstance(acolor, Color):
     #    col = acolor.getRGB()
@@ -2083,7 +2087,7 @@ def getPixels(picture):
     Developer documentation:
     '''
     if not isinstance(picture, Picture):
-        repValError("getPixels(picture): Input is not a picture")
+        repTypeError("getPixels(picture): Input is not a picture")
         #raise ValueError
     return picture.getPixels()
 
@@ -2117,7 +2121,7 @@ def getWidth(picture):
     Developer documentation:
     '''
     if not isinstance(picture, Picture):
-        repValError("getWidth(picture): Input is not a picture")
+        repTypeError("getWidth(picture): Input is not a picture")
         #raise ValueError
     return picture.getWidth()
 
@@ -2147,7 +2151,7 @@ def getHeight(picture):
     Developer documentation:
     '''
     if not isinstance(picture,Picture):
-        repValError("getHeight(picture): Input is not a picture")
+        repTypeError("getHeight(picture): Input is not a picture")
     return picture.getHeight()
 
 #Done
@@ -2182,7 +2186,7 @@ def show(picture, title=None):
     #if title <> None:
         #picture.setTitle(title)
     if not isinstance(picture, Picture):
-        repValError("show(picture): Input is not a picture")
+        repTypeError("show(picture): Input is not a picture")
         #raise ValueError
     picture.show(title)
     #frm = picture.show(title)
@@ -2196,7 +2200,7 @@ def show(picture, title=None):
 #This is a Canopy thing
 def printPicture(picture):
     if not isinstance(picture,Picture):
-        repValError("repaint(picture): Input is not a picture")
+        repTypeError("repaint(picture): Input is not a picture")
         #raise ValueError
     return picture.printPicture()
 
@@ -2212,7 +2216,7 @@ def repaint(picture):
     #    raise ValueError
     #picture.repaint()
     if not isinstance(picture,Picture):
-        repValError("repaint(picture): Input is not a picture")
+        repTypeError("repaint(picture): Input is not a picture")
         #raise ValueError
     picture.repaint()
 
@@ -2249,10 +2253,10 @@ def addLine(picture, x1, y1, x2, y2, acolor=black):
     Developer documentation:
     '''
     if not isinstance(picture, Picture):
-        repValError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
+        repTypeError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
+        repTypeError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
         #raise ValueError
     ##g = picture.getBufferedImage().createGraphics()
     ##g.setColor(acolor.color)
@@ -2263,10 +2267,10 @@ def addLine(picture, x1, y1, x2, y2, acolor=black):
 # Draw a line on the pixmap.
 def addLine1(pixmap,x1,y1,x2,y2,col=black):
     if not isinstance(pixmap, QPixmap):
-        repValError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
+        repTypeError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(col, Color):
-        repValError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
+        repTypeError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
         #raise ValueError
     painter = QPainter()
     painter.begin(pixmap)
@@ -2313,10 +2317,10 @@ def addText(picture, x, y, string, acolor=black):
     Developer documentation:
     '''
     if not isinstance(picture, Picture):
-        repValError("addText(picture, x, y, string[, color]): First input is not a picture")
+        repTypeError("addText(picture, x, y, string[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addText(picture, x, y, string[, color]): Last input is not a color")
+        repTypeError("addText(picture, x, y, string[, color]): Last input is not a color")
         #raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
@@ -2339,11 +2343,11 @@ def addTextWithStyle(picture, x, y, string, style, acolor=black):
         :param acolor: the color you want to draw in (optional)
     """
     if not isinstance(picture, Picture):
-        repValError("addTextWithStyle(picture, x, y, string, style[, color]): First input is not a picture")
+        repTypeError("addTextWithStyle(picture, x, y, string, style[, color]): First input is not a picture")
     if not isinstance(style, QFont):
-        repValError("addTextWithStyle(picture, x, y, string, style[, color]): Input is not a style (see makeStyle)")
+        repTypeError("addTextWithStyle(picture, x, y, string, style[, color]): Input is not a style (see makeStyle)")
     if not isinstance(acolor, Color):
-        repValError("addTextWithStyle(picture, x, y, string, style[, color]): Last input is not a color")
+        repTypeError("addTextWithStyle(picture, x, y, string, style[, color]): Last input is not a color")
     picture.addText(acolor,x,y,string,style)
 
 #Done
@@ -2378,10 +2382,10 @@ def addRect(picture, x,y,w,h, acolor=black):
     Developer documentation:
     '''
     if not isinstance(picture, Picture):
-        repValError("addRect(picture, x, y, w, h[, color]): First input is not a picture")
+        repTypeError("addRect(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addRect(picture, x, y, w, h[, color]): Last input is not a color")
+        repTypeError("addRect(picture, x, y, w, h[, color]): Last input is not a color")
         #raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
@@ -2420,10 +2424,10 @@ def addRectFilled(picture,x,y,w,h, acolor=black):
     Developer documentation:
     '''
     if not isinstance(picture,Picture):
-        repValError("addRectFilled(picture, x, y, w, h[, color]): First input is not a picture")
+        repTypeError("addRectFilled(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addRectFilled(picture, x, y, w, h[, color]): Last input is not a color")
+        repTypeError("addRectFilled(picture, x, y, w, h[, color]): Last input is not a color")
         #raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
@@ -2465,10 +2469,10 @@ def addOval(picture, x,y,w,h, acolor=black):
     Developer documentation:
     '''
     if not isinstance(picture, Picture):
-        repValError("addOval(picture, x, y, w, h[, color]): First input is not a picture")
+        repTypeError("addOval(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addOval(picture, x, y, w, h[, color]): Last input is not a color")
+        repTypeError("addOval(picture, x, y, w, h[, color]): Last input is not a color")
         #raise ValueError
     ##g = picture.getBufferedImage().getGraphics()
     ##g.setColor(acolor.color)
@@ -2509,10 +2513,10 @@ def addOvalFilled(picture,x,y,w,h,acolor=black):
     Developer documentation:
     '''
     if not isinstance(picture,Picture):
-        repValError("addOvalFilled(picture, x, y, w, h[, color]): First input is not a picture")
+        repTypeError("addOvalFilled(picture, x, y, w, h[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addOvalFilled(picture, x, y, w, h[, color]): Last input is not a color")
+        repTypeError("addOvalFilled(picture, x, y, w, h[, color]): Last input is not a color")
         #raise ValueError
     picture.addOval(acolor,x,y,w,h,True)
 
@@ -2536,10 +2540,10 @@ def addArc(picture,x,y,w,h,start,angle,acolor=black):
         :param color: the color you want to draw in (optional)a
     """
     if not isinstance(picture,Picture):
-        repValError("addArc(picture, x, y, w, h, start, angle[, color]): First input is not a picture")
+        repTypeError("addArc(picture, x, y, w, h, start, angle[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addArc(picture, x, y, w, h[, color]): Last input is not a color")
+        repTypeError("addArc(picture, x, y, w, h[, color]): Last input is not a color")
         #raise ValueError
     picture.addArc(acolor,x,y,w,h,start,angle,False)
 
@@ -2562,10 +2566,10 @@ def addArcFilled(picture,x,y,w,h,start,angle,acolor=black):
         :param color: the color you want to draw in (optional)
     """
     if not isinstance(picture,Picture):
-        repValError("addArcFilled(picture, x, y, w, h[, color]): First First input is not a picture")
+        repTypeError("addArcFilled(picture, x, y, w, h[, color]): First First input is not a picture")
         #raise ValueError
     if not isinstance(acolor, Color):
-        repValError("addArcFill(picture, x, y, w, h[, color]): Last input is not a color")
+        repTypeError("addArcFill(picture, x, y, w, h[, color]): Last input is not a color")
         #raise ValueError
     picture.addArc(acolor,x,y,w,h,start,angle,True)
 
@@ -2602,7 +2606,7 @@ def getPixel(picture,x,y):
     Developer documentation:
     '''
     if not isinstance(picture, Picture):
-        repValError("getPixel(picture,x,y): First input is not a picture")
+        repTypeError("getPixel(picture,x,y): First input is not a picture")
         #raise ValueError
     # if ( x < Picture._PictureIndexOffset ) or ( x > getWidth(picture) - 1 + Picture._PictureIndexOffset ):
     #     print("getPixel(picture,x,y): x (= %s) is less than %s or bigger than the width (= %s)" % (x,Picture._PictureIndexOffset,getWidth(picture) - 1 + Picture._PictureIndexOffset)
@@ -2638,14 +2642,14 @@ def getPixelAt(picture,x,y):
 def setRed(pixel,value):
     #value = _checkPixel(value)
     if not isinstance(pixel, Pixel):
-        repValError("setRed(pixel,value): Input is not a pixel")
+        repTypeError("setRed(pixel,value): Input is not a pixel")
         #raise ValueError
     pixel.setRed(value)
 
 #Done
 def getRed(pixel):
     if not isinstance(pixel, Pixel):
-        repValError("getRed(pixel): Input is not a pixel")
+        repTypeError("getRed(pixel): Input is not a pixel")
         #raise ValueError
     return pixel.getRed()
 
@@ -2653,14 +2657,14 @@ def getRed(pixel):
 def setBlue(pixel,value):
     #value = _checkPixel(value)
     if not isinstance(pixel, Pixel):
-        repValError("setBlue(pixel,value): Input is not a pixel")
+        repTypeError("setBlue(pixel,value): Input is not a pixel")
         #raise ValueError
     pixel.setBlue(value)
 
 #Done
 def getBlue(pixel):
     if not isinstance(pixel,Pixel):
-        repValError("getBlue(pixel): Input is not a pixel")
+        repTypeError("getBlue(pixel): Input is not a pixel")
         #raise ValueError
     return pixel.getBlue()
 
@@ -2668,41 +2672,41 @@ def getBlue(pixel):
 def setGreen(pixel,value):
     #value = _checkPixel(value)
     if not isinstance(pixel, Pixel):
-        repValError("setGreen(pixel,value): Input is not a pixel")
+        repTypeError("setGreen(pixel,value): Input is not a pixel")
         #raise ValueError
     pixel.setGreen(value)
 
 def getGreen(pixel):
     if not isinstance(pixel, Pixel):
-        repValError("getGreen(pixel): Input is not a pixel")
+        repTypeError("getGreen(pixel): Input is not a pixel")
         #raise ValueError
     return pixel.getGreen()
 
 #Done
 def getColor(pixel):
     if not isinstance(pixel, Pixel):
-        repValError("getColor(pixel): Input is not a pixel")
+        repTypeError("getColor(pixel): Input is not a pixel")
         #raise ValueError
     return pixel.getColor()
 
 def setColor(pixel,color):
     if not isinstance(pixel, Pixel):
-        repValError("setColor(pixel,color): First input is not a pixel")
+        repTypeError("setColor(pixel,color): First input is not a pixel")
         #raise ValueError
     if not isinstance(color, Color):
-        repValError("setColor(pixel,color): Second input is not a color")
+        repTypeError("setColor(pixel,color): Second input is not a color")
         #raise ValueError
     pixel.setColor(color)
 
 def getX(pixel):
     if not isinstance(pixel, Pixel):
-        repValError("getX(pixel): Input is not a pixel")
+        repTypeError("getX(pixel): Input is not a pixel")
         #raise ValueError
     return pixel.getX()# + Picture._PictureIndexOffset
 
 def getY(pixel):
     if not isinstance(pixel,Pixel):
-        repValError("getY(pixel): Input is not a pixel")
+        repTypeError("getY(pixel): Input is not a pixel")
         #raise ValueError
     return pixel.getY()# + Picture._PictureIndexOffset
 
@@ -2720,10 +2724,10 @@ def distance(c1,c2):
                 distance between the colors
     """
     if not isinstance(c1, Color):
-        repValError("distance(c1,c2): First input is not a color")
+        repTypeError("distance(c1,c2): First input is not a color")
         #raise ValueError
     if not isinstance(c2, Color):
-        repValError("distance(c1,c2): Second input is not a color")
+        repTypeError("distance(c1,c2): Second input is not a color")
         #raise ValueError
     return c1.distance(c2)
 
@@ -2742,7 +2746,7 @@ def writePictureTo(picture,filename):
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
     if not isinstance(picture, Picture):
-        repValError("writePictureTo(picture,filename): First input is not a picture")
+        repTypeError("writePictureTo(picture,filename): First input is not a picture")
         #raise ValueError
     picture.writeOrFail(filename)
     if not os.path.exists(filename):
@@ -2781,7 +2785,7 @@ def makeDarker(color):
         :return: the new, darker color
     """
     if not isinstance(color,Color):
-        repValError("makeDarker(color): Input is not a color")
+        repTypeError("makeDarker(color): Input is not a color")
         #raise ValueError("makeDarker(color): Input is not a color")
     return Color( color.makeDarker() )
 
@@ -2799,7 +2803,7 @@ def makeLighter(color):
         :return: the new, lighter color
     """
     if not isinstance(color,Color):
-        repValError("makeLighter(color): Input is not a color")
+        repTypeError("makeLighter(color): Input is not a color")
         #raise ValueError("makeLighter(color): Input is not a color")
     return Color( color.makeLighter() )
 
@@ -2813,7 +2817,7 @@ def makeBrighter(color):
         :return: the new, brighter color
     """
     if not isinstance(color,Color):
-        repValError("makeBrighter(color): Input is not a color")
+        repTypeError("makeBrighter(color): Input is not a color")
         #raise ValueError("makeBrighter(color): Input is not a color")
     return Color( color.makeLighter() )
 
@@ -2843,10 +2847,10 @@ def setAllPixelsToAColor(picture,color):
         :param color: the color to set each pixel to
     """
     if not isinstance(picture, Picture):
-        repValError("setAllPixelsToAColor(picture,color): First input is not a picture")
+        repTypeError("setAllPixelsToAColor(picture,color): First input is not a picture")
         #raise ValueError("setAllPixelsToAColor(picture,color): First input is not a picture")
     if not isinstance(color,Color):
-        repValError("setAllPixelsToAColor(picture,color): Second input is not a color")
+        repTypeError("setAllPixelsToAColor(picture,color): Second input is not a color")
         #raise ValueError("setAllPixelsToAColor(picture,color): Second input is not a color")
     picture.setAllPixelsToAColor(color)
 
@@ -2866,10 +2870,10 @@ def copyInto(smallPicture, bigPicture, startX, startY):
     """
     #like copyInto(butterfly, jungle, 20,20)
     if not isinstance(smallPicture, Picture):
-        repValError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
+        repTypeError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
         #raise ValueError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
     if not isinstance(bigPicture, Picture):
-        repValError("copyInto(smallPicture, bigPicture, startX, startY): bigPicture must be a picture")
+        repTypeError("copyInto(smallPicture, bigPicture, startX, startY): bigPicture must be a picture")
         #raise ValueError
     if (startX < 0) or (startX > getWidth(bigPicture) - 1):
         repValError("copyInto(smallPicture, bigPicture, startX, startY): startX must be within the bigPicture")
@@ -2895,10 +2899,10 @@ def copyInto(smallPicture, bigPicture, startX, startY):
 def copyIntoWithCutoff(smallPicture, bigPicture, startX, startY):
     #like copyInto(butterfly, jungle, 20,20)
     if not isinstance(smallPicture, Picture):
-        repValError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
+        repTypeError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
         #raise ValueError("copyInto(smallPicture, bigPicture, startX, startY): smallPicture must be a picture")
     if not isinstance(bigPicture, Picture):
-        repValError("copyInto(smallPicture, bigPicture, startX, startY): bigPicture must be a picture")
+        repTypeError("copyInto(smallPicture, bigPicture, startX, startY): bigPicture must be a picture")
         #raise ValueError
 
     xOffset = startX
@@ -2937,7 +2941,7 @@ def duplicatePicture(picture):
         :return: a new picture object with the same image as the original
     """
     if not isinstance(picture, Picture):
-        repValError("duplicatePicture(picture): Input is not a picture")
+        repTypeError("duplicatePicture(picture): Input is not a picture")
         #raise ValueError
     return Picture(picture)
 
@@ -4249,7 +4253,7 @@ def playMovie(movie):
         :param movie: the movie object to be playe
     """
     if not isinstance(movie, Movie):
-        repValError("playMovie(movie): movie is not a Movie object.")
+        repTypeError("playMovie(movie): movie is not a Movie object.")
     movie.play()
     
 
