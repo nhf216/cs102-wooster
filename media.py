@@ -374,10 +374,10 @@ class Sound:
             #self.file = QFile(self.fileName)
             #Get the metadata
             wav = wave.open(self.fileName)
-            self.numSamples = wav.getnframes()
             self.sampleRate = wav.getframerate()
             self.sampleSize = wav.getsampwidth() * 8
             self.numChannels = wav.getnchannels()
+            self.numSamples = wav.getnframes()*self.numChannels
             #Get the raw data
             self.data = bytearray(wav.readframes(self.numSamples))
             wav.close()
@@ -413,6 +413,14 @@ class Sound:
         self.setUpSampleObjects()
         # #For blocking play
         # self.blockEvent = None
+        if self.numChannels == 2:
+            print("Warning: Your sound is stereo")
+        if self.sampleRate != Sound.SAMPLE_RATE:
+            print("Warning: Your sound does not have sample rate %d; it's %d"%\
+                (Sound.SAMPLE_RATE, self.sampleRate))
+        if self.sampleSize != Sound.SAMPLE_SIZE:
+            print("Warning: Your sound does not have sample size %d; it's %d"%\
+                (Sound.SAMPLE_SIZE, self.sampleSize))
     
     def setUpFormat(self):
         #Create the audio format
@@ -424,8 +432,13 @@ class Sound:
         #This is a WAV thing
         if self.sampleSize == 8:
             self.format.setSampleType(QAudioFormat.UnSignedInt)
-        elif self.sampleSize == 16:
+            self.min_sample = 0
+            self.max_sample = 256
+        #elif self.sampleSize == 16:
+        else:
             self.format.setSampleType(QAudioFormat.SignedInt)
+            self.min_sample = -2**(self.sampleSize-1)
+            self.max_sample = 2**(self.sampleSize-1)-1
         self.format.setByteOrder(QAudioFormat.LittleEndian)
         #print(self.sampleRate, self.sampleSize, self.numChannels)
     
@@ -599,8 +612,10 @@ class Sound:
         def findY(sval):
             if self.sampleSize == 8:
                 return int((-height/256)*sval + height-1)
-            elif self.sampleSize == 16:
-                return int((-height/65536)*sval + height/2)
+            #elif self.sampleSize == 16:
+            #    return int((-height/65536)*sval + height/2)
+            else:
+                return int((-height/(2**self.sampleSize))*sval + height/2)
         
         #Create an empty black picture
         #ret = makeEmptyPicture(width, height, black)
@@ -620,7 +635,8 @@ class Sound:
         #Add the zero line
         if self.sampleSize == 8:
             addLine1(ret, 0, height-1, width-1, height-1, cyan)
-        elif self.sampleSize == 16:
+        #elif self.sampleSize == 16:
+        else:
             addLine1(ret, 0, height//2, width-1, height//2, cyan)
         
         return ret
@@ -641,9 +657,12 @@ class Sound:
         if self.sampleSize == 8:
             #This is easy
             val = int(self.data[i])
-        elif self.sampleSize == 16:
+        #elif self.sampleSize == 16:
+        else:
             #This is harder
-            val = int.from_bytes(self.data[2*i:2*i+2], 'little', signed=True)
+            #val = int.from_bytes(self.data[2*i:2*i+2], 'little', signed=True)
+            nbytes = self.sampleSize//8
+            val = int.from_bytes(self.data[nbytes*i:nbytes*i+nbytes], 'little', signed=True)
             # val = self.data[2*i] * 256 + self.data[2*i+1]
             # if val >= 32768:
             #     #Need to make it be negative
@@ -673,10 +692,14 @@ class Sound:
     def setSampleValue(self, pos, value):
         #Clipping
         val = value
-        if val < -32768:
-            val = -32768
-        elif val > 32767:
-            val = 32767
+        if val < self.min_sample:
+            val = self.min_sample
+        elif val > self.max_sample:
+            val = self.max_sample
+        # if val < -32768:
+        #     val = -32768
+        # elif val > 32767:
+        #     val = 32767
         self.samples[pos].setValue(val)
     
     #Set the value of the sample at position pos to value
@@ -687,7 +710,8 @@ class Sound:
         if self.sampleSize == 8:
             #This is easy
             self.data[pos] = value
-        elif self.sampleSize == 16:
+        #elif self.sampleSize == 16:
+        else:
             #This is harder
             # #First, un-two's-complement it
             # val = value
@@ -699,8 +723,11 @@ class Sound:
             # #Finally, set the data
             # self.data[2*pos] = hiByte
             # self.data[2*pos+1] = loByte
-            val = value.to_bytes(2, 'little', signed=True)
-            self.data[2*pos:2*pos+2]  = val
+            nbytes = self.sampleSize//8
+            val = value.to_bytes(nbytes, 'little', signed=True)
+            self.data[nbytes*pos:nbytes*pos+nbytes]  = val
+            #val = value.to_bytes(2, 'little', signed=True)
+            #self.data[2*pos:2*pos+2]  = val
     
     #What is the sample size, in bits? 
     #the maximum amplitude (sample value) to be stored (in bits) at each sample (max value for 16 bits is 32767)
@@ -730,6 +757,17 @@ class Sound:
         #     a = 1
         # self.setSamplingRate(1.0/rate)
         # self.setUpFormat()
+    
+    #Print the metadata of the sound
+    def printMetadata(self):
+        if self.numChannels == 2:
+            print("Num Samples: %d (%d per channel)"%\
+                (self.numSamples, self.numSamples//2))
+        else:
+            print("Num Samples: %d"%self.numSamples)
+        print("Sample Rate: %d"%self.sampleRate)
+        print("Sample Size: %d"%self.sampleSize)
+        print("Num Channels: %d"%self.numChannels)
  
                                    
 ##
@@ -833,6 +871,21 @@ def duplicateSound(sound):
         repTypeError("duplicateSound(sound): Input is not a sound")
     return Sound(sound)
 
+#NEW
+#Print the metadata of a Sound
+def printSoundMetadata(sound):
+    """
+        Takes a sound as input and displays the number of samples, sample rate,
+        sample size, and number of channels (1 or 2) of the sound.
+
+        :param sound: A Sound, the sound you want to extract the samples from
+        :return: A collection of all the samples in the sound
+    """
+    if not isinstance(sound, Sound):
+        #print("getSamples(sound): Input is not a sound")
+        #raise ValueError
+        repTypeError("getSoundMetadata(sound): Input is not a sound")
+    sound.printMetadata()
 
 #Done
 def getSamples(sound):
