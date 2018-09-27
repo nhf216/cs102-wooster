@@ -78,7 +78,7 @@ import tempfile
 import numbers
 import threading
 import collections
-import numbers
+#import numbers
 import time
 #import traceback
 #import user
@@ -92,17 +92,20 @@ import PIL
 #from platform import system as platform
 
 #Use Qt for everything
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtMultimedia import * #This is for sound/video (video later)
+#from PyQt4.QtGui import *
+import PyQt4.QtGui as QtGui
+#from PyQt4.QtCore import *
+import PyQt4.QtCore as QtCore
+#from PyQt4.QtMultimedia import * #This is for sound/video
+import PyQt4.QtMultimedia as QtMultimedia
 import wave #This is for reading sound file metadata
 # Create an PyQT4 application object.
 #If we're running in Canopy, there already is one
-root = QApplication.instance()
+root = QtGui.QApplication.instance()
 if root is None:
     #We're not running in Canopy
     #Need to launch a new application
-    root = QApplication(sys.argv)
+    root = QtGui.QApplication(sys.argv)
 #import tkinter
 #from tkinter import filedialog
 #from tkinter.colorchooser import askcolor
@@ -132,7 +135,7 @@ false = 0
 keepAround = []
 
 #Check supported image types
-suppTypes = QImageReader.supportedImageFormats()
+suppTypes = QtGui.QImageReader.supportedImageFormats()
 supportedImageTypes = set([])
 for typ in suppTypes:
     supportedImageTypes.add(str(typ)[2:-1])
@@ -301,7 +304,7 @@ def recursive_str(val):
 def sleep(secs):
     cur_time = time.time()
     while time.time() - cur_time < secs:
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
 #Sample class
 #A Sample knows its value, its position, and the Sound it's from
@@ -346,7 +349,7 @@ class Sound:
     SAMPLE_SIZE = 16
     
     #Default audio output device
-    AUDIO_DEVICE = QAudioDeviceInfo.defaultOutputDevice()
+    AUDIO_DEVICE = QtMultimedia.QAudioDeviceInfo.defaultOutputDevice()
     
     #Constructor
     def __init__(self, arg1, arg2 = None):
@@ -424,22 +427,22 @@ class Sound:
     
     def setUpFormat(self):
         #Create the audio format
-        self.format = QAudioFormat()
+        self.format = QtMultimedia.QAudioFormat()
         self.format.setCodec('audio/pcm')
         self.format.setSampleRate(self.sampleRate)
         self.format.setSampleSize(self.sampleSize)
         self.format.setChannelCount(self.numChannels)
         #This is a WAV thing
         if self.sampleSize == 8:
-            self.format.setSampleType(QAudioFormat.UnSignedInt)
+            self.format.setSampleType(QtMultimedia.QAudioFormat.UnSignedInt)
             self.min_sample = 0
             self.max_sample = 256
         #elif self.sampleSize == 16:
         else:
-            self.format.setSampleType(QAudioFormat.SignedInt)
+            self.format.setSampleType(QtMultimedia.QAudioFormat.SignedInt)
             self.min_sample = -2**(self.sampleSize-1)
             self.max_sample = 2**(self.sampleSize-1)-1
-        self.format.setByteOrder(QAudioFormat.LittleEndian)
+        self.format.setByteOrder(QtMultimedia.QAudioFormat.LittleEndian)
         #print(self.sampleRate, self.sampleSize, self.numChannels)
     
     #Convert to string
@@ -483,14 +486,14 @@ class Sound:
         else:
             newStop = stop
                 
-        qba = QByteArray(self.getDataSlice(newStart, newStop))
-        buff = QBuffer(qba)
-        audioOutput = QAudioOutput(Sound.AUDIO_DEVICE, self.format)
+        qba = QtCore.QByteArray(self.getDataSlice(newStart, newStop))
+        buff = QtCore.QBuffer(qba)
+        audioOutput = QtMultimedia.QAudioOutput(Sound.AUDIO_DEVICE, self.format)
         self.buffs.append((buff, qba, audioOutput))
         #print("Still alive")
         #worked = self.file.open(QIODevice.ReadOnly)
         #worked = self.buff.open(QIODevice.ReadOnly)
-        worked = self.buffs[-1][0].open(QIODevice.ReadOnly)
+        worked = self.buffs[-1][0].open(QtCore.QIODevice.ReadOnly)
         if not worked:
             #Clean up the corrupted buffer
             del self.buffs[-1]
@@ -516,7 +519,7 @@ class Sound:
         #self.audioOutput.start(self.file)
         #self.audioOutput.start(self.buffs[-1][0])
         self.buffs[-1][-1].start(self.buffs[-1][0])
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
             #self.isPlaying = True
         #return audioOutput
     
@@ -534,7 +537,7 @@ class Sound:
         # cv.release()
         while len(self.buffs) > 0:
             #Hang around here
-            QApplication.processEvents() #YES!!!!!
+            QtGui.QApplication.processEvents() #YES!!!!!
         #self.blockingEvent.wait()
         #self.blockingEvent = None
         #thrd.join()
@@ -577,7 +580,7 @@ class Sound:
             #     #Wake up the block!
             #     self.blockingEvent.set()
         finally:
-            QApplication.processEvents()
+            QtGui.QApplication.processEvents()
             #Release the lock
             self.cleanupLock.release()
     
@@ -587,7 +590,7 @@ class Sound:
         #print("yo", state)
         #state = self.audioOutput.state()
         #Is it finished?
-        if state == QAudio.IdleState:
+        if state == QtMultimedia.QAudio.IdleState:
             # self.audioOutput.stop()
             # #self.file.close()
             # self.buff.close()
@@ -621,8 +624,8 @@ class Sound:
         #ret = makeEmptyPicture(width, height, black)
         #(Hieu) using QPixmap instead of creating a Picture object !!!!!!
         #ret = makeEmptyPicture2(width, height, black)
-        ret = QPixmap(width,height)
-        ret.fill(QColor(*black.getRGB()))
+        ret = QtGui.QPixmap(width,height)
+        ret.fill(QtGui.QColor(*black.getRGB()))
         
         #Add the waveform, adjusted for proper step size
         lastY = findY(getSampleValueAt(self, 0))
@@ -1306,7 +1309,7 @@ def makeStyle(fontName,emph,size):
         :param size: the size of the font you want in the style
         :return: the style made from the inputs
     """
-    ret = QFont()
+    ret = QtGui.QFont()
     #ret.setStyleName(fontName)
     ret.setPointSize(size)
     #if emph == sansSerif or emph == serif or emph == mono:
@@ -1318,12 +1321,12 @@ def makeStyle(fontName,emph,size):
         ret.setWeight(emph)
     return ret
 
-sansSerif = QFont.SansSerif
-serif = QFont.Serif
-mono = QFont.Monospace
-italic = QFont.StyleItalic
-bold = QFont.Bold
-plain = QFont.Normal
+sansSerif = QtGui.QFont.SansSerif
+serif = QtGui.QFont.Serif
+mono = QtGui.QFont.Monospace
+italic = QtGui.QFont.StyleItalic
+bold = QtGui.QFont.Bold
+plain = QtGui.QFont.Normal
 
 ##
 ## Global color functions
@@ -1372,13 +1375,13 @@ class Color:
                 self.r = r.getRed()
                 self.g = r.getGreen()
                 self.b = r.getBlue()
-            elif isinstance(r, QColor):
+            elif isinstance(r, QtGui.QColor):
                 self.r = r.red()
                 self.g = r.green()
                 self.b = r.blue()
             elif isinstance(r, int):
                 #This case is necessary because of how QImage.pixel() works
-                cl = QColor(r)
+                cl = QtGui.QColor(r)
                 self.r = cl.red()
                 self.g = cl.green()
                 self.b = cl.blue()
@@ -1528,7 +1531,7 @@ class Color:
     
     #Convert to QColor
     def toQColor(self):
-        return QColor(*self.getRGB())
+        return QtGui.QColor(*self.getRGB())
     
     #Convert to color integer
     def toQColorInt(self):
@@ -1572,7 +1575,7 @@ def pickAColor():
     # col = askcolor()
     # root.update()
     # root.destroy()
-    col = QColorDialog.getColor()
+    col = QtGui.QColorDialog.getColor()
     #return Color(int(col[0][0]), int(col[0][1]), int(col[0][2]))
     return Color(col)
 
@@ -1683,10 +1686,6 @@ class Pixel:
         self.color = Color(self.color.getRed(), self.color.getGreen(), b)
         self.updatePicture()
     
-    #Get color
-    def getColor(self):
-        return self.color
-    
     #Get x
     def getX(self):
         return self.x
@@ -1710,7 +1709,7 @@ class Picture:
             self.height = width.image.height()
             self.width = width.image.width()
             self.filename = width.filename
-            self.image = QImage(width.image)
+            self.image = QtGui.QImage(width.image)
         else:
             #We're making a blank picture
             self.filename = None
@@ -1719,16 +1718,16 @@ class Picture:
             if height != None:
                 if isinstance(aColor, Color):
                     col = aColor.getRGB()
-                elif isinstance(aColor, QColor):
+                elif isinstance(aColor, QtGui.QColor):
                     col = (aColor.red(), aColor.green(), aColor.blue())
                 else:
                     col = aColor
                 #Qt image
-                self.image = QImage(width, height, QImage.Format_RGB32)
+                self.image = QtGui.QImage(width, height, QtGui.QImage.Format_RGB32)
                 if col is not None:
-                    self.image.fill(QColor(*col))
+                    self.image.fill(QtGui.QColor(*col))
         #Set up a window for displaying it
-        self.window = QWidget()
+        self.window = QtGui.QWidget()
         if self.filename == None:
             self.title = "Image"
             #self.window.setWindowTitle("Image")
@@ -1736,7 +1735,7 @@ class Picture:
             self.title = self.filename
             #self.window.setWindowTitle(self.filename)
         self.window.setWindowTitle(self.title)
-        self.picLabel = QLabel(self.window)
+        self.picLabel = QtGui.QLabel(self.window)
         #self.frame = None
         if self.height != None:
             self.window.resize(self.width, self.height)
@@ -1782,7 +1781,7 @@ class Picture:
                 self.workfile = filename
             #self.image = PIL.Image.open(filename)
             #Load the QImage
-            self.image = QImage(self.workfile)
+            self.image = QtGui.QImage(self.workfile)
             if self.image.isNull():
                 #Load failed
                 #raise IOError
@@ -1798,7 +1797,7 @@ class Picture:
     
     #Set all pixels to a color
     def setAllPixelsToAColor(self, col):
-        self.image.fill(QColor(*col.getRGB()))
+        self.image.fill(QtGui.QColor(*col.getRGB()))
     
     #Get Pixels
     def getPixels(self):
@@ -1870,7 +1869,7 @@ class Picture:
         #So, we'll convert to and return a PIL image
         #This is very hack-ish
         #img = QImage("/tmp/example.png")
-        img = QImage(self.image)
+        img = QtGui.QImage(self.image)
         #Create a temporary file
         tmpfl = tempfile.mkstemp(suffix = '.png')
         #print(tmpfl)
@@ -1899,7 +1898,7 @@ class Picture:
         if title != None:
             self.window.setWindowTitle(title)
         
-        pixmap = QPixmap.fromImage(self.image)
+        pixmap = QtGui.QPixmap.fromImage(self.image)
         self.picLabel.setPixmap(pixmap)
         
         # Show window
@@ -1907,7 +1906,7 @@ class Picture:
         self.window.activateWindow()
         self.window.raise_()
         self.window.activateWindow()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
         
         #second.geometry("%dx%d" % (self.width, self.height))
         #root.lift()
@@ -1932,40 +1931,40 @@ class Picture:
     
     #Repaint the picture
     def repaint(self):
-        pixmap = QPixmap.fromImage(self.image)
+        pixmap = QtGui.QPixmap.fromImage(self.image)
         self.picLabel.setPixmap(pixmap)
         self.window.update()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
     
     #Copy the picture other into this one at position (x,y) for upper left
     def copyInto(self, other, x, y):
-        painter = QPainter()
+        painter = QtGui.QPainter()
         painter.begin(self.image)
         painter.drawImage(x, y, other.image)
         painter.end()
     
     #Draw a line on the picture 
     def addLine(self, col, x1, y1, x2, y2):
-        painter = QPainter()
+        painter = QtGui.QPainter()
         painter.begin(self.image)
-        painter.setPen(QColor(*col.getRGB()))
+        painter.setPen(QtGui.QColor(*col.getRGB()))
         painter.drawLine(x1, y1, x2, y2)
         painter.end()
     
     #Draw text on the picture
     def addText(self, col, x, y, string, font = None):
-        painter = QPainter()
+        painter = QtGui.QPainter()
         painter.begin(self.image)
         if font is not None:
             painter.setFont(font)
-        painter.setPen(QColor(*col.getRGB()))
+        painter.setPen(QtGui.QColor(*col.getRGB()))
         painter.drawText(x, y, string)
         painter.end()
     
     #Draw a rectangle on the picture
     def addRect(self, col, x, y, w, h, isFilled):
-        painter = QPainter()
-        qcol = QColor(*col.getRGB())
+        painter = QtGui.QPainter()
+        qcol = QtGui.QColor(*col.getRGB())
         painter.begin(self.image)
         painter.setPen(qcol)
         if isFilled:
@@ -1976,24 +1975,24 @@ class Picture:
     
     #Draw an oval on the picture
     def addOval(self, col, x, y, w, h, isFilled):
-        painter = QPainter()
-        qcol = QColor(*col.getRGB())
+        painter = QtGui.QPainter()
+        qcol = QtGui.QColor(*col.getRGB())
         painter.begin(self.image)
         painter.setPen(qcol)
         if isFilled:
-            painter.setBrush(QBrush(qcol))
+            painter.setBrush(QtGui.QBrush(qcol))
             #painter.fillRect(x, y, w, h, qcol)
         #else:
         painter.drawEllipse(x, y, w, h)
         painter.end()
     
     def addArc(self, col, x, y, w, h, start, angle, isFilled):
-        painter = QPainter()
-        qcol = QColor(*col.getRGB())
+        painter = QtGui.QPainter()
+        qcol = QtGui.QColor(*col.getRGB())
         painter.begin(self.image)
         painter.setPen(qcol)
         if isFilled:
-            painter.setBrush(QBrush(qcol))
+            painter.setBrush(QtGui.QBrush(qcol))
             #*16 because these functions use 16ths of degrees
             painter.drawPie(x, y, w, h, start*16, angle*16)
         else:
@@ -2319,15 +2318,15 @@ def addLine(picture, x1, y1, x2, y2, acolor=black):
 # Using for getImageRep
 # Draw a line on the pixmap.
 def addLine1(pixmap,x1,y1,x2,y2,col=black):
-    if not isinstance(pixmap, QPixmap):
+    if not isinstance(pixmap, QtGui.QPixmap):
         repTypeError("addLine(picture, x1, y1, x2, y2[, color]): First input is not a picture")
         #raise ValueError
     if not isinstance(col, Color):
         repTypeError("addLine(picture, x1, y1, x2, y2[, color]): Last input is not a color")
         #raise ValueError
-    painter = QPainter()
+    painter = QtGui.QPainter()
     painter.begin(pixmap)
-    painter.setPen(QColor(*col.getRGB()))
+    painter.setPen(QtGui.QColor(*col.getRGB()))
     if (x1 < 0):
         x1 = 0
     if (y1 < 0):
@@ -2397,7 +2396,7 @@ def addTextWithStyle(picture, x, y, string, style, acolor=black):
     """
     if not isinstance(picture, Picture):
         repTypeError("addTextWithStyle(picture, x, y, string, style[, color]): First input is not a picture")
-    if not isinstance(style, QFont):
+    if not isinstance(style, QtGui.QFont):
         repTypeError("addTextWithStyle(picture, x, y, string, style[, color]): Input is not a style (see makeStyle)")
     if not isinstance(acolor, Color):
         repTypeError("addTextWithStyle(picture, x, y, string, style[, color]): Last input is not a color")
@@ -3032,7 +3031,7 @@ def requestNumber(message, minn=-2147483647, maxx=2147483647, dec=15):
         :return: the number as a double
     """
     #return SimpleInput.getNumber(message)
-    tpl = QInputDialog.getDouble(None, "Please enter a number", message,\
+    tpl = QtGui.QInputDialog.getDouble(None, "Please enter a number", message,\
         decimals=dec, min=minn, max=maxx)
     if tpl[1]:
         return tpl[0]
@@ -3049,7 +3048,7 @@ def requestInteger(message, minn=-2147483647, maxx=2147483647, stp=1):
         :return: the number as an integer
     """
     #return SimpleInput.getIntNumber(message)
-    tpl = QInputDialog.getInt(None, "Please enter an integer", message,\
+    tpl = QtGui.QInputDialog.getInt(None, "Please enter an integer", message,\
         step=stp, min=minn, max=maxx)
     if tpl[1]:
         return tpl[0]
@@ -3083,7 +3082,7 @@ def requestString(message):
         :param message: the message to display to the user in the dialog
         :return: the input string
     """
-    tpl = QInputDialog.getText(None, "Please enter some text", message)
+    tpl = QtGui.QInputDialog.getText(None, "Please enter some text", message)
     if tpl[1]:
         return tpl[0]
     else:
@@ -3106,7 +3105,7 @@ def showWarning(message):
 
         :param message: the message to show to the user
     """
-    QMessageBox.warning(None, "Warning!", message)
+    QtGui.QMessageBox.warning(None, "Warning!", message)
 
 #Done
 def showInformation(message):
@@ -3115,7 +3114,7 @@ def showInformation(message):
         
         :param message: the message to show to the user
     """
-    QMessageBox.information(None, "Info", message)
+    QtGui.QMessageBox.information(None, "Info", message)
 
 #Done
 def showError(message):
@@ -3124,7 +3123,7 @@ def showError(message):
         
         :param message: the message to show to the user
     """
-    QMessageBox.critical(None, "Error!!", message)
+    QtGui.QMessageBox.critical(None, "Error!!", message)
 
 # 
 # ##
@@ -3175,7 +3174,7 @@ def pickAFile(sdir = None):
         our_dir = mediaFolder
     else:
         our_dir = os.getcwd()
-    ret = QFileDialog.getOpenFileName(directory = our_dir)
+    ret = QtGui.QFileDialog.getOpenFileName(directory = our_dir)
     if ret == '':
         ret = None
     if ret is not None:
@@ -3212,7 +3211,7 @@ def pickASaveFile(sdir = None):
         our_dir = mediaFolder
     else:
         our_dir = os.getcwd()
-    ret = QFileDialog.getSaveFileName(directory = our_dir)
+    ret = QtGui.QFileDialog.getSaveFileName(directory = our_dir)
     if ret == '':
         ret = None
     if ret is not None:
@@ -3253,7 +3252,7 @@ def pickAFolder(sdir = None):
         our_dir = mediaFolder
     else:
         our_dir = os.getcwd()
-    dirc = QFileDialog.getExistingDirectory(directory = our_dir)
+    dirc = QtGui.QFileDialog.getExistingDirectory(directory = our_dir)
     if dirc == '':
         dirc = None
     if dirc is not None:
@@ -3273,30 +3272,31 @@ COL_BLOCK_SIZE = 20
 
 
 #Need this mini-class for registering mouse clicks on picture in explorer
-class ClickableLabel(QLabel):
+class ClickableLabel(QtGui.QLabel):
     #Need to include the explorer so we can talk to it
     def __init__(self, parent, pexplore):
         super().__init__(parent)
         self.pexplore = pexplore
-        self.rubberBand = QRubberBand(QRubberBand.Rectangle, self)
-        self.origin = QPoint()
+        self.rubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, self)
+        self.origin = QtCore.QPoint()
     
     #Here's where the mouse click is registered
-    def mousePressEvent(self, QMouseEvent):
-        if QMouseEvent.button() == Qt.LeftButton:
-            self.dragStartPosition = QMouseEvent.pos()
-            self.clickPosition = QMouseEvent.pos()
-            self.origin = QPoint(QMouseEvent.pos())
+    def mousePressEvent(self, mouseEvent):
+        if mouseEvent.button() == QtCore.Qt.LeftButton:
+            self.dragStartPosition = mouseEvent.pos()
+            self.clickPosition = mouseEvent.pos()
+            self.origin = QtCore.QPoint(mouseEvent.pos())
     
-    def mouseMoveEvent(self, QMouseEvent):
+    def mouseMoveEvent(self, mouseEvent):
         if not self.origin.isNull():
-            self.pexplore.mouseDraged(self.dragStartPosition,QMouseEvent.pos())
-            self.mouseMovePos = QMouseEvent.pos()
+            self.pexplore.mouseDraged(self.dragStartPosition,mouseEvent.pos())
+            self.mouseMovePos = mouseEvent.pos()
         
-    def mouseReleaseEvent(self, QMouseEvent):
-        if QMouseEvent.button() == Qt.LeftButton:
+    def mouseReleaseEvent(self, mouseEvent):
+        if mouseEvent.button() == QtCore.Qt.LeftButton:
             # Single-clicked
-            if ((QMouseEvent.pos() - self.dragStartPosition).manhattanLength() < QApplication.instance().startDragDistance()):
+            if ((mouseEvent.pos() - self.dragStartPosition).manhattanLength() <\
+                    QtGui.QApplication.instance().startDragDistance()):
                 self.pexplore.imageClicked(self.clickPosition)
     
     
@@ -3338,7 +3338,7 @@ class Crosshair:
     def render(self):
         #+ sign SIZExSIZE, adaptive color
         w = getWidth(self.pic)
-        h = getHeight(self.pic)
+        #h = getHeight(self.pic)
         #What color is the pixel?
         pcolor = getColor(getPixel(self.pic, self.x, self.y)).getRGB()
         #Is it dark or light?
@@ -3363,7 +3363,7 @@ class Crosshair:
                 self.pic.setPixel(self.x, y, color)
 
 #Emulate the JES Picture Explorer
-class PictureExplorer(QWidget):
+class PictureExplorer(QtGui.QWidget):
     #TODO make look nice
     #TODO box around color block #Done
     #TODO box around picture    #Done
@@ -3376,13 +3376,13 @@ class PictureExplorer(QWidget):
         super().__init__()
         self.setWindowTitle("Image Explorer: " + pic.title)
         self.pic = duplicatePicture(pic)
-        self.fixedPixmap = QPixmap.fromImage(pic.image)
+        self.fixedPixmap = QtGui.QPixmap.fromImage(pic.image)
         self.imageSize = self.fixedPixmap.size()
         # Keeptrack of zoom rate
         self.currentZoomRate = 1
 
         self.drawingPic = duplicatePicture(pic)
-        self.layout = QVBoxLayout()
+        self.layout = QtGui.QVBoxLayout()
         self.setLayout(self.layout)
         #self.window.setLayout(QGridLayout())
         #Starting coords
@@ -3403,7 +3403,7 @@ class PictureExplorer(QWidget):
         self.activateWindow()
         self.raise_()
         self.activateWindow()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
     
     #Update color text and color block
     #based on self.coord_x and self.coord_y
@@ -3414,14 +3414,14 @@ class PictureExplorer(QWidget):
         self.rgblabel.setText("R: " + str(col[0]) + " G: " + str(col[1]) + \
             " B: " + str(col[2]))
         #Color block
-        colimg = QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QImage.Format_RGB32)
-        colimg.fill(QColor(*col))
-        pixmap1 = QPixmap.fromImage(colimg)
+        colimg = QtGui.QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QtGui.QImage.Format_RGB32)
+        colimg.fill(QtGui.QColor(*col))
+        pixmap1 = QtGui.QPixmap.fromImage(colimg)
         self.colLabel.setPixmap(pixmap1)
     
     #Update crosshair position and show it (using addLine1 method)
     def updateCrosshair2(self):
-        drawingPixmap = QPixmap.fromImage(self.drawingPic.image)
+        drawingPixmap = QtGui.QPixmap.fromImage(self.drawingPic.image)
         #What color is the pixel?
         pcolor = getColor(getPixel(self.drawingPic, self.coord_x, self.coord_y)).getRGB()
         #Is it dark or light?
@@ -3443,7 +3443,7 @@ class PictureExplorer(QWidget):
         #Move the crosshair
         self.crosshair.setPosition(self.coord_x, self.coord_y)
         #Redraw the picture
-        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
+        pixmap2 = QtGui.QPixmap.fromImage(self.drawingPic.image)
         self.picLabel.setPixmap(pixmap2)
     
     # @pyqtSlot(int)
@@ -3452,7 +3452,7 @@ class PictureExplorer(QWidget):
     
     #Position was updated via x/y boxes
     #Update color and label accordingly
-    @pyqtSlot()
+    @QtCore.pyqtSlot()
     def updatedPos(self):
         #Only do this if we manually changed the numbers
         if not self.block_edit:
@@ -3467,7 +3467,7 @@ class PictureExplorer(QWidget):
             self.updateCrosshair2()
             #Repaint the window
             self.update()
-            QApplication.processEvents()
+            QtGui.QApplication.processEvents()
     
     #Clicked on image
     def imageClicked(self, pt):
@@ -3487,7 +3487,7 @@ class PictureExplorer(QWidget):
         self.updateCrosshair2()
         #Repaint the window
         self.update()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
         #Manual updates are safe again
         self.block_edit = False
     
@@ -3507,13 +3507,15 @@ class PictureExplorer(QWidget):
     def updateZoom(self, zoomRate):
         self.drawingPic.width = int(self.imageSize.width()*zoomRate)
         self.drawingPic.height = int(self.imageSize.height()*zoomRate)
-        self.drawingPic.image = QImage(self.fixedPixmap.scaled(self.drawingPic.width, self.drawingPic.height, Qt.KeepAspectRatioByExpanding))
+        self.drawingPic.image = QtGui.QImage(self.fixedPixmap.scaled(\
+            self.drawingPic.width, self.drawingPic.height,\
+            QtCore.Qt.KeepAspectRatioByExpanding))
         self.pic = self.drawingPic
         self.xwidget.setRange(0, self.drawingPic.getWidth()-1)
         self.ywidget.setRange(0, self.drawingPic.getHeight()-1)
         self.picLabel.setFixedWidth(self.drawingPic.width)
         self.picLabel.setFixedHeight(self.drawingPic.height)
-        self.picLabel.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.picLabel.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
         # Update coords
         self.coord_x = int(self.coord_x * 1.0 * zoomRate / self.currentZoomRate)
         self.coord_y = int(self.coord_y * 1.0 * zoomRate / self.currentZoomRate)
@@ -3524,17 +3526,17 @@ class PictureExplorer(QWidget):
     
     def createImgWindow(self):
         #Picture window
-        self.imgFrame = QFrame(self)
-        layoutImg = QHBoxLayout()
+        self.imgFrame = QtGui.QFrame(self)
+        layoutImg = QtGui.QHBoxLayout()
         self.imgFrame.setLayout(layoutImg)
         self.picLabel = ClickableLabel(self, self)
-        pixmap2 = QPixmap.fromImage(self.drawingPic.image)
+        pixmap2 = QtGui.QPixmap.fromImage(self.drawingPic.image)
         # pixmap2 = self.fixedPixmap
         self.picLabel.setFixedWidth(self.drawingPic.width)
         self.picLabel.setFixedHeight(self.drawingPic.height)
         self.picLabel.setPixmap(pixmap2)
         #Set Up Scroll Area
-        self.scroll = QScrollArea()
+        self.scroll = QtGui.QScrollArea()
         self.scroll.setWidget(self.picLabel)
         self.scroll.setWidgetResizable(True)
         self.scroll.setFixedHeight(self.pic.getHeight() + 2)
@@ -3546,24 +3548,24 @@ class PictureExplorer(QWidget):
     
     def createFrames(self):
         #Frame for X and Y
-        self.XYFrame = QFrame(self)
-        layoutXY = QHBoxLayout()
+        self.XYFrame = QtGui.QFrame(self)
+        layoutXY = QtGui.QHBoxLayout()
         self.XYFrame.setLayout(layoutXY)
         self.block_edit = False
         #X
-        xlabel = QLabel(self.XYFrame)
+        xlabel = QtGui.QLabel(self.XYFrame)
         xlabel.setText("X:")
         layoutXY.addWidget(xlabel)
-        self.xwidget = QSpinBox(self.XYFrame)
+        self.xwidget = QtGui.QSpinBox(self.XYFrame)
         self.xwidget.setRange(0, self.drawingPic.getWidth()-1)
         self.xwidget.setValue(self.coord_x)
         self.xwidget.valueChanged.connect(self.updatedPos)
         layoutXY.addWidget(self.xwidget)
         #Y
-        ylabel = QLabel(self.XYFrame)
+        ylabel = QtGui.QLabel(self.XYFrame)
         ylabel.setText("Y:")
         layoutXY.addWidget(ylabel)
-        self.ywidget = QSpinBox(self.XYFrame)
+        self.ywidget = QtGui.QSpinBox(self.XYFrame)
         self.ywidget.setRange(0, self.drawingPic.getHeight()-1)
         self.ywidget.setValue(self.coord_y)
         self.ywidget.valueChanged.connect(self.updatedPos)
@@ -3571,25 +3573,25 @@ class PictureExplorer(QWidget):
         self.layout.addWidget(self.XYFrame)
         
         #Frame for color stuff
-        self.colFrame = QFrame(self)
-        layoutCol = QHBoxLayout()
+        self.colFrame = QtGui.QFrame(self)
+        layoutCol = QtGui.QHBoxLayout()
         self.colFrame.setLayout(layoutCol)
         #RGB text
-        self.rgblabel = QLabel(self.colFrame)
+        self.rgblabel = QtGui.QLabel(self.colFrame)
         #col = getColor(getPixel(pic,self.coord_x,self.coord_y)).getRGB()
         #self.rgblabel.setText("R: " + str(col[0]) + " G: " + str(col[1]) + \
         #    " B: " + str(col[2]))
         layoutCol.addWidget(self.rgblabel)
-        colloclabel = QLabel(self.colFrame)
+        colloclabel = QtGui.QLabel(self.colFrame)
         colloclabel.setText("Color at location:")
         layoutCol.addWidget(colloclabel)
         #Color block
         # colimg = QImage(COL_BLOCK_SIZE, COL_BLOCK_SIZE, QImage.Format_RGB32)
         # colimg.fill(QColor(*col)) #TODO
-        widgetColBlock = QScrollArea()
+        widgetColBlock = QtGui.QScrollArea()
         widgetColBlock.setFixedHeight(COL_BLOCK_SIZE + 2)
         widgetColBlock.setFixedWidth(COL_BLOCK_SIZE + 2)
-        self.colLabel = QLabel(self.colFrame)
+        self.colLabel = QtGui.QLabel(self.colFrame)
         #self.setColorBlock(*col)
         self.updateColorStuff()
         # pixmap1 = QPixmap.fromImage(colimg)
@@ -3601,16 +3603,16 @@ class PictureExplorer(QWidget):
     
     def createMenuButtons(self): 
         #Set up Zoom on menu bar
-        mainMenu = QMenuBar(self)
+        mainMenu = QtGui.QMenuBar(self)
         fileMenu = mainMenu.addMenu('&Zoom')
         #Create button
-        extractAction25 = QAction("25%", self)
-        extractAction50 = QAction("50%", self)
-        extractAction75 = QAction("75%", self)
-        extractAction100 = QAction("100%", self)
-        extractAction150 = QAction("150%", self)
-        extractAction200 = QAction("200%", self)
-        extractAction500 = QAction("500%", self)
+        extractAction25 = QtGui.QAction("25%", self)
+        extractAction50 = QtGui.QAction("50%", self)
+        extractAction75 = QtGui.QAction("75%", self)
+        extractAction100 = QtGui.QAction("100%", self)
+        extractAction150 = QtGui.QAction("150%", self)
+        extractAction200 = QtGui.QAction("200%", self)
+        extractAction500 = QtGui.QAction("500%", self)
         #Connect button
         extractAction25.triggered.connect(self.zoom25)
         extractAction50.triggered.connect(self.zoom50)
@@ -3651,7 +3653,7 @@ class PictureExplorer(QWidget):
 ##START OF SOUND
 
 #Emulate the JES Sound Explorer
-class SoundExplorer(QWidget):
+class SoundExplorer(QtGui.QWidget):
     #TODO make look nice
     #TODO selections #Done
     
@@ -3674,7 +3676,7 @@ class SoundExplorer(QWidget):
         if sound.fileName is not None:
             title = sound.fileName
         self.setWindowTitle("Sound Explorer: " + title)
-        layout = QVBoxLayout()
+        layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
         self.setFixedWidth(self.PIC_WIDTH + 62)
         #print(int(self.contentsMargins()))
@@ -3684,20 +3686,20 @@ class SoundExplorer(QWidget):
         self.value = getSampleValueAt(sound, self.index)
         
         #Top row of buttons
-        self.playFrame = QFrame(self)
-        layoutPlay = QHBoxLayout()
+        self.playFrame = QtGui.QFrame(self)
+        layoutPlay = QtGui.QHBoxLayout()
         self.playFrame.setLayout(layoutPlay)
-        self.playButton = QPushButton("Play Entire Sound", self.playFrame)
+        self.playButton = QtGui.QPushButton("Play Entire Sound", self.playFrame)
         self.playButton.clicked.connect(sound.play)
-        self.playBeforeButton = QPushButton("Play Before", self.playFrame)
+        self.playBeforeButton = QtGui.QPushButton("Play Before", self.playFrame)
         def lpb():
             sound.play(0, self.index)
         self.playBeforeButton.clicked.connect(lpb)
-        self.playAfterButton = QPushButton("Play After", self.playFrame)
+        self.playAfterButton = QtGui.QPushButton("Play After", self.playFrame)
         def lpa():
             sound.play(self.index)
         self.playAfterButton.clicked.connect(lpa)
-        self.stopButton = QPushButton("Stop Playing", self.playFrame)
+        self.stopButton = QtGui.QPushButton("Stop Playing", self.playFrame)
         self.stopButton.clicked.connect(sound.stopPlaying)
         self.playBeforeButton.setDisabled(True)
         self.playAfterButton.setDisabled(True)
@@ -3710,18 +3712,18 @@ class SoundExplorer(QWidget):
         
         #Second row of buttons
         #TODO selections #Done
-        self.selectFrame = QFrame(self)
-        layoutSelect = QHBoxLayout()
+        self.selectFrame = QtGui.QFrame(self)
+        layoutSelect = QtGui.QHBoxLayout()
         self.selectFrame.setLayout(layoutSelect)
         self.startIndex = 0
         self.stopIndex = 0
-        self.playSelectionButton = QPushButton("Play Selection", self.selectFrame)
+        self.playSelectionButton = QtGui.QPushButton("Play Selection", self.selectFrame)
         self.playSelectionButton.setDisabled(True)
         def playSelect():
             sound.play(self.startIndex, self.stopIndex)
         self.playSelectionButton.clicked.connect(playSelect)    
         layoutSelect.addWidget(self.playSelectionButton)
-        self.clearSelectionButton = QPushButton("Clear Selection", self.selectFrame)
+        self.clearSelectionButton = QtGui.QPushButton("Clear Selection", self.selectFrame)
         self.clearSelectionButton.setDisabled(True)
         def clearSelect():
             self.picLabel.rubberBand.hide()
@@ -3731,24 +3733,24 @@ class SoundExplorer(QWidget):
             self.playSelectionButton.setDisabled(True)
         self.clearSelectionButton.clicked.connect(clearSelect)       
         layoutSelect.addWidget(self.clearSelectionButton)
-        self.StartIndexlabel = QLabel(self.selectFrame)
+        self.StartIndexlabel = QtGui.QLabel(self.selectFrame)
         self.StartIndexlabel.setText("Start Index:")
         layoutSelect.addWidget(self.StartIndexlabel)
-        self.StartIndexwidget = QLabel(self.selectFrame)
+        self.StartIndexwidget = QtGui.QLabel(self.selectFrame)
         self.StartIndexwidget.setText("N/A")
         layoutSelect.addWidget(self.StartIndexwidget)
-        self.StopIndexlabel = QLabel(self.selectFrame)
+        self.StopIndexlabel = QtGui.QLabel(self.selectFrame)
         self.StopIndexlabel.setText("Stop Index:")
         layoutSelect.addWidget(self.StopIndexlabel)
-        self.StopIndexwidget = QLabel(self.selectFrame)
+        self.StopIndexwidget = QtGui.QLabel(self.selectFrame)
         self.StopIndexwidget.setText("N/A")
         layoutSelect.addWidget(self.StopIndexwidget)
         layout.addWidget(self.selectFrame)
         
         #(Hieu): Add scrollArea
         #Sound image
-        self.imgFrame = QFrame(self)
-        layoutImg = QHBoxLayout()
+        self.imgFrame = QtGui.QFrame(self)
+        layoutImg = QtGui.QHBoxLayout()
         self.imgFrame.setLayout(layoutImg)
         self.picLabel = ClickableLabel(self, self)
         self.pic = sound.getImageRep(SoundExplorer.PIC_WIDTH, SoundExplorer.PIC_HEIGHT)
@@ -3760,7 +3762,7 @@ class SoundExplorer(QWidget):
         self.picLabel.setPixmap(self.drawingPic)
         self.picLabel.setFixedWidth(self.currentPicWidth)
         #Set Up Scroll Area
-        self.scroll = QScrollArea()
+        self.scroll = QtGui.QScrollArea()
         self.scroll.setWidget(self.picLabel)
         self.scroll.setWidgetResizable(True)
         self.scroll.setFixedHeight(SoundExplorer.PIC_HEIGHT + 2)
@@ -3770,23 +3772,23 @@ class SoundExplorer(QWidget):
         layout.addWidget(self.imgFrame)
         
         #Index/value row
-        self.indexValueFrame = QFrame(self)
-        layoutIV = QHBoxLayout()
+        self.indexValueFrame = QtGui.QFrame(self)
+        layoutIV = QtGui.QHBoxLayout()
         self.indexValueFrame.setLayout(layoutIV)
-        self.ilabel = QLabel(self.indexValueFrame)
+        self.ilabel = QtGui.QLabel(self.indexValueFrame)
         self.ilabel.setText("Current Index:")
         layoutIV.addWidget(self.ilabel)
-        self.iwidget = QSpinBox(self.indexValueFrame)
+        self.iwidget = QtGui.QSpinBox(self.indexValueFrame)
         #self.iwidget.setButtonSymbols(QAbstractSpinBox.lineNoButtons) #Hide arrow
         self.iwidget.setRange(0, getLength(sound))
         self.iwidget.setValue(self.index)
         #QObject.connect(self.ywidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
         self.iwidget.valueChanged.connect(self.updatedPos)
         layoutIV.addWidget(self.iwidget)
-        self.vlabel = QLabel(self.indexValueFrame)
+        self.vlabel = QtGui.QLabel(self.indexValueFrame)
         self.vlabel.setText("Sample Value:")
         layoutIV.addWidget(self.vlabel)
-        self.vwidget = QLabel(self.indexValueFrame)
+        self.vwidget = QtGui.QLabel(self.indexValueFrame)
         self.vwidget.setText(str(self.value))
         #QObject.connect(self.ywidget, SIGNAL('valueChanged(int)'), self, SLOT('updatedPos()'))
         #self.iwidget.valueChanged(int).connect(self.updatedPos())
@@ -3794,14 +3796,14 @@ class SoundExplorer(QWidget):
         layout.addWidget(self.indexValueFrame)
         
         #Samples between pixels row
-        self.sbetweenFrame = QFrame(self)
-        layoutSB = QHBoxLayout()
+        self.sbetweenFrame = QtGui.QFrame(self)
+        layoutSB = QtGui.QHBoxLayout()
         self.sbetweenFrame.setLayout(layoutSB)
-        self.sblabel = QLabel(self.sbetweenFrame)
+        self.sblabel = QtGui.QLabel(self.sbetweenFrame)
         self.sblabel.setText("The number of samples between pixels:")
         layoutSB.addWidget(self.sblabel)
         #TODO make variable #Done
-        self.sbwidget = QLineEdit(self.sbetweenFrame)
+        self.sbwidget = QtGui.QLineEdit(self.sbetweenFrame)
         self.sbwidget.insert(str(getLength(sound) // self.currentPicWidth))
         self.sbwidget.setFixedWidth(120)
         self.sbwidget.returnPressed.connect(self.updatedSBW)
@@ -3811,11 +3813,11 @@ class SoundExplorer(QWidget):
         layout.addWidget(self.sbetweenFrame)
         
         #Zoom row
-        self.zoomFrame = QFrame(self)
-        layoutZoom = QHBoxLayout()
+        self.zoomFrame = QtGui.QFrame(self)
+        layoutZoom = QtGui.QHBoxLayout()
         self.zoomFrame.setLayout(layoutZoom)
         self.isZoomIn = 0;
-        self.zoomButton = QPushButton("Zoom In", self.zoomFrame)
+        self.zoomButton = QtGui.QPushButton("Zoom In", self.zoomFrame)
         self.zoomButton.clicked.connect(self.zoomClick)
         layoutZoom.addWidget(self.zoomButton)
         layout.addWidget(self.zoomFrame)
@@ -3831,7 +3833,7 @@ class SoundExplorer(QWidget):
         self.activateWindow()
         self.raise_()
         self.activateWindow()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
     
     #Zoom-in-out click button
     def zoomClick(self):
@@ -3872,7 +3874,7 @@ class SoundExplorer(QWidget):
             self.updateSoundImage()
             #Repaint the window
             self.update()
-            QApplication.processEvents()
+            QtGui.QApplication.processEvents()
     
     #Update value position and show it
     # def updateSelection(self):
@@ -3884,7 +3886,7 @@ class SoundExplorer(QWidget):
     #     self.picLabel.setPixmap(pixmap)
     
     def updateSelection(self):
-        self.drawingPic = QPixmap(self.pic)
+        self.drawingPic = QtGui.QPixmap(self.pic)
         #Draw the selection line
         x_coord = int(self.index * (self.currentPicWidth / getLength(self.sound)))
         addLine1(self.drawingPic, x_coord, 0, x_coord, SoundExplorer.PIC_HEIGHT-1, cyan)
@@ -3908,7 +3910,7 @@ class SoundExplorer(QWidget):
             self.updateSelection()
             #Repaint the window
             self.update()
-            QApplication.processEvents()
+            QtGui.QApplication.processEvents()
     
     #Clicked on image
     def imageClicked(self, pt):
@@ -3927,7 +3929,7 @@ class SoundExplorer(QWidget):
         self.updateSelection()
         #Repaint the window
         self.update()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
         #Manual updates are safe again
         self.block_edit = False
      
@@ -3947,12 +3949,12 @@ class SoundExplorer(QWidget):
         self.clearSelectionButton.setDisabled(False)
         #Start select region on image
         self.picLabel.rubberBand.show()
-        Qtop = QPoint(int(startP.x()),0)
-        Qbot = QPoint(int(stopP.x()),200)
-        self.picLabel.rubberBand.setGeometry(QRect(Qtop, Qbot).normalized())
+        Qtop = QtCore.QPoint(int(startP.x()),0)
+        Qbot = QtCore.QPoint(int(stopP.x()),200)
+        self.picLabel.rubberBand.setGeometry(QtCore.QRect(Qtop, Qbot).normalized())
         #Repaint the window
         self.update()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
         #Manual updates are safe again
         self.block_edit = False
 
@@ -4188,7 +4190,7 @@ def printNow(output):
     """
     print(output)
 
-class Movie(QMovie):
+class Movie(QtGui.QMovie):
     #TODO make the constructor accept different type of input.
     #TODO writeFramesToDirectory
     def __init__(self, frames = [], directory = None): # frames are filenames
@@ -4388,7 +4390,7 @@ def addFrameToMovie(frame, movie):
     #     movie = b
     #     frame = a
 
-    if not (isinstance(movie,Movie) and isinstance(frame,String)):
+    if not (isinstance(movie,Movie) and isinstance(frame, str)):
     # if movie.__class__ != Movie or frame.__class__ != String:
         repValError("addFrameToMovie(frame, movie): frame is not a string or movie is not a Movie objectd")
 
@@ -4406,7 +4408,7 @@ def addFrameToMovie(frame, movie):
 #     movie.writeFramesToDirectory(directory)
         
         
-class MoviePlayer(QWidget):
+class MoviePlayer(QtGui.QWidget):
     PIC_WIDTH = 1000
     PIC_HEIGHT = 470
     EXTRA_HEIGHT = 520
@@ -4421,7 +4423,7 @@ class MoviePlayer(QWidget):
         self.dictionary = dictionary
         self.movie = movie
         self.movieList = movie.frames
-        self.movie.setCacheMode(QMovie.CacheAll)
+        self.movie.setCacheMode(QtGui.QMovie.CacheAll)
         
         self.updateBuffer()
             
@@ -4431,7 +4433,7 @@ class MoviePlayer(QWidget):
         self.block_edit = False
                
         self.setWindowTitle("Movie Player" )
-        self.layout = QVBoxLayout()
+        self.layout = QtGui.QVBoxLayout()
         self.setLayout(self.layout)
         self.setFixedWidth(self.PIC_WIDTH + 62)
         self.setFixedHeight(self.EXTRA_HEIGHT)
@@ -4447,15 +4449,15 @@ class MoviePlayer(QWidget):
         self.activateWindow()
         self.raise_()
         self.activateWindow()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
     
     # Maybe not efficient TODO
     def updateBuffer(self): 
-        self.buf = QBuffer() #Device holding frame in format
-        self.buf.open(QIODevice.WriteOnly)    
+        self.buf = QtGui.QBuffer() #Device holding frame in format
+        self.buf.open(QtGui.QIODevice.WriteOnly)    
         for i in range(len(self.movieList)):
             frame = self.movieList[i]
-            image = QImage(frame)
+            image = QtGui.QImage(frame)
             image.save(self.buf, 'JPG')
         self.buf.close()
         self.movie.setDevice(self.buf)
@@ -4554,66 +4556,66 @@ class MoviePlayer(QWidget):
     # param: picture the picture to add
     def addPicture(self, picture):
         self.movie.addFrame(picture)
-        self.buf.open(QIODevice.Append)
-        image = QImage(picture)
+        self.buf.open(QtGui.QIODevice.Append)
+        image = QtGui.QImage(picture)
         image.save(self.buf, 'JPG')
         self.buf.close()
         self.update()
     
     # Method to create # of Frame frame
     def createFrameLabel(self):
-        self.numFrame = QFrame(self)
-        layoutNum = QHBoxLayout()
+        self.numFrame = QtGui.QFrame(self)
+        layoutNum = QtGui.QHBoxLayout()
         self.numFrame.setLayout(layoutNum)
         self.block_edit = False
-        self.numLabel = QLabel(self.numFrame)
+        self.numLabel = QtGui.QLabel(self.numFrame)
         self.numLabel.setText("Frame Number ")
-        self.numLabel.setAlignment(Qt.AlignTop | Qt.AlignCenter)
+        self.numLabel.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignCenter)
         layoutNum.addWidget(self.numLabel)
         self.layout.addWidget(self.numFrame)
     
     # Method to create Movie window    
     def createMovieWindow(self):
-        self.movieFrame = QFrame(self)
-        layoutMovie = QHBoxLayout()
+        self.movieFrame = QtGui.QFrame(self)
+        layoutMovie = QtGui.QHBoxLayout()
         self.movieFrame.setLayout(layoutMovie)
-        self.movieLabel = QLabel("No movie loaded")
+        self.movieLabel = QtGui.QLabel("No movie loaded")
         self.movieLabel.setMovie(self.movie)
         self.updateBuffer()
         self.updateStuff()
         #self.playMovie()      
         # self.fitToWindow()
         self.movieLabel.setFixedHeight(self.PIC_HEIGHT + 1)
-        self.movieLabel.setAlignment(Qt.AlignLeft)
+        self.movieLabel.setAlignment(QtCore.Qt.AlignLeft)
         layoutMovie.addWidget(self.movieLabel)
         self.layout.addWidget(self.movieFrame)
     
     # Method to create Buttons in MoviePlayer
     def createButtons(self):
         #Bottom row of button
-        self.playFrame = QFrame(self)
-        layoutPlay = QHBoxLayout()
+        self.playFrame = QtGui.QFrame(self)
+        layoutPlay = QtGui.QHBoxLayout()
         self.playFrame.setLayout(layoutPlay)
-        self.prevButton = QPushButton("Prev", self.playFrame)
+        self.prevButton = QtGui.QPushButton("Prev", self.playFrame)
         self.prevButton.clicked.connect(self.showPrevious)
-        self.nextButton = QPushButton("Next", self.playFrame)
+        self.nextButton = QtGui.QPushButton("Next", self.playFrame)
         self.nextButton.clicked.connect(self.showNext)
-        framePerSeclabel = QLabel(self.playFrame)
+        framePerSeclabel = QtGui.QLabel(self.playFrame)
         framePerSeclabel.setText("Frame per Second: ")
-        self.rwidget = QSpinBox()
+        self.rwidget = QtGui.QSpinBox()
         self.rwidget.setRange(16, 30)
         self.rwidget.setSingleStep(8)
         self.rwidget.setValue(self.framesPerSec)
         self.rwidget.valueChanged.connect(self.updateFrameRate)
-        self.playButton = QPushButton("Play Movie", self.playFrame)
+        self.playButton = QtGui.QPushButton("Play Movie", self.playFrame)
         self.playButton.clicked.connect(self.playMovie)
-        self.deletePreButton = QPushButton("Remove All Previous", self.playFrame)
+        self.deletePreButton = QtGui.QPushButton("Remove All Previous", self.playFrame)
         self.deletePreButton.clicked.connect(self.delAllBefore)
-        self.deleteAfterButton = QPushButton("Remove All After", self.playFrame)
+        self.deleteAfterButton = QtGui.QPushButton("Remove All After", self.playFrame)
         self.deleteAfterButton.clicked.connect(self.delAllAfter)
-        self.QuicktimeButton = QPushButton("Write QuickTime", self.playFrame)
+        self.QuicktimeButton = QtGui.QPushButton("Write QuickTime", self.playFrame)
         self.QuicktimeButton.clicked.connect(self.writeQuicktime)
-        self.AVIButton = QPushButton("Write AVI", self.playFrame)
+        self.AVIButton = QtGui.QPushButton("Write AVI", self.playFrame)
         self.AVIButton.clicked.connect(self.writeAVI)
         #Add button in layout
         layoutPlay.addWidget(self.prevButton)
@@ -4628,7 +4630,7 @@ class MoviePlayer(QWidget):
         self.layout.addWidget(self.playFrame)
         
 
-class FrameSequencer(QWidget):
+class FrameSequencer(QtGui.QWidget):
     WIDTH = 650
     HEIGHT = 400
     
@@ -4639,7 +4641,7 @@ class FrameSequencer(QWidget):
         self.block_edit = False
         self.frameList = Movie().frames
         
-        self.layout = QHBoxLayout()
+        self.layout = QtGui.QHBoxLayout()
         self.setLayout(self.layout)
         self.setFixedWidth(self.WIDTH)
         self.setFixedHeight(self.HEIGHT)
@@ -4651,7 +4653,7 @@ class FrameSequencer(QWidget):
         self.activateWindow()
         self.raise_()
         self.activateWindow()
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
         
         self.createFileWindow()
         self.createButtons()
@@ -4663,7 +4665,7 @@ class FrameSequencer(QWidget):
                 self.frameList.append(path + afile)
                 if self.fileTable.rowCount() < len(self.frameList):
                     self.fileTable.setRowCount(2*self.fileTable.rowCount())
-                newitem = QTableWidgetItem(path + afile)
+                newitem = QtGui.QTableWidgetItem(path + afile)
                 self.fileTable.setItem(len(self.frameList) - 1, 0, newitem) 
     
     def AddImgFile(self):
@@ -4672,7 +4674,7 @@ class FrameSequencer(QWidget):
             self.frameList.append(path)
             if self.fileTable.rowCount() < len(self.frameList):
                     self.fileTable.setRowCount(2*self.fileTable.rowCount())
-            newitem = QTableWidgetItem(path)
+            newitem = QtGui.QTableWidgetItem(path)
             self.fileTable.setItem(len(self.frameList) - 1, 0, newitem)  
             
     def deleteSelectedItem(self):
@@ -4697,8 +4699,8 @@ class FrameSequencer(QWidget):
         row = self.fileTable.currentRow()
         if row > 0:
             self.frameList[row], self.frameList[row - 1] = self.frameList[row - 1], self.frameList[row]
-            item1 = QTableWidgetItem(self.frameList[row])
-            item2 = QTableWidgetItem(self.frameList[row - 1] )
+            item1 = QtGui.QTableWidgetItem(self.frameList[row])
+            item2 = QtGui.QTableWidgetItem(self.frameList[row - 1] )
             self.fileTable.setItem(row, 0, item1)
             self.fileTable.setItem(row - 1, 0, item2)
             self.fileTable.selectRow(row - 1)
@@ -4707,8 +4709,8 @@ class FrameSequencer(QWidget):
         row = self.fileTable.currentRow()
         if row < len(self.frameList) - 1:
             self.frameList[row], self.frameList[row + 1] = self.frameList[row + 1], self.frameList[row]
-            item1 = QTableWidgetItem(self.frameList[row])
-            item2 = QTableWidgetItem(self.frameList[row + 1] )
+            item1 = QtGui.QTableWidgetItem(self.frameList[row])
+            item2 = QtGui.QTableWidgetItem(self.frameList[row + 1] )
             self.fileTable.setItem(row, 0, item1)
             self.fileTable.setItem(row + 1, 0, item2)
             self.fileTable.selectRow(row + 1)
@@ -4721,20 +4723,20 @@ class FrameSequencer(QWidget):
         if self.fileTable.rowCount() < len(self.frameList):
             self.fileTable.setRowCount(len(self.frameList))
         for m, item in enumerate(self.frameList): 
-            newitem = QTableWidgetItem(item)
+            newitem = QtGui.QTableWidgetItem(item)
             self.fileTable.setItem(m, 0, newitem)
     
     # Method to create File window    
     def createFileWindow(self):
-        self.FileFrame = QFrame(self)
-        layoutFile = QVBoxLayout()
+        self.FileFrame = QtGui.QFrame(self)
+        layoutFile = QtGui.QVBoxLayout()
         self.FileFrame.setLayout(layoutFile)
-        self.fileTable = QTableWidget(30,2)
+        self.fileTable = QtGui.QTableWidget(30,2)
         self.fileTable.setSortingEnabled(False)
         self.setmydata()
-        self.fileTable.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.fileTable.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.fileTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.fileTable.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.fileTable.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.fileTable.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.fileTable.setShowGrid(False)
         self.fileTable.resizeColumnsToContents()
         self.fileTable.setColumnWidth(1, 0);
@@ -4745,24 +4747,24 @@ class FrameSequencer(QWidget):
         
     # Method to create Buttons in MoviePlayer
     def createButtons(self):
-        self.buttonFrame = QFrame(self)
-        layoutButton = QVBoxLayout()
+        self.buttonFrame = QtGui.QFrame(self)
+        layoutButton = QtGui.QVBoxLayout()
         self.buttonFrame.setLayout(layoutButton)
-        self.clearButton = QPushButton("Clear image list", self.buttonFrame)
+        self.clearButton = QtGui.QPushButton("Clear image list", self.buttonFrame)
         self.clearButton.clicked.connect(self.clearItem)
-        self.deleteButton = QPushButton("Delete selected image from list", self.buttonFrame)
+        self.deleteButton = QtGui.QPushButton("Delete selected image from list", self.buttonFrame)
         self.deleteButton.clicked.connect(self.deleteSelectedItem)
-        self.addDirButton = QPushButton("Add images in directory to list", self.buttonFrame)
+        self.addDirButton = QtGui.QPushButton("Add images in directory to list", self.buttonFrame)
         self.addDirButton.clicked.connect(self.AddImgDir)
-        self.addImgButton = QPushButton("Add image to list", self.buttonFrame)
+        self.addImgButton = QtGui.QPushButton("Add image to list", self.buttonFrame)
         self.addImgButton.clicked.connect(self.AddImgFile)
-        self.playButton = QPushButton("Play movie", self.buttonFrame)
+        self.playButton = QtGui.QPushButton("Play movie", self.buttonFrame)
         self.playButton.clicked.connect(self.play)
-        self.moveUpButton = QPushButton("Movie image up", self.buttonFrame)
+        self.moveUpButton = QtGui.QPushButton("Movie image up", self.buttonFrame)
         self.moveUpButton.clicked.connect(self.moveUp)
-        self.moveDownButton = QPushButton("Movie image down", self.buttonFrame)
+        self.moveDownButton = QtGui.QPushButton("Movie image down", self.buttonFrame)
         self.moveDownButton.clicked.connect(self.moveDown)
-        self.ChangeFrameButton = QPushButton("Change Frames Per Second", self.buttonFrame)
+        self.ChangeFrameButton = QtGui.QPushButton("Change Frames Per Second", self.buttonFrame)
         #Add button in layout
         layoutButton.addWidget(self.clearButton)
         layoutButton.addWidget(self.deleteButton)
