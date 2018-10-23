@@ -1283,6 +1283,9 @@ def writeSoundTo(sound,filename):
 #New
 def saveSound(sound):
     fil = pickASaveFile()
+    if fil == None:
+        print("No file selected; nothing saved.")
+        return
     #Try to get a format
     #If no format given, yell at the user
     # dotloc = fil.rfind(".")
@@ -1578,6 +1581,23 @@ def pickAColor():
     col = QtGui.QColorDialog.getColor()
     #return Color(int(col[0][0]), int(col[0][1]), int(col[0][2]))
     return Color(col)
+
+#NEW
+#Accessors for color components
+def getRedComponent(color):
+    if not(isinstance(color, Color)):
+        repTypeError("Input is not a color")
+    return color.getRed()
+
+def getGreenComponent(color):
+    if not(isinstance(color, Color)):
+        repTypeError("Input is not a color")
+    return color.getGreen()
+
+def getBlueComponent(color):
+    if not(isinstance(color, Color)):
+        repTypeError("Input is not a color")
+    return color.getBlue()
 
 def colorPalette():
     '''The built-in colors that you can use are:
@@ -2810,6 +2830,9 @@ def writePictureTo(picture,filename):
 #Call save dialog then write picture to where saved
 def savePicture(picture):
     fil = pickASaveFile()
+    if fil == None:
+        print("No file selected; nothing saved.")
+        return
     #Try to get a format
     #If no format given, yell at the user
     dotloc = fil.rfind(".")
