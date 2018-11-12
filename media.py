@@ -4476,8 +4476,8 @@ class MoviePlayer(QtGui.QWidget):
     
     # Maybe not efficient TODO
     def updateBuffer(self): 
-        self.buf = QtGui.QBuffer() #Device holding frame in format
-        self.buf.open(QtGui.QIODevice.WriteOnly)    
+        self.buf = QtCore.QBuffer() #Device holding frame in format
+        self.buf.open(QtCore.QIODevice.WriteOnly)    
         for i in range(len(self.movieList)):
             frame = self.movieList[i]
             image = QtGui.QImage(frame)
@@ -4579,7 +4579,7 @@ class MoviePlayer(QtGui.QWidget):
     # param: picture the picture to add
     def addPicture(self, picture):
         self.movie.addFrame(picture)
-        self.buf.open(QtGui.QIODevice.Append)
+        self.buf.open(QtCore.QIODevice.Append)
         image = QtGui.QImage(picture)
         image.save(self.buf, 'JPG')
         self.buf.close()
