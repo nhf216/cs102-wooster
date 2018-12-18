@@ -2015,9 +2015,13 @@ class Picture:
         QtWidgets.QApplication.processEvents()
     
     #Copy the picture other into this one at position (x,y) for upper left
-    def copyInto(self, other, x, y):
+    def copyInto(self, other, x, y, rotation = 0):
         painter = QtGui.QPainter()
         painter.begin(self.image)
+        if rotation != 0:
+            painter.translate(x, y)
+            painter.rotate(rotation)
+            painter.translate(-x, -y)
         painter.drawImage(x, y, other.image)
         painter.end()
     
@@ -4165,7 +4169,25 @@ def openSoundTool(sound):
 #         raise ValueError
 #
  
-# # let's try the turtles...
+# let's try the turtles...
+#Can we escape from Worlds?
+WORLDS_ESCAPABLE = False
+def setWorldsEscapable(escapable):
+    global WORLDS_ESCAPABLE
+    WORLDS_ESCAPABLE = escapable
+
+#Draw a turtle on a picture at given coordinates
+def drawTurtle(pic, x, y, heading, color):
+    BODY_SIZE = 16
+    addOvalFilled(pic, x - BODY_SIZE // 2, y - BODY_SIZE // 2, BODY_SIZE,\
+        BODY_SIZE, color)
+    HEAD_SIZE = 6
+    HEAD_COLOR = makeColor(0, 127, 0)
+    head_x = x + int(BODY_SIZE * math.sin(math.radians(heading)) * 0.65)
+    head_y = y - int(BODY_SIZE * math.cos(math.radians(heading)) * 0.65)
+    addOvalFilled(pic, head_x - HEAD_SIZE // 2, head_y - HEAD_SIZE // 2,
+        HEAD_SIZE, HEAD_SIZE, HEAD_COLOR)
+
 #World class
 #Just a wrapper for Picture
 class World:
@@ -4178,35 +4200,87 @@ class World:
             self.width = width
             self.height = height
         #World contains no turtles
-        self.turtles = set()
+        self.turtles = list()
         #Picture being wrapped
         self.picture = makeEmptyPicture(self.width, self.height)
+        self.render = makeEmptyPicture(self.width, self.height)
+        self.visible = False
         #Show the world
-        show(self.picture, "World")
+        self.update()
+    
+    #Update the view of the world
+    def update(self):
+        if self.visible:
+            show_method = repaint
+        else:
+            show_method = lambda pic: show(pic, "World")
+        
+        #Render the turtles on the picture
+        render = duplicatePicture(self.picture)
+        for turtle in self.turtles:
+            drawTurtle(render, turtle.getXPos(), turtle.getYPos(),\
+                turtle.getHeading(), turtle.getColor())
+        copyInto(render, self.render, 0, 0)
+        self.visible = True
+        show_method(self.render)
+    
+    #Show the world
+    #(perhaps you closed it?)
+    def show(self):
+        self.visible = False
+        self.update()
     
     #Add a turtle
     #Should only be called by a turtle
     def addTurtle(self, turtle):
-        self.turtles.add(turtle)
+        self.turtles.append(turtle)
+        self.update()
     
+    #Retrieve the list of turtles
+    def getTurtleList(self):
+        return self.turtles
+    
+    #String representation
     def __str__(self):
         return "A %d by %d world with %d turtles in it."%(self.width,\
             self.height, len(self.turtles))
 
 #Turtles!
 class Turtle:
+    #Constructor
+    #Requires a world
+    #Can also take coordinates
     def __init__(self, world, x = None, y = None):
         self.world = world
+        #Turtles in JES are apparently nameable
         self.name = None
+        #Set coordinates
         if x is None:
             self.x = 320
             self.y = 240
         else:
             self.x = x
             self.y = y
+        #Starts pointing north
+        #Increasing is clockwise
         self.heading = 0.
-        world.addTurtle(self)
+        #Initial color in JES is green
+        self.color = green
+        #Pen starts down
+        self.hasPenDown = True
+        if isinstance(self.world, World):
+            #Add the turtle to the world
+            world.addTurtle(self)
+            self.picture = self.world.picture
+        else:
+            self.picture = self.world
     
+    #Update visuals
+    def update(self):
+        if isinstance(self.world, World):
+            self.world.update()
+    
+    #Nice string representation
     def __str__(self):
         if self.name is None:
             name = "No name"
@@ -4214,145 +4288,259 @@ class Turtle:
             name = self.name
         return "%s turtle at %d, %d heading %.1f."%(name, self.x, self.y,\
             self.heading)
-# 
-# def turn(turtle, degrees=90):
-#     #if not isinstance(turtle, Turtle):
-#     #    print "turn(turtle[, degrees]): Input is not a turtle"
-#     #    raise ValueError
-#     #else:
-#     #    turtle.turn(degrees)
-#     pass #TODO
-# 
-# def turnRight(turtle):
-#     #if not isinstance(turtle,Turtle):
-#     #    print "turnRight(turtle): Input is not a turtle"
-#     #    raise ValueError
-#     #else:
-#     #    turtle.turnRight()
-#     pass #TODO
-# 
-# def turnToFace(turtle, x, y=None):
-#     #if y == None:
-#     #    if not (isinstance(turtle, Turtle) and isinstance(x, Turtle)):
-#     #        print "turnToFace(turtle, turtle): First input is not a turtle"
-#     #        raise ValueError
-#     #    else:
-#     #        turtle.turnToFace(x)
-#     #else:
-#     #    if not isinstance(turtle, Turtle):
-#     #        print "turnToFace(turtle, x, y): Input is not a turtle"
-#     #        raise ValueError
-#     #    else:
-#     #        turtle.turnToFace(x, y)
-#     pass #TODO
-# 
-# def turnLeft(turtle):
-#     #if not isinstance(turtle, Turtle):
-#     #    print "turnLeft(turtle): Input is not a turtle"
-#     #    raise ValueError
-#     #else:
-#     #    turtle.turnLeft()
-#     pass #TODO
-# 
-# def forward(turtle, pixels=100):
-#     #if not isinstance(turtle,Turtle):
-#     #    print "forward(turtle[, pixels]): Input is not a turtle"
-#     #    raise ValueError
-#     #else:
-#     #    turtle.forward(pixels)
-#     pass #TODO
-# 
-# def backward(turtle, pixels=100):
-#     #if not isinstance(turtle, Turtle):
-#     #    print "backward(turtle[, pixels]): Input is not a turtle"
-#     #    raise ValueError
-#     #if (None == pixels):
-#     #    turtle.backward()
-#     #else:
-#     #    turtle.backward(pixels)
-#     pass #TODO
-# 
-# def moveTo(turtle, x, y):
-#     #if not isinstance(turtle,Turtle):
-#     #    print "moveTo(turtle, x, y): Input is not a turtle"
-#     #    raise ValueError
-#     #turtle.moveTo(x,y)
-#     pass #TODO
-# 
-# def makeTurtle(world):
-#     #if not (isinstance(world, World) or isinstance(world, Picture)):
-#     #    print "makeTurtle(world): Input is not a world or picture"
-#     #    raise ValueError
-#     #turtle = Turtle(world)
-#     #return turtle
-#     pass #TODO
-# 
-# def penUp(turtle):
-#     #if not isinstance(turtle, Turtle):
-#     #    print "penUp(turtle): Input is not a turtle"
-#     #    raise ValueError
-#     #turtle.penUp()
-#     pass #TODO
-# 
-# def penDown(turtle):
-#     #if not isinstance(turtle, Turtle):
-#     #    print "penDown(turtle): Input is not a turtle"
-#     #    raise ValueError
-#     #turtle.penDown()
-#     pass #TODO
-# 
-# def drop(turtle, picture):
-#     #if not isinstance(turtle, Turtle):
-#     #    print "drop(turtle, picture): First input is not a turtle"
-#     #    raise ValueError
-#     #if not isinstance(picture,Picture):
-#     #    print "drop(turtle, picture): Second input is not a picture"
-#     #    raise ValueError
-#     #turtle.drop(picture)
-#     pass #TODO
-# 
-# def getXPos(turtle):
-#     #if not isinstance(turtle, Turtle):
-#     #    print "getXPos(turtle): Input is not a turtle"
-#     #    raise ValueError
-#     #return turtle.getXPos()
-#     pass #TODO
-# 
-# def getYPos(turtle):
-#     #if not isinstance(turtle,Turtle):
-#     #    print "getYPos(turtle): Input is not a turtle"
-#     #    raise ValueError
-#     #return turtle.getYPos()
-#     pass #TODO
-# 
-# def getHeading(turtle):
-#     #if not isinstance(turtle,Turtle):
-#     #    print "getHeading(turtle): Input is not a turtle"
-#     #    raise ValueError
-#     #return turtle.getHeading()
-#     pass #TODO
-# 
-# ## add these things: turnToFace(turtle, another turtle)
-# ## getHeading, getXPos, getYPos
-# 
-# ## world methods
-# def makeWorld(width=None, height=None):
-#     #if(width and height):
-#     #    w = World(width, height)
-#     #else:
-#     #    w = World()
-#     #return w
-#     pass #TODO
-# 
-# def getTurtleList(world):
-#     #if not isinstance(world, World):
-#     #    print "getTurtleList(world): Input is not a world"
-#     #    raise ValueError
-#     #return world.getTurtleList()
-#     pass #TODO
-# 
-# # end of stuff imported for worlds and turtles
-# 
+    
+    #Accessors
+    def getXPos(self):
+        return self.x
+    
+    def getYPos(self):
+        return self.y
+    
+    def getHeading(self):
+        return self.heading
+    
+    def getColor(self):
+        return self.color
+    
+    #Mutators
+    #Change the turtle's color
+    def setColor(self, color):
+        self.color = color
+        #Update the turtle's color in the World
+        self.update()
+    
+    #Set heading
+    def setHeading(self, heading):
+        self.heading = float(heading)
+        self.heading %= 360
+        #Update the turtle's color in the World
+        self.update()
+    
+    #Turn right by specified number of degrees
+    def turn(self, degrees = 90):
+        self.setHeading(self.heading + degrees)       
+    
+    #Turn right
+    def turnRight(self):
+        self.turn(90)
+    
+    #Turn left
+    def turnLeft(self):
+        self.turn(-90)
+    
+    #Turn to face another Turtle or an (x, y) coordinate
+    def turnToFace(self, x, y = None):
+        #Get the coordinates
+        if isinstance(x, Turtle):
+            the_x = x.getXPos()
+            the_y = x.getYPos()
+        else:
+            the_x = x
+            the_y = y
+        #Horizontal case
+        if the_y == self.y:
+            if the_x > self.x:
+                self.setHeading(90)
+            elif the_x < self.x:
+                self.setHeading(-90)
+            #If they're both equal, do nothing
+        else:
+            #Not vertical, use arctan
+            angle = math.degrees(math.atan((the_x - self.x)/(self.y - the_y)))
+            if the_y < self.y:
+                self.setHeading(angle)
+            else:
+                self.setHeading(angle + 180)
+    
+    #Set the coordinates of the turtle
+    def moveTo(self, x, y):
+        new_x = x
+        new_y = y
+        #Don't leave the world, if that setting is on
+        if not WORLDS_ESCAPABLE:
+            new_x = max(0, new_x)
+            new_y = max(0, new_y)
+            new_x = min(self.world.width, new_x)
+            new_y = min(self.world.height, new_y)
+        #Draw a line, if the pen is down
+        if self.hasPenDown:
+            addLine(self.picture, self.x, self.y, new_x, new_y, self.color)
+        #Move the turtle
+        self.x = new_x
+        self.y = new_y
+        #Update the World
+        self.update()
+    
+    #Move a given number of pixels in the given direction
+    def move(self, pixels, heading):
+        #Figure out x and y components of motion
+        delta_x = pixels * math.sin(math.radians(heading))
+        delta_y = -pixels * math.cos(math.radians(heading))
+        #New coordinates
+        new_x = self.x + delta_x
+        new_y = self.y + delta_y
+        #Move
+        self.moveTo(new_x, new_y)
+    
+    #Move forward
+    def forward(self, pixels):
+        self.move(pixels, self.heading)
+    
+    #Move backward
+    def backward(self, pixels):
+        self.move(pixels, -self.heading)
+    
+    #Pen up
+    def penUp(self):
+        self.hasPenDown = False
+    
+    #Pen down
+    def penDown(self):
+        self.hasPenDown = True
+    
+    #Drop a picture
+    def drop(self, picture):
+        self.picture.copyInto(picture, self.x, self.y, self.heading)
+        self.update()
+
+#Turn the turtle right by the specified angle
+def turn(turtle, degrees=90):
+    if not isinstance(turtle, Turtle):
+        repTypeError("turn(turtle[, degrees]): Input is not a turtle")
+    if not isinstance(degrees, int) and not isinstance(degrees, float):
+        repTypeError("turn(turtle[, degrees]): Second input is not a number")
+    turtle.turn(degrees)
+
+#Turn right 90 degrees
+def turnRight(turtle):
+    if not isinstance(turtle, Turtle):
+        repTypeError("turnRight(turtle): Input is not a turtle")
+    else:
+        turtle.turnRight()
+
+#Turn left 90 degrees
+def turnLeft(turtle):
+    if not isinstance(turtle, Turtle):
+        repTypeError("turnLeft(turtle): Input is not a turtle")
+    else:
+        turtle.turnLeft()
+
+#Turn to face another Turtle, or a given point (x, y)
+def turnToFace(turtle, x, y=None):
+    if y == None:
+        if not isinstance(turtle, Turtle):
+            repTypeError("turnToFace(turtle, turtle): First input is not a turtle")
+        elif not isinstance(x, Turtle):
+            repTypeError("turnToFace(turtle, turtle): Second input is not a turtle")
+        else:
+            turtle.turnToFace(x)
+    else:
+        if not isinstance(turtle, Turtle):
+            repTypeError("turnToFace(turtle, x, y): First input is not a turtle")
+        elif not isinstance(x, int) and not isinstance(x, float):
+            repTypeError("turnToFace(turtle, x, y): Second input is not a number")
+        elif not isinstance(y, int) and not isinstance(y, float):
+            repTypeError("turnToFace(turtle, x, y): Third input is not a number")
+        else:
+            turtle.turnToFace(x, y)
+
+#Move forward
+def forward(turtle, pixels=100):
+    if not isinstance(turtle,Turtle):
+        repTypeError("forward(turtle[, pixels]): Input is not a turtle")
+    if not isinstance(pixels, int) and not isinstance(pixels, float):
+        repTypeError("turn(turtle[, degrees]): Second input is not a number")
+    turtle.forward(pixels)
+
+#Move backward
+def backward(turtle, pixels=100):
+    if not isinstance(turtle,Turtle):
+        repTypeError("backward(turtle[, pixels]): Input is not a turtle")
+    if not isinstance(pixels, int) and not isinstance(pixels, float):
+        repTypeError("turn(turtle[, degrees]): Second input is not a number")
+    turtle.backward(pixels)
+
+#Teleport to (x, y)
+def moveTo(turtle, x, y):
+    if not isinstance(turtle,Turtle):
+        repTypeError("moveTo(turtle, x, y): Input is not a turtle")
+    if not isinstance(x, int) and not isinstance(x, float):
+        repTypeError("turn(turtle[, degrees]): Second input is not a number")
+    if not isinstance(y, int) and not isinstance(y, float):
+        repTypeError("turn(turtle[, degrees]): Third input is not a number")
+    turtle.moveTo(x, y)
+
+#Create a new turtle on the given World/Picture
+def makeTurtle(world):
+    if not (isinstance(world, World) or isinstance(world, Picture)):
+        repTypeError("makeTurtle(world): Input is not a world or picture")
+    turtle = Turtle(world)
+    return turtle
+
+#Pen up (don't draw)
+def penUp(turtle):
+    if not isinstance(turtle, Turtle):
+        repTypeError("penUp(turtle): Input is not a turtle")
+    turtle.penUp()
+
+#Pen down (do draw)
+def penDown(turtle):
+    if not isinstance(turtle, Turtle):
+        repTypeError("penDown(turtle): Input is not a turtle")
+    turtle.penUp()
+
+#Drop a picture
+def drop(turtle, picture):
+    if not isinstance(turtle, Turtle):
+        repTypeError("drop(turtle, picture): First input is not a turtle")
+    if not isinstance(picture,Picture):
+        repTypeError("drop(turtle, picture): Second input is not a picture")
+    turtle.drop(picture)
+
+
+#Retrieve the turtle's x coordinate
+def getXPos(turtle):
+    if not isinstance(turtle, Turtle):
+        repTypeError("getXPos(turtle): Input is not a turtle")
+    return turtle.getXPos()
+
+#Retrieve the turtle's y coordinate
+def getYPos(turtle):
+    if not isinstance(turtle, Turtle):
+        repTypeError("getYPos(turtle): Input is not a turtle")
+    return turtle.getYPos()
+
+#Retrieve the turtle's heading
+def getHeading(turtle):
+    if not isinstance(turtle, Turtle):
+        repTypeError("getHeading(turtle): Input is not a turtle")
+    return turtle.getHeading()
+
+
+## world methods
+def makeWorld(width=None, height=None):
+    if width is not None:
+        if not isinstance(width, int):
+            repTypeError("makeWorld(width, height): First input is not an integer")
+        if width <= 0:
+            repValError("makeWorld(width, height): First input is not positive")
+        if not isinstance(height, int):
+            repTypeError("makeWorld(width, height): SEcond input is not an integer")
+        if height <= 0:
+            repValError("makeWorld(width, height): Second input is not positive")
+        w = World(width, height)
+    else:
+        w = World()
+    return w
+
+
+def getTurtleList(world):
+    if not isinstance(world, World):
+        repTypeError("getTurtleList(world): Input is not a world")
+    return world.getTurtleList()
+
+# end of stuff imported for worlds and turtles
+
 # used in the book
 #Done
 #This is dumb
