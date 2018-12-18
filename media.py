@@ -1829,7 +1829,7 @@ class Picture:
         try:
             #Check if it's supported
             suppt = isSupportedImageFormat(filename)
-            if not suppt:
+            if not suppt and Qt_VERSION == 4:
                 #print("Warning! Attempting to open unsupported file type!")
                 ##Make a PNG and mess with that instead
                 #First, open a PIL image
@@ -1840,6 +1840,10 @@ class Picture:
                 self.workfile = tmpfl[1]
                 #Finally, export the PIL image as a PNG to the temp file
                 self.pil_im.save(tmpfl[1])
+            elif not suppt and Qt_VERSION == 5:
+                print("Congratulations! You've discovered a bug in the media "
+                    "module! This also means that an old bug in an external "
+                    "codebase from 2017 or earlier is still not fixed...")
             else:
                 #Nothing went wrong, so pil_im should be None
                 self.pil_im = None
@@ -2076,7 +2080,7 @@ class Picture:
         #Check if it's supported
         suppt = (fmt == None and isSupportedImageFormat(fil)) or\
             (fmt != None and isSupportedImageFormat(fmt))
-        if not suppt:
+        if not suppt and Qt_VERSION == 4:
             #print("Warning! Attempting to save unsupported file type!")
             #Save as a temporary PNG first
             itWorked = self.image.save(self.workfile, 'PNG')
@@ -2085,6 +2089,10 @@ class Picture:
                 pil_im = PIL.Image.open(self.workfile)
                 #Then, save the PIL image where we want
                 pil_im.save(fil, fmt)
+        elif not suppt and Qt_VERSION == 5:
+            print("Congratulations! You've discovered a bug in the media "
+                "module! This also means that an old bug in an external "
+                "codebase from 2017 or earlier is still not fixed...")
         else:
             #Everything's good.  Just save the iamge
             itWorked = self.image.save(fil, fmt)
@@ -2318,11 +2326,12 @@ def show(picture, title=None):
 
 #NEW
 #This is a Canopy thing
-def printPicture(picture):
-    if not isinstance(picture,Picture):
-        repTypeError("repaint(picture): Input is not a picture")
-        #raise ValueError
-    return picture.printPicture()
+if Qt_VERSION == 4:
+    def printPicture(picture):
+        if not isinstance(picture,Picture):
+            repTypeError("repaint(picture): Input is not a picture")
+            #raise ValueError
+        return picture.printPicture()
 
 def repaint(picture):
     """
