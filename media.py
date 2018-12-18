@@ -4163,11 +4163,57 @@ def openSoundTool(sound):
 #     else:
 #         print("explore(someMedia): Input is not a Picture, Sound, or Movie")
 #         raise ValueError
-# 
+#
+ 
 # # let's try the turtles...
-# #import Turtle
-# #import World
-# #TODO use turtle package
+#World class
+#Just a wrapper for Picture
+class World:
+    def __init__(self, width = None, height = None):
+        #Dimensions of the world
+        if width is None:
+            self.width = 640
+            self.height = 480
+        else:
+            self.width = width
+            self.height = height
+        #World contains no turtles
+        self.turtles = set()
+        #Picture being wrapped
+        self.picture = makeEmptyPicture(self.width, self.height)
+        #Show the world
+        show(self.picture, "World")
+    
+    #Add a turtle
+    #Should only be called by a turtle
+    def addTurtle(self, turtle):
+        self.turtles.add(turtle)
+    
+    def __str__(self):
+        return "A %d by %d world with %d turtles in it."%(self.width,\
+            self.height, len(self.turtles))
+
+#Turtles!
+class Turtle:
+    def __init__(self, world, x = None, y = None):
+        self.world = world
+        self.name = None
+        if x is None:
+            self.x = 320
+            self.y = 240
+        else:
+            self.x = x
+            self.y = y
+        self.heading = 0.
+        world.addTurtle(self)
+    
+    def __str__(self):
+        if self.name is None:
+            name = "No name"
+        else:
+            name = self.name
+        return "%s turtle at %d, %d heading %.1f."%(name, self.x, self.y,\
+            self.heading)
 # 
 # def turn(turtle, degrees=90):
 #     #if not isinstance(turtle, Turtle):
