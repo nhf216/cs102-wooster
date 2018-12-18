@@ -1778,6 +1778,12 @@ class Picture:
             self.width = width.image.width()
             self.filename = width.filename
             self.image = QtGui.QImage(width.image)
+        elif isinstance(width, QtGui.QImage):
+            #We're low level duplicating a picture
+            self.height = width.height()
+            self.width = width.width()
+            self.filename = None
+            self.image = width
         else:
             #We're making a blank picture
             self.filename = None
@@ -3080,17 +3086,29 @@ def duplicatePicture(picture):
     return Picture(picture)
 
 # Alyce Brady/ Pam Cutter: Function that crops a picture
-#def cropPicture(picture, upperLeftX, upperLeftY, width, height):
-#  if not isinstance(picture, Picture):
-#    print "crop(picture, upperLeftX, upperLeftY, width, height): First parameter is not a picture"
-#    raise ValueError
-#  if upperLeftX < 1 or upperLeftX > getWidth(picture):
-#    print "crop(picture, upperLeftX, upperLeftY, width, height): upperLeftX must be within the picture"
-#    raise ValueError
-#  if upperLeftY < 1 or upperLeftY > getHeight(picture):
-#    print "crop(picture, upperLeftX, upperLeftY, width, height): upperLeftY must be within the picture"
-#    raise ValueError
-#  return picture.crop(upperLeftX-1, upperLeftY-1, width, height)
+#Was commented out
+#NEW in media module
+def cropPicture(picture, upperLeftX, upperLeftY, width, height):
+    if not isinstance(picture, Picture):
+        repTypeError("crop(picture, upperLeftX, upperLeftY, width, height): "
+            "First parameter is not a picture")
+    if upperLeftX < 0 or upperLeftX >= getWidth(picture):
+        repValError("crop(picture, upperLeftX, upperLeftY, width, height): "
+            "upperLeftX must be within the picture")
+    if upperLeftY < 0 or upperLeftY >= getHeight(picture):
+        repValError("crop(picture, upperLeftX, upperLeftY, width, height): "
+            "upperLeftY must be within the picture")
+    rect = QtCore.QRect(upperLeftX, upperLeftY, width, height)
+    return Picture(picture.image.copy(rect))
+
+#NEW in media module
+#Crop, but don't care if goes off edge
+def cropPictureWithCutoff(picture, upperLeftX, upperLeftY, width, height):
+    if not isinstance(picture, Picture):
+        repTypeError("crop(picture, upperLeftX, upperLeftY, width, height): "
+            "First parameter is not a picture")
+    rect = QtCore.QRect(upperLeftX, upperLeftY, width, height)
+    return Picture(picture.image.copy(rect))
 
 ##
 # Input and Output interfaces
