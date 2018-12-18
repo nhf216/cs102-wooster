@@ -170,7 +170,7 @@ def reportErrorToUser(errType, msg):
     ok_frames = []
     for frame in stack_sum:
         #Transition criterion from stage 1 to stage 2
-        if stage == 1 and '/media.py' not in frame:
+        if stage == 1 and '%smedia.py'%os.sep not in frame:
             stage = 2
         if stage == 2:
             #Transition criterion from stage 2 to stage 3
@@ -196,6 +196,8 @@ def reportErrorToUser(errType, msg):
     print()
     for frame in ok_frames:
         print(frame)
+    #Pause for a second so the user can think about what they've done
+    sleep(1)
     #Raise the exception
     raise error
 
