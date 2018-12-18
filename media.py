@@ -80,7 +80,7 @@ import threading
 import collections
 #import numbers
 import time
-#import traceback
+import traceback
 #import user
 
 #Don't Use PIL for images
@@ -152,8 +152,50 @@ def isSupportedImageFormat(fname):
 #Error reporting structure
 #Lets us refactor error reporting by changing only one line of code!
 def reportErrorToUser(errType, msg):
-    #print(msg)
-    raise errType(msg)
+    #Create the exception object
+    error = errType(msg)
+    #First, print a nice friendly error message to the user
+    #To do that, we need the current stack
+    stack_sum = list(traceback.format_stack())
+    #Reverse the stack, so we can process it from bottom to top
+    stack_sum.reverse()
+    #Stages:
+    #1: in media.py, don't report errors
+    #2: outside media.py but inside user code, do report errors
+    #3: above user code (e.g. in Canopy code), don't report errors
+    stage = 1
+    #List to include stage 2 frames
+    ok_frames = []
+    for frame in stack_sum:
+        #Transition criterion from stage 1 to stage 2
+        if stage == 1 and '/media.py' not in frame:
+            stage = 2
+        if stage == 2:
+            #Transition criterion from stage 2 to stage 3
+            if '<module>' in frame:
+                stage = 3
+                #Make it clear that this is referring to the Command Prompt
+                linebreak_index = frame.find("\n")
+                frame = "  Thing you typed in the Command Prompt" +\
+                    frame[linebreak_index:]
+            ok_frames.append(frame)
+    #We want to display the frames in the correct order, so we reverse again.
+    ok_frames.reverse()
+    #Print the nice message
+    print("An error occurred. You are about to get a scary Python traceback.")
+    print("But first, here's some info in English to help you out.")
+    print()
+    print("The error message is:\n  %s"%msg)
+    print()
+    print("The error type is:\n  %s"%type(error).__name__)
+    print()
+    print("The following are the primary places you should look "
+        "for the mistake:")
+    print()
+    for frame in ok_frames:
+        print(frame)
+    #Raise the exception
+    raise error
 
 #Shortcut for ValueError reporting
 def repValError(msg):
@@ -786,6 +828,8 @@ def makeSound(filename):
         :return: the sound created from the file at the given path
     """
     global mediaFolder
+    if not isinstance(filename, str):
+        repTypeError("makeSound(filename): argument not a string: "+str(filename))
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
     if not os.path.isfile(filename):
@@ -2074,6 +2118,8 @@ def makePicture(filename):
     Developer documentation:
     '''
     global mediaFolder
+    if not isinstance(filename, str):
+        repTypeError("makePicture(filename): argument not a string: "+str(filename))
     if not os.path.isabs(filename):
         filename = mediaFolder + filename
     if not os.path.isfile(filename):
