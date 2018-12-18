@@ -3096,7 +3096,7 @@ def cropPicture(picture, upperLeftX, upperLeftY, width, height):
         repValError("crop(picture, upperLeftX, upperLeftY, width, height): "
             "upperLeftX must be within the picture")
     if upperLeftY < 0 or upperLeftY >= getHeight(picture):
-        repValError("crop(picture, upperLeftX, upperLeftY, width, height): "
+        repValError("cropPicture(picture, upperLeftX, upperLeftY, width, height): "
             "upperLeftY must be within the picture")
     rect = QtCore.QRect(upperLeftX, upperLeftY, width, height)
     return Picture(picture.image.copy(rect))
@@ -3105,10 +3105,35 @@ def cropPicture(picture, upperLeftX, upperLeftY, width, height):
 #Crop, but don't care if goes off edge
 def cropPictureWithCutoff(picture, upperLeftX, upperLeftY, width, height):
     if not isinstance(picture, Picture):
-        repTypeError("crop(picture, upperLeftX, upperLeftY, width, height): "
+        repTypeError("cropPictureWithCutoff(picture, upperLeftX, upperLeftY, width, height): "
             "First parameter is not a picture")
     rect = QtCore.QRect(upperLeftX, upperLeftY, width, height)
     return Picture(picture.image.copy(rect))
+
+#NEW in media module
+#Scale a picture by a given factor
+#If smooth is True, will apply a smoothing filter
+#Default is False for smooth
+#MUCH faster than anything you can write high-level
+def scalePicture(picture, factor, smooth = False):
+    if not isinstance(picture, Picture):
+        repTypeError("scalePicture(picture, factor): "
+            "First parameter is not a picture")
+    if not isinstance(factor, float) and not isinstance(factor, int):
+        repTypeError("scalePicture(picture, factor): "
+            "Second parameter is not a number")
+    if factor <= 0:
+        repValError("scalePicture(picture, factor): "
+            "Second parameter must be nonnegative")
+    if not isinstance(smooth, bool):
+        repTypeError("scalePicture(picture, factor, smooth): "
+            "smooth is not a boolean")
+    if smooth:
+        filt = QtCore.Qt.SmoothTransformation
+    else:
+        filt = QtCore.Qt.FastTransformation
+    return Picture(picture.image.scaledToHeight(int(getHeight(picture) *\
+        factor), filt))
 
 ##
 # Input and Output interfaces
