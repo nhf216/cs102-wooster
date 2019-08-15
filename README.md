@@ -19,6 +19,7 @@ Finally, here are a few design choices that are different from JES:
 - Avoid using the `sleep` function from Python's `time` module when creating animations with the `media` module. Instead, use the `media` module's own `sleep` function, which continues to play any currently playing sounds while waiting for the next image update.
 - JES only supports JPEG images. Our `media` module supports most common image file types. PNGs are the most reliable, especially on Windows.
 - JES only supports mono channel WAV sounds with 22050 samples per second. Our `media` module still only supports WAV files, but it supports a wider range of sample rates, and it supports stereo. Just be careful when operating on multiple sounds to ensure that they have the same metadata, or the result will be weird. When in doubt, it is recommended to use mono and 22050 samples per second for everything.
+- Interaction with someting that JES calls a "media folder" is different in our `media` module. With this codebase, the file chooser remembers where you last chose a file from unless you explicitly instruct it not to by using `setMediaFolder([directory])`, `setMediaPath([file])`, or `rememberLastFilePath(false)`.
 
 ## Notable Additions to JES
 Our codebase implements a number of additional media functions that JES does not have.
