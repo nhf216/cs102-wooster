@@ -101,6 +101,7 @@ except ImportError:
     import PIL
 
 import wave #This is for reading sound file metadata
+
 # Create an PyQt application object.
 #If we're running in Canopy, there already is one
 root = QtWidgets.QApplication.instance()
@@ -1942,6 +1943,9 @@ class Picture:
     #Print the picture in Canopy
     #TODO make Windows-friendly
     def printPicture(self):
+        if Qt_VERSION == 5:
+            print("This functionality is not supported")
+            return
         #return self.image
         #Canopy prints out PIL images nicely
         #So, we'll convert to and return a PIL image
